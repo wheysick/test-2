@@ -188,3 +188,93 @@ html[data-checkout-open="1"] [data-hide-on-checkout] { display: none !important;
 
 /* Totals “label + value” spacing if your labels are separate nodes */
 #coItemsLine { display: inline; } /* computed text begins with a space now */
+
+/* ===== checkout3.css v2.6 — fullscreen + tidy forms + step-scoped price line ===== */
+
+/* Backdrop & panel */
+#checkoutModal { display:none; }
+#checkoutModal.show { display:block; }
+#checkoutModal.co-fullscreen{
+  position:fixed; inset:0; z-index:999999;
+  display:flex; align-items:stretch; justify-content:center;
+  background:rgba(0,0,0,.6);
+}
+#checkoutModal.co-fullscreen .co-panel{
+  background:#0f1115; color:#eaecef;
+  width:100%; max-width:980px; height:100%; overflow:auto;
+  border-radius:14px; box-shadow:0 14px 48px rgba(0,0,0,.35);
+}
+
+/* Close button pinned top-right */
+#checkoutClose{
+  position:fixed; top:16px; right:16px; z-index:1000000;
+  width:44px; height:44px; border-radius:999px; border:none;
+  display:flex; align-items:center; justify-content:center;
+  background:#111; color:#fff; cursor:pointer;
+  box-shadow:0 6px 18px rgba(0,0,0,.35);
+}
+
+/* Steps */
+.co-step[aria-hidden="true"], .co-step[hidden]{ display:none !important; }
+.co-step .co-title{ font-weight:800; font-size:22px; margin:18px; text-align:center; }
+
+/* Step 1 — left-aligned labels, tidy grid */
+.co-form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px 14px; margin:12px 18px; }
+@media (max-width:680px){ .co-form-grid{ grid-template-columns:1fr; } }
+.co-field{ display:flex; flex-direction:column; }
+.co-field label{ font-size:13px; margin-bottom:6px; text-align:left; }
+.co-field input, .co-field select{
+  width:100%; padding:10px 12px; border-radius:10px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.04); color:#eaecef;
+}
+.co-field input:focus, .co-field select:focus{ border-color:#a855f7; }
+
+/* Step 2 — qty + price line (non-sticky) */
+#coQtyRow{ margin:12px 18px 6px; display:flex; align-items:center; gap:10px; justify-content:center; }
+.co-qty-btn{ width:42px; height:42px; display:inline-flex; align-items:center; justify-content:center;
+  border-radius:10px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); cursor:pointer; }
+#coQty{ width:72px; text-align:center; padding:10px 0; border-radius:10px; border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.04); color:#eaecef; }
+
+.co-price-line{ margin:10px 18px 12px; text-align:center; }
+.co-price .co-was{ text-decoration:line-through; opacity:.55; margin-right:8px; }
+.co-price .co-now{ font-weight:800; }
+
+/* Payment methods */
+.co-methods{ margin:14px 18px 6px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+@media (max-width:680px){ .co-methods{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+.co-method{ border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.04); color:#eaecef; padding:12px; border-radius:12px; cursor:pointer; }
+.co-method[aria-selected="true"]{ border-color:#ff3ea5; box-shadow:0 0 0 2px rgba(255,62,165,.25) inset; }
+
+/* Totals */
+.co-totals{ margin:12px 18px 18px; padding:12px 14px; border-radius:12px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.12); }
+.co-totals .row{ display:flex; justify-content:space-between; gap:12px; padding:6px 0; }
+.co-totals .label{ opacity:.8; }
+.co-totals .value{ font-variant-numeric:tabular-nums; }
+.co-totals .row.total{ border-top:1px dashed rgba(255,255,255,.12); margin-top:8px; padding-top:10px; font-weight:800; }
+
+/* Actions (always visible at bottom of panel) */
+.co-actions{ position:sticky; bottom:0; background:rgba(15,17,21,.75); backdrop-filter:blur(6px);
+  padding:12px 18px; z-index:2; box-shadow:0 -8px 20px rgba(0,0,0,.15); display:flex; gap:10px; justify-content:flex-end; }
+#coToStep3,#coBackTo1,#coBackTo2,#coSubmit{ display:inline-flex !important; align-items:center; justify-content:center;
+  border-radius:10px; padding:12px 16px; font-weight:700; border:none; cursor:pointer; }
+#coToStep3:disabled{ opacity:.5; cursor:not-allowed; }
+.btn-primary{ background:#a855f7; color:#fff; }
+.btn-ghost{ background:transparent; color:#eaecef; border:1px solid rgba(255,255,255,.18); }
+
+/* Step 3 card form */
+.cardset{ margin:8px 18px 18px; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.12); }
+.cardset legend{ padding:0 6px; }
+.co-row{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+@media (max-width:680px){ .co-row{ grid-template-columns:1fr; } }
+
+/* Scoped sticky-price killer (only in fullscreen) */
+#checkoutModal.co-fullscreen #coStickyPrice,
+#checkoutModal.co-fullscreen [data-sticky="price"]{ display:none !important; }
+
+/* Hide page CTAs when checkout open (CSS-side too) */
+html[data-checkout-open="1"] .adv-cta,
+html[data-checkout-open="1"] .hero-cta,
+html[data-checkout-open="1"] .cta,
+html[data-checkout-open="1"] [data-hide-on-checkout]{ display:none !important; }
