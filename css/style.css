@@ -1,4 +1,4 @@
-/* ===== style.css v5.5 — Premium advertorial + mobile brand + faster marquee ===== */
+/* ===== style.css v5.7 — Desktop reviews rail + FAQ accordion + marquee + hides ===== */
 :root{
   --bg:#0a0c10;
   --surface:#0e1116;
@@ -10,6 +10,7 @@
   --accent2:#FA71CD;
   --radius:16px;
   --wrap:max(320px, min(920px, 94vw));
+  --wrap-wide:max(320px, min(1200px, 94vw));
   --shadow:0 22px 60px rgba(0,0,0,.55);
   --font:Inter, ui-sans-serif, system-ui, Segoe UI, Arial, sans-serif;
   --h1:clamp(28px, 4vw, 44px);
@@ -23,9 +24,6 @@
 html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
 a{color:#98b7ff;text-decoration:none}
 a:hover{text-decoration:underline}
-
-/* Layout wrapper */
-.wrap{width:var(--wrap);margin:0 auto;padding:0 0 80px}
 
 /* ---------- Masthead ---------- */
 .masthead{ position:sticky; top:0; z-index:50; border-bottom:1px solid var(--border); background:linear-gradient(180deg,#0b0d12,#0b0d12cc 70%,transparent); backdrop-filter:blur(8px); }
@@ -42,7 +40,7 @@ a:hover{text-decoration:underline}
   .masthead-cta:hover{ filter:brightness(1.06) }
 }
 
-/* Mobile brand bar + marquee (faster loop) */
+/* Mobile brand bar + marquee (1.25x speed) */
 .masthead-mobile-brand{ display:none; text-align:center; padding:10px 0; font-weight:900; }
 .masthead-marquee{ display:none; width:100%; overflow:hidden; border-top:1px solid var(--border); border-bottom:1px solid var(--border); background:#0b0d12; }
 @media (max-width:900px){
@@ -50,26 +48,30 @@ a:hover{text-decoration:underline}
   .masthead-mobile-brand{ display:block; }
   .masthead-marquee{ display:block; }
   .marquee-track{ display:flex; gap:28px; align-items:center; white-space:nowrap; will-change:transform;
-    animation: marquee-left 19.2s linear infinite; padding:8px 12px; } /* 1.25x speed (24s → 19.2s) */
+    animation: marquee-left 19.2s linear infinite; padding:8px 12px; }
   .marquee-seg{ display:inline-flex; align-items:center; gap:10px; }
   .marquee-seg .sep{ opacity:.55; }
   @keyframes marquee-left{ 0%{ transform: translateX(0); } 100%{ transform: translateX(-50%); } }
   @media (prefers-reduced-motion:reduce){ .marquee-track{ animation:none; } }
 }
 
-/* ---------- Article ---------- */
+/* ---------- Layout with reviews rail ---------- */
+.layout{ width:var(--wrap-wide); margin:0 auto; display:grid; grid-template-columns:1fr; gap:24px; }
+@media (min-width:1100px){ .layout{ grid-template-columns: minmax(0,1fr) 320px; align-items:start; } }
+
+/* Article */
 .article{line-height:1.65}
 .article, .article p, .article li, .article h2, .article .byline { color: var(--ink) !important; }
 .article .kicker{font-size:var(--kicker);color:#ffd2f3;letter-spacing:.3px;margin:24px 0 6px;text-transform:uppercase}
 .article .headline{font-size:var(--h1);line-height:1.15;margin:6px 0 8px}
 .byline{opacity:.85;font-size:14px}
 
-/* Hero left-aligned with caption directly under */
+/* Hero */
 .hero{ margin:18px 0; display:flex; flex-direction:column; align-items:flex-start; }
 .hero img{ width:100%; max-width:760px; border-radius:12px; display:block; box-shadow:0 14px 38px rgba(0,0,0,.4) }
 .hero figcaption{ font-size:13px; color:var(--ink-dim); margin-top:6px; text-align:left; width:100%; max-width:760px; }
 
-/* Product/inline image: left aligned on desktop */
+/* Product/inline image */
 .inline-img{ margin:18px 0; display:flex; flex-direction:column; align-items:stretch; }
 .inline-img img{ width:100%; max-width:540px; border-radius:12px; display:block }
 .inline-img .coa-link{ margin-top:8px; font-size:14px; color:#bcd2ff; }
@@ -81,41 +83,55 @@ a:hover{text-decoration:underline}
 .article li{margin:6px 0}
 .note.small{font-size:13px;color:var(--ink-dim)}
 
-.pullquote{border-left:4px solid var(--accent);padding:8px 14px;margin:18px 0;background:rgba(255,255,255,.04);border-radius:8px}
-.pullquote p{font-size:18px;margin:0}
-.pullquote cite{font-size:13px;opacity:.8}
+/* FAQ Accordion (lux) */
+.faq{ margin-top:28px }
+.faq h2{margin-bottom:10px}
+details.faq-item{ border:1px solid var(--border); border-radius:14px; background:#0f1218; margin:10px 0; overflow:hidden; }
+details.faq-item[open]{ box-shadow:0 12px 28px rgba(0,0,0,.3); }
+details.faq-item summary{ list-style:none; cursor:pointer; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; }
+details.faq-item summary::-webkit-details-marker{ display:none }
+.faq-q{ font-weight:800; }
+.faq-arrow{ width:22px; height:22px; border-radius:999px; display:grid; place-items:center; background:rgba(255,255,255,.06); border:1px solid var(--border); transition:transform .18s ease; }
+details.faq-item[open] .faq-arrow{ transform:rotate(90deg) }
+.faq-body{ padding:0 16px 14px; color:var(--ink-dim); font-size:15px }
 
-.references li{color:var(--ink-dim)}
-
-/* End-of-article desktop CTA block */
-.desktop-cta-block{display:none}
-@media (min-width:900px){
-  .desktop-cta-block{ display:flex; align-items:center; justify-content:center; margin:28px 0 8px; padding:18px; background:var(--surface); border:1px solid var(--border); border-radius:14px; }
-  .desktop-cta-block .btn-main{ font-size:16px; padding:14px 22px }
+/* Reviews rail */
+.reviews-rail{ display:none; }
+@media (min-width:1100px){
+  .reviews-rail{ display:block; position:sticky; top:86px; max-height:calc(100vh - 100px); overflow:auto; padding-bottom:60px; }
 }
+.review-card{ background:#0f1218; border:1px solid var(--border); border-radius:14px; padding:12px 12px 10px; margin-bottom:12px; box-shadow:0 12px 28px rgba(0,0,0,.25); }
+.review-hdr{ display:flex; align-items:center; gap:10px; }
+.rev-avatar{ width:36px; height:36px; border-radius:999px; background:linear-gradient(180deg,#222833,#11161e); display:grid; place-items:center; color:#d1d5db; font-weight:800; }
+.rev-meta{ display:flex; flex-direction:column; gap:2px; }
+.rev-name{ font-weight:800; }
+.rev-loc{ font-size:12px; opacity:.85 }
+.stars{ color:#ffcc66; font-size:13px; }
+.badge{ background:#0d1f12; color:#8cffb1; border:1px solid rgba(0,255,127,.25); font-size:11px; padding:2px 6px; border-radius:999px; display:inline-flex; align-items:center; gap:6px; }
+.rev-body{ font-size:14px; margin:8px 0 6px; color:#e4e7ee; }
+.rev-actions{ display:flex; gap:8px; }
+.rev-actions button{ font-size:12px; background:#151a22; color:#cdd2df; border:1px solid var(--border); border-radius:8px; padding:6px 8px; cursor:pointer; }
+.rev-actions button:hover{ filter:brightness(1.08) }
 
 /* Footer */
 .site-footer{border-top:1px solid var(--border);padding:24px 0;margin-top:40px;text-align:center;color:var(--ink-dim)}
-
-/* Share rail */
-.share-rail{position:fixed;left:14px;top:120px;display:flex;flex-direction:column;gap:10px}
-@media (max-width:960px){.share-rail{display:none}}
-.share-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:10px;background:var(--surface);border:1px solid var(--border);box-shadow:0 10px 24px rgba(0,0,0,.3)}
-.share-icon:hover{border-color:#99a3ff}
 
 /* Floating CTA (mobile only) */
 .floating-cta{ position:fixed; bottom:16px; left:50%; transform:translateX(-50%); z-index:2147483647;
   background:linear-gradient(90deg,var(--accent),var(--accent2)); color:#fff; font-weight:800;
   border:none; border-radius:999px; padding:14px 22px; box-shadow:0 16px 36px rgba(250,113,205,.3); touch-action:manipulation; }
 @media (min-width:900px){.floating-cta{display:none}}
-/* Hide mobile CTA when checkout is open */
-html[data-checkout-open="1"] .floating-cta{ display:none !important; }
 
-/* Toasts / view popup should not steal taps */
-.toasts{position:fixed;right:16px;bottom:80px;display:flex;flex-direction:column;gap:10px;z-index:70;pointer-events:none}
-.view-popup{position:fixed;right:16px;bottom:20px;z-index:70;display:none;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px 12px;color:var(--ink);pointer-events:none}
-.view-popup.show{display:flex}
-.view-popup button{background:transparent;border:none;color:#fff;cursor:pointer;pointer-events:auto}
+/* Hide page CTAs whenever checkout is open */
+html[data-checkout-open="1"] .floating-cta,
+html[data-checkout-open="1"] .masthead-cta,
+html[data-checkout-open="1"] .desktop-cta-block{ display:none !important; }
+
+/* Share rail */
+.share-rail{position:fixed;left:14px;top:120px;display:flex;flex-direction:column;gap:10px}
+@media (max-width:1100px){.share-rail{display:none}}
+.share-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:10px;background:var(--surface);border:1px solid var(--border);box-shadow:0 10px 24px rgba(0,0,0,.3)}
+.share-icon:hover{border-color:#99a3ff}
 
 /* Utility */
 .hidden{display:none!important}
