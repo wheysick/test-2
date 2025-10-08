@@ -1,4 +1,4 @@
-/* ===== checkout3.css v5.5 — Step 2 horizontal strip, method error, Step 3 wallets ===== */
+/* ===== checkout3.css v5.7 — Step 2 arrows + polish ===== */
 :root{
   --panel:#0F1319; --fg:#E9ECF2; --muted:rgba(255,255,255,.06); --border:rgba(255,255,255,.12);
   --accent:#C471F5; --accent2:#FA71CD; --radius:16px; --pad:clamp(18px,3.2vw,28px);
@@ -9,7 +9,7 @@
 #checkoutModal.show{display:flex!important;}
 #checkoutModal.co-fullscreen{ position:fixed; inset:0; z-index:999999; align-items:center; justify-content:center; background:rgba(10,12,16,.86); }
 #checkoutModal .modal-content.checkout-card{
-  width:min(92vw,600px); max-height:calc(100dvh - 4rem);
+  width:min(92vw,640px); max-height:calc(100dvh - 4rem);
   background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0)), var(--panel);
   color:var(--fg); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius);
   box-shadow:var(--shadow); overflow:auto; overflow-x:hidden; overscroll-behavior:contain; padding:28px var(--pad) 60px;
@@ -50,27 +50,26 @@
 /* Savings note */
 .co-savings-note{ margin:6px 0 10px; font-size:12px; opacity:.8; }
 
-/* Horizontal payment strip (scrollable on mobile) */
-.co-xpay-strip{
-  display:flex; gap:12px; overflow-x:auto; padding:2px 2px 6px; -webkit-overflow-scrolling:touch; scroll-snap-type:x mandatory;
-}
-.co-xpay-strip::-webkit-scrollbar{height:0}
-.co-xpay{
-  border:none; border-radius:14px; padding:10px 12px; min-width:180px; 
-  display:flex; align-items:center; justify-content:flex-start; gap:10px; cursor:pointer; color:#fff; font-weight:800; scroll-snap-align:center;
-}
+/* Sliding strip w/ arrows */
+.co-xpay-wrap{ position:relative; }
+.co-xpay-strip{ display:flex; gap:12px; overflow-x:auto; padding:2px 2px 6px; -webkit-overflow-scrolling:touch; scroll-snap-type:x mandatory; }
+.co-xpay-strip::-webkit-scrollbar{ height:0 }
+.co-xpay{ border:none; border-radius:14px; padding:10px 12px; min-width:180px; display:flex; align-items:center; justify-content:flex-start; gap:10px; cursor:pointer; color:#fff; font-weight:800; scroll-snap-align:center; }
 .co-xpay .pm-icon{ width:24px; height:24px; object-fit:contain; display:block; }
 .co-xpay .label{ font-weight:800; }
-
 .co-xpay.paypal{ background:var(--pp); color:#003087; }
 .co-xpay.venmo{ background:var(--vm); color:#fff; }
 .co-xpay.cashapp{ background:var(--ca); color:#003b12; }
 .co-xpay.crypto{ background:var(--cp); color:#cbd5e1; }
 
+.xpay-nav{ display:none; position:absolute; top:50%; transform:translateY(-50%); width:36px; height:36px; border-radius:999px; border:1px solid rgba(255,255,255,.2); background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,0)); color:#fff; box-shadow:0 10px 24px rgba(0,0,0,.35); cursor:pointer; align-items:center; justify-content:center; }
+.xpay-nav svg{ width:18px; height:18px; }
+.xpay-nav.prev{ left:-6px; }
+.xpay-nav.next{ right:-6px; }
+@media (min-width:800px){ .xpay-nav{ display:flex; } }
+
 /* Selected halo */
-.co-xpay[aria-selected="true"], .co-xpay-primary[aria-selected="true"]{
-  outline:3px solid rgba(196,113,245,.35); outline-offset:2px;
-}
+.co-xpay[aria-selected="true"]{ outline:3px solid rgba(196,113,245,.35); outline-offset:2px; }
 
 /* Totals */
 .co-totals{border:1px solid var(--border); border-radius:14px; background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0)); padding:14px 16px; text-align:left; margin-top:12px;}
