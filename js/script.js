@@ -1,4 +1,4 @@
-/* ===== script.js v6.2 — per-hour countdown + announcer arrows only ===== */
+/* ===== script.js v6.3 — per-hour countdown + announcer arrows-only ===== */
 (function(){
   const yEl = document.getElementById('year'); if (yEl) yEl.textContent = new Date().getFullYear();
   const dateEl = document.getElementById('todayDate'); if (dateEl) dateEl.textContent = new Date().toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'});
@@ -7,16 +7,13 @@
   function tick(){
     const now = new Date();
     const next = new Date(now);
-    next.setHours(now.getHours()+1,0,0,0); // top of next hour
+    next.setHours(now.getHours()+1,0,0,0);
     let ms = Math.max(0, next - now);
-    const h = String(Math.floor(ms/3.6e6)).padStart(2,'0'); // will be "00"
+    const h = String(Math.floor(ms/3.6e6)).padStart(2,'0');
     const m = String(Math.floor(ms%3.6e6/6e4)).padStart(2,'0');
     const s = String(Math.floor(ms%6e4/1e3)).padStart(2,'0');
     const t = `${h}:${m}:${s}`;
-
-    const targets = document.querySelectorAll('#countdown,[data-countdown]');
-    targets.forEach(n=>n.textContent = t);
-
+    document.querySelectorAll('#countdown,[data-countdown]').forEach(n=>n.textContent=t);
     requestAnimationFrame(tick);
   }
   tick();
@@ -39,7 +36,7 @@
     next?.addEventListener('click', ()=>{ idx = (idx+1)%messages.length; render(); start(); });
   }
 
-  // COA flip (unchanged)
+  // COA flip
   const productImg = document.getElementById('productImg');
   const coaLink = document.getElementById('coaLink');
   const productSrc = productImg?.getAttribute('data-src') || productImg?.src || '';
