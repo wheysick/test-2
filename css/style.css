@@ -1,4 +1,4 @@
-/* ===== style.css v5.2 — Base advertorial styles (readable, premium, dark) ===== */
+/* ===== style.css v5.3 — Base advertorial (premium, high contrast) ===== */
 :root{
   --bg:#0a0c10;
   --surface:#0e1116;
@@ -39,6 +39,15 @@ a:hover{text-decoration:underline}
 .brand{font-weight:900;letter-spacing:.4px;flex:0 0 auto;}
 .masthead-meta{opacity:.9;font-size:13px;display:flex;gap:8px;align-items:center;justify-content:center;flex:1 1 auto;}
 .dot{opacity:.5}
+
+@media (max-width:900px){
+  .masthead-inner{flex-direction:column;align-items:center;justify-content:center;text-align:center;}
+  .masthead .brand::after{
+    content:"•"; display:block; color:var(--ink-dim); opacity:.7; margin:4px 0; font-size:18px; line-height:1;
+  }
+  .masthead-meta{justify-content:center;}
+}
+
 #scrollProgress{position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));transform:scaleX(0);transform-origin:left;}
 
 /* Desktop header CTA */
@@ -63,12 +72,16 @@ a:hover{text-decoration:underline}
 .article .headline{font-size:var(--h1);line-height:1.15;margin:6px 0 8px}
 .byline{opacity:.85;font-size:14px}
 
-.hero{margin:18px 0}
-.hero img{width:100%;border-radius:12px;display:block;box-shadow:0 14px 38px rgba(0,0,0,.4)}
-.hero figcaption{font-size:13px;color:var(--ink-dim);margin-top:6px}
+/* Hero and product images scale down on desktop */
+.hero{margin:18px 0; display:flex; justify-content:center;}
+.hero img{width:100%; max-width:760px; border-radius:12px; display:block; box-shadow:0 14px 38px rgba(0,0,0,.4)}
+.hero figcaption{font-size:13px;color:var(--ink-dim);margin-top:6px;text-align:center}
 
-.inline-img{margin:18px 0}
-.inline-img img{width:100%;border-radius:12px;display:block}
+.inline-img{margin:18px 0; display:flex; justify-content:center; flex-direction:column; align-items:center;}
+.inline-img img{width:100%; max-width:540px; border-radius:12px; display:block}
+.inline-img .coa-link{ margin-top:8px; font-size:14px; color:#bcd2ff; }
+.inline-img .coa-link a{ color:#bcd2ff; text-decoration:none; border-bottom:1px dotted #bcd2ff; }
+.inline-img .coa-link a:hover{ text-decoration:underline; }
 
 .article h2{font-size:var(--h2);margin:26px 0 8px}
 .article ul, .article ol{padding-left:20px}
@@ -114,10 +127,11 @@ a:hover{text-decoration:underline}
   touch-action:manipulation;
 }
 @media (min-width:900px){.floating-cta{display:none}}
+/* Hide mobile CTA when checkout is open */
+html[data-checkout-open="1"] .floating-cta{ display:none !important; }
 
-/* Toast placeholder */
+/* Toasts / view popup should not steal taps */
 .toasts{position:fixed;right:16px;bottom:80px;display:flex;flex-direction:column;gap:10px;z-index:70;pointer-events:none}
-/* View popup */
 .view-popup{position:fixed;right:16px;bottom:20px;z-index:70;display:none;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px 12px;color:var(--ink);pointer-events:none}
 .view-popup.show{display:flex}
 .view-popup button{background:transparent;border:none;color:#fff;cursor:pointer;pointer-events:auto}
