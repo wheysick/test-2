@@ -1,4 +1,4 @@
-/* ===== script.js v5.7 — date, countdown (multi-target), COA flip ===== */
+/* ===== script.js v6.0 — date, countdown (multi-target), COA flip, mobile announcer ===== */
 (function(){
   const today = new Date();
   const fmtDate = {year:'numeric', month:'long', day:'numeric'};
@@ -42,5 +42,23 @@
         productImg.style.transform = 'rotateY(0deg)';
       }, 260);
     });
+  }
+
+  // Mobile announcement rotator with arrows
+  const ann = document.querySelector('.announcer');
+  if (ann){
+    const msgEl = ann.querySelector('.announce-msg');
+    const prev = ann.querySelector('.ann-prev');
+    const next = ann.querySelector('.ann-next');
+    const messages = [
+      `Free sample ends in <strong data-countdown>00:00:00</strong>`,
+      `Shipping cutoff: <strong>midnight</strong>`
+    ];
+    let idx = 0, timer;
+    const render = () => { msgEl.innerHTML = messages[idx]; };
+    const start = () => { clearInterval(timer); timer = setInterval(()=>{ idx = (idx+1)%messages.length; render(); }, 5000); };
+    render(); start();
+    prev?.addEventListener('click', ()=>{ idx = (idx-1+messages.length)%messages.length; render(); start(); });
+    next?.addEventListener('click', ()=>{ idx = (idx+1)%messages.length; render(); start(); });
   }
 })();
