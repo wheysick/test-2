@@ -95,3 +95,10 @@ input:focus, select:focus { border-color:#ff2a6d; box-shadow:0 0 0 3px rgba(255,
 body.modal-open .floating-cta {
   display: none !important;
 }
+
+/* More space before the primary button on Step 1 */
+#coStep1 .co-row { margin-bottom: .6rem; }
+#coStep1 .co-next.btn-main { margin-top: 1rem; }
+
+/* Consistent spacing on all steps */
+.co-actions { margin-top: 1rem; }
