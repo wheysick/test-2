@@ -102,3 +102,45 @@ body.modal-open .floating-cta {
 
 /* Consistent spacing on all steps */
 .co-actions { margin-top: 1rem; }
+
+/* v1.7 – Qty, pricing & totals */
+.co-h3 { text-align:center; font-weight:900; margin:.1rem 0 .6rem; }
+
+.co-qty {
+  display:flex; align-items:center; justify-content:center; gap:.5rem;
+  margin:.2rem 0 .2rem;
+}
+.qty-btn {
+  width:42px; height:42px; border-radius:10px; border:1px solid #2a2b31; background:#1b1c22; color:#fff;
+  font-weight:900; font-size:1.15rem; cursor:pointer;
+}
+#coQty {
+  width:72px; text-align:center; border:1px solid #2a2b31; border-radius:10px; background:#111218; color:#e8e8ea;
+  padding:.55rem .4rem; font-size:16px;
+}
+
+.co-free { text-align:center; color:#cfcfd3; margin:.1rem 0 .5rem; }
+.co-free strong { color:#fff; }
+
+.co-price { display:flex; align-items:baseline; justify-content:center; gap:.5rem; margin:.1rem 0 .6rem; }
+.co-price .was { color:#a7a7ad; text-decoration: line-through; }
+.co-price .now { font-weight:900; color:#ffd1e0; }
+.co-price .per { color:#cfcfd3; }
+
+.co-methods--tight { margin-top:.25rem; }
+.co-methods--tight .co-method { padding:.7rem .85rem; }
+
+.co-totals {
+  margin:.7rem 0 0; padding:.7rem .9rem; border:1px solid #2a2b31; border-radius:12px; background:#1b1c22;
+  display:grid; gap:.45rem; font-weight:700; color:#e8e8ea;
+}
+.co-totals > div { display:flex; justify-content:space-between; align-items:center; }
+.co-totals .co-total-row { border-top:1px dashed #2a2b31; padding-top:.55rem; font-size:1.05rem; }
+.co-free-ship { color:#34d399; font-weight:900; }
+
+@media (max-width:560px){
+  .co-methods { grid-template-columns:1fr 1fr; }
+}
+@media (max-width:420px){
+  .co-methods { grid-template-columns:1fr; }
+}
