@@ -181,34 +181,58 @@
 </form>
 
       <!-- Step 2: Payment Method -->
-      <section id="coStep2" class="co-pane" hidden aria-hidden="true">
-        <div class="co-methods">
-          <button class="co-method" data-method="card">
-            <div class="co-title">Credit / Debit Card</div>
-            <div class="co-badge">Popular</div>
-          </button>
-          <button class="co-method" data-method="venmo">
-            <div class="co-title">Venmo</div>
-            <div class="co-discount">10% off</div>
-          </button>
-          <button class="co-method" data-method="cashapp">
-            <div class="co-title">Cash App</div>
-            <div class="co-discount">10% off</div>
-          </button>
-          <button class="co-method" data-method="paypal">
-            <div class="co-title">PayPal</div>
-            <div class="co-discount">10% off</div>
-          </button>
-          <button class="co-method" data-method="crypto">
-            <div class="co-title">Crypto</div>
-            <div class="co-discount">15% off</div>
-          </button>
-        </div>
-        <div class="co-actions">
-          <button class="btn-main btn-lg co-next" id="coToStep3" disabled>Continue</button>
-          <button class="btn-main btn-sm co-back" id="coBackTo1" type="button">Back</button>
-        </div>
-      </section>
+<section id="coStep2" class="co-pane" hidden aria-hidden="true">
+  <h3 class="co-h3">How Many Bottles Do You Want?</h3>
+
+  <!-- Qty selector -->
+  <div class="co-qty">
+    <button type="button" class="qty-btn qty-dec" aria-label="Decrease">−</button>
+    <input type="text" id="coQty" value="1" inputmode="numeric" aria-label="Quantity">
+    <button type="button" class="qty-btn qty-inc" aria-label="Increase">+</button>
+  </div>
+  <p class="co-free">You get <strong><span id="coFreeQty">1</span> FREE</strong> (match of your selection)</p>
+
+  <!-- Price per bottle -->
+  <div class="co-price">
+    <span class="was">$90</span>
+    <span class="now">$45</span> <span class="per">/ bottle</span>
+  </div>
+
+  <!-- Methods -->
+  <div class="co-methods co-methods--tight">
+    <button class="co-method" data-method="card"   data-discount="0">
+      <div class="co-title">Credit / Debit Card</div><div class="co-badge">Popular</div>
+    </button>
+    <button class="co-method" data-method="venmo"  data-discount="10">
+      <div class="co-title">Venmo</div><div class="co-discount">10% off</div>
+    </button>
+    <button class="co-method" data-method="cashapp" data-discount="10">
+      <div class="co-title">Cash App</div><div class="co-discount">10% off</div>
+    </button>
+    <button class="co-method" data-method="paypal" data-discount="10">
+      <div class="co-title">PayPal</div><div class="co-discount">10% off</div>
+    </button>
+    <button class="co-method" data-method="crypto" data-discount="15">
+      <div class="co-title">Crypto</div><div class="co-discount">15% off</div>
+    </button>
+  </div>
+
+  <!-- Totals -->
+  <div class="co-totals" role="group" aria-label="Order totals">
+    <div><span>Items</span><span id="coItemsLine">2 bottles (1 paid + 1 free)</span></div>
+    <div><span>Merch (sale)</span><span id="coMerch">$45.00</span></div>
+    <div><span>Method discount</span><span id="coDisc">-$0.00</span></div>
+    <div><span>Tax</span><span id="coTax">$0.00</span></div>
+    <div><span>Shipping</span><span class="co-free-ship">FREE</span></div>
+    <div class="co-total-row"><span>Total</span><span id="coTotal">$45.00</span></div>
+  </div>
+
+  <div class="co-actions">
+    <button class="btn-main btn-lg co-next" id="coToStep3" disabled>Continue</button>
+    <button class="btn-main btn-sm co-back" id="coBackTo1" type="button">Back</button>
+  </div>
+</section>
+
 
       <!-- Step 3: Payment Details (dynamic) -->
       <section id="coStep3" class="co-pane" hidden aria-hidden="true">
