@@ -1,4 +1,4 @@
-/* ===== checkout3.css v6.2 — stock line (no bar), titles ===== */
+/* ===== checkout3.css v6.3 — centered step-3 elements, spacing, OR divider ===== */
 :root{
   --panel:#0F1319; --fg:#E9ECF2; --muted:rgba(255,255,255,.06); --border:rgba(255,255,255,.12);
   --accent:#C471F5; --accent2:#FA71CD; --radius:16px; --pad:clamp(18px,3.2vw,28px);
@@ -21,7 +21,7 @@
 
 /* Inline stock text (no meter) */
 .co-stockline{ text-align:center; font-size:13.5px; opacity:.9; margin:2px 0 10px; }
-.co-stockline .qty{ font-weight:900; animation:pulse 1.4s ease-in-out infinite; }
+.co-stockline .qty{ font-weight:900; animation:pulse 1.2s ease-in-out infinite; }
 @keyframes pulse{ 0%,100%{text-shadow:0 0 0 rgba(255,255,255,0)} 50%{ text-shadow:0 0 10px rgba(255,255,255,.55)} }
 .co-stockline.soldout{ color:#ff9ab3; }
 
@@ -50,7 +50,9 @@
 .co-price .was{margin-right:8px; text-decoration:line-through; opacity:.55;}
 .co-price .now{font-weight:800;}
 
-/* Sliding strip and arrows (unchanged from v8) */
+.co-savings-note{ margin:14px 0 14px; font-size:12.5px; opacity:.9; }
+
+/* Sliding strip and arrows */
 .co-xpay-wrap{ position:relative; margin-top:6px; }
 .co-xpay-strip{ display:flex; gap:12px; overflow-x:auto; padding:2px 2px 6px; -webkit-overflow-scrolling:touch; scroll-snap-type:x mandatory; scrollbar-width:none; }
 .co-xpay-strip::-webkit-scrollbar{ height:0 }
@@ -78,10 +80,10 @@
 .co-actions{ position:sticky; bottom:0; z-index:3; display:flex; justify-content:center; gap:10px; padding:14px var(--pad); background:linear-gradient(180deg,rgba(11,13,17,0),rgba(11,13,17,.88)); backdrop-filter:blur(8px); box-shadow:0 -10px 28px rgba(0,0,0,.35); }
 #coStep2 .co-actions{ position:static; background:none; box-shadow:none; padding:12px 0; }
 
-.co-secure{margin:10px 0 0; text-align:center; opacity:.9; font-size:var(--small);}
+.co-secure, .co-trust{margin:10px 0 0; text-align:center; opacity:.9; font-size:var(--small);}
 
 /* Step 3 */
-.cardset{margin:16px 0; padding:14px; border:1px solid var(--border); border-radius:14px; max-width:100%;}
+.cardset{margin:16px 0 10px; padding:14px; border:1px solid var(--border); border-radius:14px; max-width:100%;}
 .cardset legend{padding:0 6px; font-size:var(--small); opacity:.9;}
 .cardset label{ font-size: var(--small); opacity: .9; display:flex; flex-direction:column; gap:6px; }
 .cardset input{ font-size:16px; padding:12px 14px; border-radius:12px; width:100%; border:1px solid var(--border); background:var(--muted); color:#fff; }
@@ -89,10 +91,14 @@
 .co-row{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; max-width:100%;}
 @media (max-width:640px){.co-row{grid-template-columns:1fr;}}
 
-.co-alt-wallets{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+.co-alt-wallets{ display:flex; gap:10px; flex-wrap:wrap; margin:8px 0 0; justify-content:center; }
 .co-wallet{ border:none; border-radius:12px; padding:10px 14px; display:flex; align-items:center; gap:10px; cursor:pointer; }
 .co-wallet.apple{ background:#000; color:#fff; }
 .co-wallet.gpay{ background:#000; color:#fff; }
+
+/* Divider */
+.co-or{ display:flex; align-items:center; justify-content:center; gap:12px; color:#e9eaf1; opacity:.8; font-weight:900; margin:6px 0 8px; }
+.co-or::before, .co-or::after{ content:""; height:1px; flex:1 1 60px; background:var(--border); }
 
 /* Success */
 .co-success[hidden]{display:none!important;}
