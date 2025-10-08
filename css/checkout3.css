@@ -1,0 +1,68 @@
+
+/* v1.2 tweak: ensure floating CTA can be tapped */
+.floating-cta { pointer-events: auto; }
+
+/* v1.3: ensure view popup doesn't block taps behind it on mobile */
+.view-popup { pointer-events: none; }
+.view-popup button { pointer-events: auto; }
+
+/* ===== checkout3.css v1.4 — Layout fix for Step 1 form ===== */
+
+/* Force single-column grid on Step 1 */
+#coStep1 .co-grid {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: .85rem !important;
+}
+
+/* Make labels stack text above input, never inline */
+.modal-checkout .checkout-card label {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: .35rem !important;
+  font-weight: 800;
+  color: #e9e9ee;
+}
+
+/* Inputs always full width */
+.modal-checkout .checkout-card input,
+.modal-checkout .checkout-card select {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  background:#111218;
+  color:#e8e8ea;
+  border:1px solid #2a2b31;
+  border-radius: 10px;
+  padding: .78rem .9rem;
+  font-size: 16px; /* avoid iOS zoom */
+}
+
+/* Primary button full-width and centered */
+.modal-checkout .co-next.btn-main,
+.modal-checkout .co-submit.btn-main {
+  width: 100% !important;
+  justify-content: center;
+}
+
+/* Stepper align + spacing */
+.modal-checkout .co-steps {
+  grid-template-columns: repeat(3, 1fr);
+  text-align: center;
+}
+.modal-checkout .co-step {
+  padding: .55rem .6rem;
+  font-size: .95rem;
+}
+.modal-checkout .co-step span {
+  margin-right: .2rem;
+}
+
+/* Card max width and inner padding for small screens */
+@media (max-width: 560px) {
+  .modal-checkout .modal-content.checkout-card {
+    width: 92vw;
+    padding: .9rem 1rem 1.1rem;
+  }
+}

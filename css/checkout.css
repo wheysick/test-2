@@ -1,0 +1,81 @@
+
+/* ===== Checkout Modal — v1.1 Fixes ===== */
+.modal-checkout { display:none; z-index: 100001; } /* above other overlays */
+.modal-checkout.show { display:grid; }
+.modal-checkout .modal-content.checkout-card {
+  max-width: 680px;
+  width: 100%;
+  background: #17181f;
+  border: 1px solid #22232a;
+  color: #fff;
+  border-radius: 16px;
+  padding: 1rem 1.1rem 1.2rem;
+}
+
+/* Title */
+.checkout-card h3 { margin: .2rem 0 1rem; font-size: 1.28rem; font-weight: 900; text-align: center; }
+
+/* Form layout */
+#checkoutForm { margin-top: .1rem; }
+.co-grid { display: grid; gap: .8rem; }
+
+/* Labels + inputs */
+.checkout-card label { display: grid; gap: .28rem; font-weight: 800; color: #e9e9ee; }
+.checkout-card input,
+.checkout-card select {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  background:#111218;
+  color:#e8e8ea;
+  border:1px solid #2a2b31;
+  border-radius: 10px;
+  padding: .75rem .85rem;
+  outline: none;
+  transition: border-color .2s ease, box-shadow .2s ease;
+  font-size: 0.98rem;
+}
+.checkout-card input:focus,
+.checkout-card select:focus { border-color:#ff2a6d; box-shadow:0 0 0 3px rgba(255,42,109,.25); }
+
+/* Row with 3 fields: City / State / ZIP */
+.co-row {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 110px 110px;
+  gap: .75rem;
+}
+@media (max-width: 560px) {
+  .co-row { grid-template-columns: minmax(0,1fr) 96px 96px; }
+}
+@media (max-width: 480px) {
+  .co-row { grid-template-columns: 1fr 1fr; }
+  .co-row label:last-child { grid-column: 1 / -1; } /* ZIP drops to new line */
+}
+
+/* Card details block */
+.cardset { border:1px dashed #2a2b31; border-radius: 12px; padding: .85rem; }
+.cardset legend { padding: 0 .35rem; color:#a7a7ad; font-weight: 700; }
+
+/* Terms line — prevent awkward breaks */
+.co-terms {
+  display:flex; gap:.6rem; align-items: flex-start;
+  font-weight: 700; color:#d7d7dc; line-height: 1.5;
+}
+.co-terms input { margin-top: .28rem; flex: 0 0 auto; }
+.co-terms strong { font-weight: 900; }
+.co-terms em { font-style: italic; }
+
+/* Submit + trust */
+.co-submit { width: 100%; margin-top: .65rem; }
+.co-trust  { text-align:center; margin:.6rem 0 0; color:#a7a7ad; }
+
+/* Success state */
+.co-success { text-align:center; padding: .6rem 0 .2rem; }
+.co-success h4 { font-size:1.28rem; margin:.2rem 0 .5rem; }
+#successClose { margin-top: .6rem; }
+
+/* Ensure floating CTA clickable above page content */
+.floating-cta { z-index: 100002; }
+
+/* Make sure modal overlay itself fills viewport and captures clicks */
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,.55); place-items: center; }
