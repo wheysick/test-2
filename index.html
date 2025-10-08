@@ -8,8 +8,8 @@
   <meta name="robots" content="noindex,nofollow" />
   <meta name="theme-color" content="#0a0c10" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <link rel="stylesheet" href="css/style.css?v=600" />
-  <link rel="stylesheet" href="css/checkout3.css?v=600" />
+  <link rel="stylesheet" href="css/style.css?v=620" />
+  <link rel="stylesheet" href="css/checkout3.css?v=620" />
 </head>
 <body class="verge-theme">
   <header class="masthead" role="banner">
@@ -23,7 +23,7 @@
       <a href="#offer" class="masthead-cta open-checkout" data-cta onclick="checkoutOpen();return false;">Claim Free Sample</a>
     </div>
 
-    <!-- Mobile brand line + announcement rotator -->
+    <!-- Mobile brand line + announcement rotator (arrows only) -->
     <div class="masthead-mobile-brand">SELFHACKING</div>
     <div class="announcer" aria-live="polite">
       <button class="ann-prev" aria-label="Previous">‹</button>
@@ -235,18 +235,15 @@
       <!-- Step 2 -->
       <section id="coStep2" class="co-pane" hidden aria-hidden="true">
         <h3 class="co-h3">Buy 1 Get 1 Free</h3>
+        <!-- Inline stock line (fast 5-min countdown) -->
+        <div class="co-stockline" id="coStockLine2"><span class="qty">47</span> left in stock</div>
+
         <div class="co-qty">
           <button type="button" class="qty-btn qty-dec" aria-label="Decrease">−</button>
           <input type="text" id="coQty" value="1" inputmode="numeric" aria-label="Quantity">
           <button type="button" class="qty-btn qty-inc" aria-label="Increase">+</button>
         </div>
         <div class="co-price"><span class="was">$90</span><span class="now">$45</span> <span class="per">/ bottle</span></div>
-
-        <!-- Stock meter (Step 2) -->
-        <div class="co-stock" id="coStock2" role="status" aria-live="polite">
-          <div class="co-stock-bar"><span class="co-stock-fill" style="width:100%"></span></div>
-          <div class="co-stock-label"><span class="qty">47</span> left in stock</div>
-        </div>
 
         <!-- Card primary -->
         <button class="co-xpay co-xpay-primary" data-method="card" data-discount="0" type="button" aria-label="Pay with card" style="background:#5b5bf7;color:#fff;justify-content:center;min-width:unset;width:100%;">
@@ -301,11 +298,8 @@
 
       <!-- Step 3 -->
       <section id="coStep3" class="co-pane" hidden aria-hidden="true">
-        <!-- Stock meter (Step 3) -->
-        <div class="co-stock" id="coStock3" role="status" aria-live="polite">
-          <div class="co-stock-bar"><span class="co-stock-fill" style="width:100%"></span></div>
-          <div class="co-stock-label"><span class="qty">47</span> left in stock</div>
-        </div>
+        <h3 class="co-h3">Complete Order</h3>
+        <div class="co-stockline" id="coStockLine3"><span class="qty">47</span> left in stock</div>
 
         <div id="coPayWrap"></div>
         <div class="co-actions">
@@ -327,7 +321,7 @@
     <p>&copy; <span id="year"></span> Health Template Co.</p>
   </footer>
 
-  <script defer src="js/script.js?v=600"></script>
-  <script defer src="js/checkout3.js?v=600"></script>
+  <script defer src="js/script.js?v=620"></script>
+  <script defer src="js/checkout3.js?v=620"></script>
 </body>
 </html>
