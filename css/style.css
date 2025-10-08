@@ -36,7 +36,7 @@ body.verge-theme{background:var(--bg);color:var(--text);font-family:Inter,system
 .article-hed{margin-top:28px}
 .kicker{color:var(--accent);text-transform:uppercase;font-weight:800;letter-spacing:.16em;font-size:.8rem}
 .headline{font-weight:900;font-size:clamp(1.8rem,2.6vw + 1rem,3rem);line-height:1.1;margin:.3rem 0 .6rem}
-.byline{color:var(--muted);font-weight:600;display:flex;gap:.6rem;flex-wrap:wrap}
+.byline{color:grey;font-weight:600;display:flex;gap:.6rem;flex-wrap:wrap}
 .byline .dot{opacity:.5}
 
 /* Hero */
