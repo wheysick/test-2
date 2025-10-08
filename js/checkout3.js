@@ -145,3 +145,78 @@
 
   updateTotals();
 })();
+
+/* ===== CTA OPEN HOTFIX — paste AFTER your checkout JS ===== */
+(function () {
+  const modal = document.getElementById('checkoutModal');
+  if (!modal) return;
+
+  // Use your existing openModal if present; otherwise minimal fallback
+  function openModalPatched(e) {
+    if (e) { e.preventDefault?.(); e.stopPropagation?.(); }
+    if (typeof openModal === 'function') {
+      return openModal(e);
+    }
+    // Fallback open in case openModal isn't in scope
+    modal.classList.add('show', 'co-fullscreen');
+    document.documentElement.setAttribute('data-checkout-open', '1');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModalPatched() {
+    if (typeof closeModal === 'function') return closeModal();
+    modal.classList.remove('show', 'co-fullscreen');
+    document.documentElement.removeAttribute('data-checkout-open');
+    document.body.style.overflow = '';
+  }
+
+  // Expose for quick testing in console
+  window.checkoutOpen = openModalPatched;
+  window.checkoutClose = closeModalPatched;
+
+  // Very broad selector coverage for CTAs
+  const SEL = [
+    '#floatingCta',
+    '.floating-cta',
+    '.open-checkout',
+    '[data-open-checkout]',
+    '[data-cta]',
+    'button[data-cta]',
+    'a[href="#offer"]',
+    'a[href*="#offer"]',
+    'a[href*="#checkout"]',
+    '#claimCta',
+    '.hero-cta',
+    '.cta'
+  ].join(',');
+
+  function bind() {
+    document.querySelectorAll(SEL).forEach(el => {
+      if (el.__checkoutBound) return;
+      ['click', 'touchstart'].forEach(ev =>
+        el.addEventListener(ev, openModalPatched, { capture: true, passive: false })
+      );
+      el.__checkoutBound = true;
+    });
+  }
+
+  // Initial + dynamic binding
+  bind();
+  new MutationObserver(bind).observe(document.documentElement, {
+    subtree: true,
+    childList: true,
+    attributes: true,
+    attributeFilter: ['href', 'class', 'data-open-checkout', 'data-cta']
+  });
+
+  // Also open on hash changes like #offer / #checkout
+  function hashOpen() {
+    const h = (location.hash || '').toLowerCase();
+    if (h === '#offer' || h === '#checkout' || h === '#claim' || h.includes('offer')) {
+      openModalPatched();
+    }
+  }
+  window.addEventListener('hashchange', hashOpen);
+  hashOpen();
+})();
+
