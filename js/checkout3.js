@@ -1,4 +1,4 @@
-/* ===== checkout3.js v6.0 — polished arrows, stock meter countdown, tweaks ===== */
+/* ===== checkout3.js v6.2 — stock line faster (5min), titles, placement ===== */
 (function(){
   "use strict";
 
@@ -197,37 +197,33 @@
     hide(step3); show(success);
   });
 
-  // -------- Stock meter (shared across steps 2 & 3) --------
+  // -------- Stock line (shared across steps 2 & 3) --------
   let stockInitTime = null, stockEndTime = null, stockStart = 47, stockCurrent = 47, stockTimer = null;
-  const durationMs = 15 * 60 * 1000; // 15 minutes
+  const durationMs = 5 * 60 * 1000; // 5 minutes to zero
 
   function ensureStockUI(){
-    const nodes = [$("#coStock2"), $("#coStock3")].filter(Boolean);
+    const nodes = [$("#coStockLine2"), $("#coStockLine3")].filter(Boolean);
     nodes.forEach(n=>{
-      const fill = n.querySelector(".co-stock-fill");
-      const label = n.querySelector(".co-stock-label");
+      if (!n) return;
       const qtyEl = n.querySelector(".qty");
-      const pct = Math.max(0, (stockCurrent/stockStart)*100);
-      if (fill) fill.style.width = pct+"%";
-      if (qtyEl) qtyEl.textContent = String(stockCurrent);
       if (stockCurrent <= 0){
         n.classList.add("soldout");
-        if (label) label.innerHTML = `Sold out — <strong>Restocks at 9am tomorrow</strong>`;
+        n.innerHTML = `Sold out — <strong>Restocks at 9am tomorrow</strong>`;
       } else {
         n.classList.remove("soldout");
-        if (label) label.innerHTML = `<span class="qty">${stockCurrent}</span> left in stock`;
+        n.innerHTML = `<span class="qty">${stockCurrent}</span> left in stock`;
       }
     });
   }
 
   function startStockCountdown(){
-    if (stockInitTime) return; // already started
+    if (stockInitTime) return; // already running
     stockStart = 47;
     stockCurrent = stockStart;
     stockInitTime = Date.now();
     stockEndTime = stockInitTime + durationMs;
     clearInterval(stockTimer);
-    stockTimer = setInterval(step, 7000); // first tick after 7s
+    stockTimer = setInterval(step, 4000); // first tick after 4s
     ensureStockUI();
   }
 
@@ -237,22 +233,14 @@
     if (now >= stockEndTime){
       stockCurrent = 0; ensureStockUI(); clearInterval(stockTimer); return;
     }
-
-    // Estimate ticks left based on average delay ~12s (randomized below)
-    const avgDelay = 12000;
-    const ticksLeft = Math.max(1, Math.floor((stockEndTime - now) / avgDelay));
-    const idealPerTick = Math.max(1, Math.ceil(stockCurrent / ticksLeft));
-
-    // pick decrement 1..3 biased toward meeting ideal
-    let dec = Math.min(3, Math.max(1, idealPerTick + (Math.random()>.6 ? 1 : 0)));
+    // Make it drain to 0 over ~5 min with bursty 1–3 decrements every 3–8s
+    const msLeft = stockEndTime - now;
+    const avgStep = Math.max(1, Math.ceil(stockCurrent / Math.max(1, msLeft / 5000)));
+    let dec = Math.min(3, Math.max(1, avgStep + (Math.random()>.6?1:0)));
     dec = Math.min(dec, stockCurrent);
     stockCurrent -= dec;
     ensureStockUI();
-
-    // randomize next interval 8–18s, get slightly faster if behind schedule
-    const factor = stockCurrent / Math.max(1, ticksLeft);
-    let next = Math.floor(8000 + Math.random()*10000);
-    if (factor > 2) next = Math.max(6000, next - 2500);
+    const next = Math.floor(3000 + Math.random()*5000);
     clearInterval(stockTimer);
     stockTimer = setInterval(step, next);
   }
