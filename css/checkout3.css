@@ -235,3 +235,55 @@ body.modal-open .floating-cta {
 .co-pane{
   transition: opacity .25s ease;
 }
+
+/* ===== Checkout fullscreen styles ===== */
+#checkoutModal.co-fullscreen {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 999999 !important;
+  display: flex !important;
+  align-items: stretch !important;
+  justify-content: center !important;
+  background: rgba(0,0,0,0.6) !important; /* backdrop */
+}
+
+#checkoutModal.co-fullscreen .co-panel {
+  /* The inner white panel that wraps steps 1/2/3 */
+  background: #fff;
+  width: 100%;
+  max-width: 980px;              /* adjust if you want edge-to-edge */
+  height: 100%;
+  max-height: 100%;
+  margin: 0;
+  border-radius: 12px;
+  overflow: auto;                /* scroll inside the panel */
+  -webkit-overflow-scrolling: touch;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+}
+
+/* Remove any side column layout when fullscreen */
+#checkoutModal.co-fullscreen .co-layout {
+  display: block !important;     /* single column */
+}
+
+/* Force-close button at top-right of the overlay */
+#checkoutClose {
+  position: fixed;               /* pin to viewport */
+  top: 16px;
+  right: 16px;
+  z-index: 1000000;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #111;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+/* kill sticky price bars if any CSS remains */
+#coStickyPrice, .co-sticky, .co-sticky-price, .co-sticky-bar { display: none !important; }
