@@ -1,4 +1,4 @@
-/* ===== style.css v6.2 — Mobile rotator arrows-only, mobile reviews ===== */
+/* ===== style.css v6.3 — footer refresh, announcer arrows-only ===== */
 :root{
   --bg:#0a0c10;
   --surface:#0e1116;
@@ -115,8 +115,18 @@ details.faq-item[open] .faq-arrow{ transform:rotate(90deg) }
 .reviews-mobile h3{ margin:14px 0 6px; }
 .reviews-mobile .review-card{ margin-bottom:12px; }
 
-/* Footer */
-.site-footer{border-top:1px solid var(--border);padding:24px 0;margin-top:40px;text-align:center;color:var(--ink-dim)}
+/* Footer (premium, minimal) */
+.footer{ border-top:1px solid var(--border); background:#0b0d12; margin-top:40px; }
+.footer-cta{ width:var(--wrap-wide); margin:0 auto; padding:28px 0 10px; text-align:center; }
+.footer-cta h2{ font-size:clamp(22px,4vw,30px); margin:0 0 10px; }
+.footer-cta p { color:var(--ink-dim); margin:0 0 12px; }
+.footer-form{ display:flex; gap:10px; justify-content:center; width:100%; max-width:720px; margin:0 auto; }
+.footer-form input{ flex:1; padding:14px 14px; border-radius:12px; border:1px solid var(--border); background:rgba(255,255,255,.03); color:#fff; outline:none; }
+.footer-form input:focus{ border-color:var(--accent); box-shadow:0 0 0 3px rgba(196,113,245,.2); }
+.footer-form button{ padding:14px 18px; border:none; border-radius:12px; font-weight:800; color:#fff; cursor:pointer; background:linear-gradient(90deg,var(--accent),var(--accent2)); box-shadow:0 12px 28px rgba(250,113,205,.25); }
+.footer-social{ display:flex; gap:12px; justify-content:center; margin:16px 0 20px; }
+.footer-social a{ width:36px; height:36px; display:grid; place-items:center; border-radius:999px; border:1px solid var(--border); background:#12151b; color:#e5e7ee; text-decoration:none; }
+.footer-legal{ border-top:1px solid var(--border); text-align:center; color:var(--ink-dim); padding:16px 0; }
 
 /* Floating CTA (mobile only) */
 .floating-cta{ position:fixed; bottom:16px; left:50%; transform:translateX(-50%); z-index:2147483647;
