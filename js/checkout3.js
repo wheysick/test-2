@@ -1,4 +1,4 @@
-/* ===== checkout3.js v5.5 — method error + double-tap to step 3 + wallets on Step 3 for card ===== */
+/* ===== checkout3.js v5.7 — arrows, method error, double-tap, wallets for card ===== */
 (function(){
   "use strict";
 
@@ -90,7 +90,7 @@
   bindCTAs();
   new MutationObserver(bindCTAs).observe(document.documentElement,{subtree:true,childList:true,attributes:true});
 
-  // Document-level safety net
+  // Safety net
   function trap(ev){
     const t = ev.target.closest?.(CTA_SEL);
     if (t){ ev.preventDefault(); ev.stopPropagation(); openModal(ev); }
@@ -113,16 +113,20 @@
     if(!ok) return; setStep(2); totals();
   });
 
-  // Step 2 — qty + methods (with double tap to continue)
+  // Step 2 — qty + methods + arrows + double tap
   let lastTapTime=0, lastMethod=null;
   step2 && step2.addEventListener("click",(e)=>{
     if(e.target.closest(".qty-inc")){ qty=Math.min(99,qty+1); totals(); return; }
     if(e.target.closest(".qty-dec")){ qty=Math.max(1, qty-1); totals(); return; }
 
+    // Arrow navigation
+    const strip = step2.querySelector(".co-xpay-strip");
+    if (e.target.closest(".xpay-nav.prev")){ strip?.scrollBy({left:-240,behavior:"smooth"}); return; }
+    if (e.target.closest(".xpay-nav.next")){ strip?.scrollBy({left: 240,behavior:"smooth"}); return; }
+
     const btn = e.target.closest(".co-xpay, .co-xpay-primary");
     if(!btn) return;
 
-    // select
     step2.querySelectorAll(".co-xpay, .co-xpay-primary").forEach(b=>b.removeAttribute("aria-selected"));
     btn.setAttribute("aria-selected","true");
     method = btn.dataset.method || "card";
@@ -130,7 +134,7 @@
     totals();
     if (methodErr) hide(methodErr);
 
-    // double-tap detection
+    // double tap: go to step 3
     const now = Date.now();
     if (lastMethod===method && (now - lastTapTime) < 350){
       renderPay(method); setStep(3); return;
