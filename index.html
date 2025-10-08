@@ -6,10 +6,10 @@
   <title>Free Sample — Weekly Wellness Formula</title>
   <meta name="description" content="A magazine‑style feature with a limited free sample offer. Shipping ends at midnight." />
   <meta name="robots" content="noindex,nofollow" />
-  <!-- Use page background color for mobile UI (no pink) -->
   <meta name="theme-color" content="#0a0c10" />
-  <link rel="stylesheet" href="css/style.css?v=530" />
-  <link rel="stylesheet" href="css/checkout3.css?v=530" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="stylesheet" href="css/style.css?v=540" />
+  <link rel="stylesheet" href="css/checkout3.css?v=540" />
 </head>
 <body class="verge-theme">
   <header class="masthead" role="banner">
@@ -20,23 +20,27 @@
         <span class="dot">•</span>
         <span><strong>Shipping cutoff: midnight</strong></span>
       </div>
-      <!-- Desktop header CTA -->
       <a href="#offer" class="masthead-cta open-checkout" data-cta onclick="checkoutOpen();return false;">Claim Free Sample</a>
+    </div>
+
+    <!-- Mobile marquee (one-line, infinite loop) -->
+    <div class="masthead-marquee" aria-hidden="true">
+      <div class="marquee-track">
+        <span class="marquee-seg"><strong>SELFHACKING</strong><span class="sep">•</span>Free sample ends in <strong data-countdown>00:00:00</strong><span class="sep">•</span>Shipping cutoff: midnight</span>
+        <span class="marquee-seg"><strong>SELFHACKING</strong><span class="sep">•</span>Free sample ends in <strong data-countdown>00:00:00</strong><span class="sep">•</span>Shipping cutoff: midnight</span>
+      </div>
     </div>
     <div id="scrollProgress"></div>
   </header>
 
-  <!-- Floating CTA (mobile) -->
   <a href="#offer" class="floating-cta open-checkout" id="floatingCta" data-cta="floating" onclick="checkoutOpen();return false;"><strong>Claim Free Sample</strong></a>
 
-  <!-- Share rail (desktop) -->
   <nav class="share-rail" aria-label="Share this">
     <a href="#offer" class="share-icon open-checkout" title="Get offer" data-cta onclick="checkoutOpen();return false;">🔥</a>
     <a href="#offer" class="share-icon open-checkout" title="Share" data-cta onclick="checkoutOpen();return false;">↗️</a>
     <a href="#offer" class="share-icon open-checkout" title="Save" data-cta onclick="checkoutOpen();return false;">🔖</a>
   </nav>
 
-  <!-- Article -->
   <main class="wrap">
     <article class="article" itemscope itemtype="https://schema.org/AdvertiserContentArticle">
       <header class="article-hed">
@@ -105,7 +109,6 @@
         </ul>
       </section>
 
-      <!-- End-of-article desktop CTA -->
       <div class="desktop-cta-block">
         <a href="#offer" class="btn-main btn-lg open-checkout" data-cta onclick="checkoutOpen();return false;">Claim Your Free Sample</a>
       </div>
@@ -159,46 +162,64 @@
         <p class="co-free">You get <strong><span id="coFreeQty">1</span> FREE</strong> (match of your selection)</p>
         <div class="co-price"><span class="was">$90</span><span class="now">$45</span> <span class="per">/ bottle</span></div>
 
-        <div class="co-methods co-methods--tight">
-          <button class="co-method" data-method="card"   data-discount="0">
-            <div class="co-title">Credit / Debit Card</div><span class="co-badge">Popular</span>
+        <!-- Express checkout UI -->
+        <p class="co-express-label">Express checkout</p>
+        <button class="co-xpay-primary" data-method="card" data-discount="0" type="button" aria-label="Pay with card">
+          <!-- Simple card icon -->
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><rect x="3" y="8" width="18" height="3" fill="#fff" opacity=".22"></rect></svg>
+          Pay with Card
+        </button>
+        <p class="co-savings-note">save an additional <strong>15% off</strong> your order</p>
+
+        <div class="co-xpay-grid">
+          <button class="co-xpay paypal" data-method="paypal" data-discount="15" type="button" aria-label="PayPal">
+            <!-- PayPal wordmark simplified -->
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#003087" d="M4 5h16a2 2 0 0 1 2 2v1H6a2 2 0 0 0-2 2L3 20H1l2-13a2 2 0 0 1 2-2z"/></svg>
+            <span>PayPal</span>
           </button>
-          <button class="co-method" data-method="venmo"  data-discount="10">
-            <div class="co-title">Venmo</div><span class="co-discount">10% off</span>
+          <button class="co-xpay applepay" data-method="applepay" data-discount="15" type="button" aria-label="Apple Pay">
+            <!-- Apple logo -->
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M16.7 13.7c0-3 2.5-3.9 2.6-3.9-1.4-2-3.6-2.1-4.4-2.1-1.9-.2-3.7 1.1-4.6 1.1-.9 0-2.3-1.1-3.8-1-2 .1-3.8 1.2-4.8 3-2 3.4-.5 8.4 1.4 11.2.9 1.3 2 2.7 3.4 2.6 1.4-.1 1.9-.8 3.6-.8s2.1.8 3.6.8 2.4-1.3 3.3-2.6c1.1-1.6 1.5-3.1 1.5-3.2-.1-.1-2.9-1.1-2.9-5.1zM14.6 4.1C15.5 3 16 1.6 15.9.2c-1.3.1-2.9.9-3.9 2-1 1.1-1.8 2.6-1.6 4 .1 0 3.1-.1 4.2-2.1z"/></svg>
+            <span>Pay</span>
           </button>
-          <button class="co-method" data-method="cashapp" data-discount="10">
-            <div class="co-title">Cash App</div><span class="co-discount">10% off</span>
+          <button class="co-xpay gpay" data-method="gpay" data-discount="15" type="button" aria-label="Google Pay">
+            <!-- Google G -->
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#EA4335" d="M12 10.2v3.7h5.3c-.2 1.2-1.6 3.6-5.3 3.6-3.2 0-5.8-2.6-5.8-5.8s2.6-5.8 5.8-5.8c1.8 0 3 .6 3.7 1.3l2.6-2.5C16.8 3.1 14.7 2 12 2 6.9 2 2.8 6.1 2.8 11.2S6.9 20.4 12 20.4c6.2 0 8.6-4.3 8.6-6.5 0-.4 0-.7-.1-1H12z"/></svg>
+            <span>Pay</span>
           </button>
-          <button class="co-method" data-method="paypal"  data-discount="10">
-            <div class="co-title">PayPal</div><span class="co-discount">10% off</span>
+          <button class="co-xpay venmo" data-method="venmo" data-discount="15" type="button" aria-label="Venmo">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M18 2H6C4.9 2 4 2.9 4 4v16l6-3 6 3V4c0-1.1-.9-2-2-2z"/></svg>
+            <span>venmo</span>
           </button>
-          <button class="co-method" data-method="crypto" data-discount="15">
-            <div class="co-title">Crypto</div><span class="co-discount">15% off</span>
+          <button class="co-xpay cashapp" data-method="cashapp" data-discount="15" type="button" aria-label="Cash App">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#003b12" d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 5v2h2v2h-2v4h-2v-4H9V9h2V7h2z"/></svg>
+            <span>Cash App</span>
+          </button>
+          <button class="co-xpay crypto" data-method="crypto" data-discount="15" type="button" aria-label="Crypto">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#cbd5e1" d="M12 2l8 4.6v9.2L12 20l-8-4.2V6.6L12 2zm0 2.3L6 7v6.9l6 3.1 6-3.1V7l-6-2.7z"/></svg>
+            <span>₿ Crypto</span>
           </button>
         </div>
 
-        <div class="co-sticky">
-          <div class="co-totals" role="group" aria-label="Order totals">
-            <div><span>Items</span><span id="coItemsLine">2 bottles (1 paid + 1 free)</span></div>
-            <div><span>Merch</span><span id="coMerch">$90.00</span></div>
-            <div><span>Method discount</span><span id="coDisc">-$0.00</span></div>
-            <div><span id="coTaxLabel">Tax</span><span id="coTax">$0.00</span></div>
-            <div><span>Shipping</span><span class="co-free-ship">FREE</span></div>
-            <div class="co-total-row"><span>Total</span><span id="coTotal">$90.00</span></div>
-          </div>
-          <!-- Actions (centered, non-sticky on Step 2) -->
-          <div class="co-actions">
-            <button class="btn-main btn-lg co-next" id="coToStep3" disabled>Continue</button>
-            <button class="btn-main btn-sm co-back" id="coBackTo1" type="button">Back</button>
-          </div>
-          <p class="co-secure">🔒 100% encrypted checkout • 60-Day Guarantee</p>
+        <div class="co-totals" role="group" aria-label="Order totals">
+          <div><span>Items</span><span id="coItemsLine">2 bottles (1 paid + 1 free)</span></div>
+          <div><span>Merch</span><span id="coMerch">$90.00</span></div>
+          <div><span>Method discount</span><span id="coDisc">-$0.00</span></div>
+          <div><span id="coTaxLabel">Tax</span><span id="coTax">$0.00</span></div>
+          <div><span>Shipping</span><span class="co-free-ship">FREE</span></div>
+          <div class="co-total-row"><span>Total</span><span id="coTotal">$90.00</span></div>
         </div>
+
+        <div class="co-actions">
+          <button class="btn-main btn-lg co-next" id="coToStep3" disabled>Continue</button>
+          <button class="btn-main btn-sm co-back" id="coBackTo1" type="button">Back</button>
+        </div>
+        <p class="co-secure">🔒 100% encrypted checkout • 60-Day Guarantee</p>
       </section>
 
       <!-- Step 3 -->
       <section id="coStep3" class="co-pane" hidden aria-hidden="true">
         <div id="coPayWrap"></div>
-        <!-- Terms removed per request -->
         <div class="co-actions">
           <button class="btn-main btn-lg co-submit" id="coSubmit">Complete Reservation</button>
           <button class="btn-main btn-sm co-back" id="coBackTo2" type="button">Back</button>
@@ -218,7 +239,7 @@
     <p>&copy; <span id="year"></span> Health Template Co.</p>
   </footer>
 
-  <script defer src="js/script.js?v=530"></script>
-  <script defer src="js/checkout3.js?v=530"></script>
+  <script defer src="js/script.js?v=540"></script>
+  <script defer src="js/checkout3.js?v=540"></script>
 </body>
 </html>
