@@ -216,22 +216,24 @@
     </button>
   </div>
 
-  <!-- Totals -->
-  <div class="co-totals" role="group" aria-label="Order totals">
-    <div><span>Items</span><span id="coItemsLine">2 bottles (1 paid + 1 free)</span></div>
-    <div><span>Merch (sale)</span><span id="coMerch">$45.00</span></div>
-    <div><span>Method discount</span><span id="coDisc">-$0.00</span></div>
-    <div><span>Tax</span><span id="coTax">$0.00</span></div>
-    <div><span>Shipping</span><span class="co-free-ship">FREE</span></div>
-    <div class="co-total-row"><span>Total</span><span id="coTotal">$45.00</span></div>
-  </div>
+  <!-- Sticky totals + actions -->
+  <div class="co-sticky">
+    <div class="co-totals" role="group" aria-label="Order totals">
+      <div><span>Items</span><span id="coItemsLine">2 bottles (1 paid + 1 free)</span></div>
+      <div><span>Merch</span><span id="coMerch">$90.00</span></div>
+      <div><span>Method discount</span><span id="coDisc">-$0.00</span></div>
+      <div><span id="coTaxLabel">Tax</span><span id="coTax">$0.00</span></div>
+      <div><span>Shipping</span><span class="co-free-ship">FREE</span></div>
+      <div class="co-total-row"><span>Total</span><span id="coTotal">$90.00</span></div>
+    </div>
 
-  <div class="co-actions">
-    <button class="btn-main btn-lg co-next" id="coToStep3" disabled>Continue</button>
-    <button class="btn-main btn-sm co-back" id="coBackTo1" type="button">Back</button>
-  </div>
-</section>
+    <div class="co-actions">
+      <button class="btn-main btn-lg co-next" id="coToStep3" disabled>Continue</button>
+      <button class="btn-main btn-sm co-back" id="coBackTo1" type="button">Back</button>
+    </div>
 
+    <p class="co-secure">🔒 100% encrypted checkout • 60-Day Guarantee</p>
+  </div>
 
       <!-- Step 3: Payment Details (dynamic) -->
       <section id="coStep3" class="co-pane" hidden aria-hidden="true">
