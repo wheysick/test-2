@@ -56,3 +56,39 @@
     });
   }
 })();
+
+/* ===== script.js v6.4 — hourly countdown + announcer (arrows only) ===== */
+(function(){
+  const yEl = document.getElementById('year'); if (yEl) yEl.textContent = new Date().getFullYear();
+  const dateEl = document.getElementById('todayDate'); if (dateEl) dateEl.textContent = new Date().toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'});
+
+  function tick(){
+    const now = new Date();
+    const next = new Date(now); next.setHours(now.getHours()+1,0,0,0);
+    let ms = Math.max(0, next - now);
+    const h = String(Math.floor(ms/3.6e6)).padStart(2,'0');
+    const m = String(Math.floor(ms%3.6e6/6e4)).padStart(2,'0');
+    const s = String(Math.floor(ms%6e4/1e3)).padStart(2,'0');
+    const t = `${h}:${m}:${s}`;
+    document.querySelectorAll('#countdown,[data-countdown]').forEach(n=>n.textContent=t);
+    requestAnimationFrame(tick);
+  }
+  tick();
+
+  const ann = document.querySelector('.announcer');
+  if (ann){
+    const msgEl = ann.querySelector('.announce-msg');
+    const prev = ann.querySelector('.ann-prev');
+    const next = ann.querySelector('.ann-next');
+    const messages = [
+      `Free sample ends in <strong data-countdown>00:00:00</strong>`,
+      `Shipping cutoff: <strong>midnight</strong>`
+    ];
+    let idx = 0, timer;
+    const render = () => { msgEl.innerHTML = messages[idx]; };
+    const start = () => { clearInterval(timer); timer = setInterval(()=>{ idx = (idx+1)%messages.length; render(); }, 5000); };
+    render(); start();
+    prev?.addEventListener('click', ()=>{ idx = (idx-1+messages.length)%messages.length; render(); start(); });
+    next?.addEventListener('click', ()=>{ idx = (idx+1)%messages.length; render(); start(); });
+  }
+})();
