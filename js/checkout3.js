@@ -1,4 +1,4 @@
-/* ===== checkout3.js v5.2 — mobile-solid open + consistent rhythm + hard bindings ===== */
+/* ===== checkout3.js v5.3 — Apply user's patch list ===== */
 (function(){
   "use strict";
 
@@ -15,7 +15,6 @@
 
   const qtyInput= document.getElementById("coQty");
   const payWrap = document.getElementById("coPayWrap");
-  const tos     = document.getElementById("coTos");
   const submit  = document.getElementById("coSubmit");
   const closeX  = document.getElementById("checkoutClose");
   const success = document.getElementById("checkoutSuccess");
@@ -52,7 +51,7 @@
     if (qtyInput) qtyInput.value = String(qty);
   }
 
-  /* ---------- Open / close (bulletproof on mobile) ---------- */
+  /* ---------- Open / close (mobile solid) ---------- */
   const CTA_SEL = ".floating-cta,[data-cta],[data-open-checkout],.open-checkout,.cta,a[href='#offer'],a[href*='#offer'],a[href*='#checkout'],.masthead-cta";
   let openGuard=0;
 
@@ -78,7 +77,6 @@
     document.querySelectorAll(CTA_SEL).forEach(el=>{
       if(el.__bound) return;
       const h=(ev)=>{ ev.preventDefault(); ev.stopPropagation(); openModal(ev); };
-      // Fast, capture-phase handlers
       el.addEventListener("pointerdown",h,{capture:true});
       el.addEventListener("touchstart",h,{capture:true, passive:false});
       el.addEventListener("touchend",h,{capture:true, passive:false});
@@ -156,10 +154,10 @@
     };
     payWrap.innerHTML = map[m] || map.card;
   }
+
   submit && submit.addEventListener("click",(e)=>{
     e.preventDefault();
-    if (!tos?.checked){ tos?.focus(); return; }
-    hide(step3); show(success);
+    hide(step3); show(success); // Terms checkbox removed per request
   });
 
   // initial
