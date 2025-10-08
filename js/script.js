@@ -1,4 +1,4 @@
-/* ===== script.js v5.5 — date, countdown (multi-target), COA flip ===== */
+/* ===== script.js v5.7 — date, countdown (multi-target), COA flip ===== */
 (function(){
   const today = new Date();
   const fmtDate = {year:'numeric', month:'long', day:'numeric'};
