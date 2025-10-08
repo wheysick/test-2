@@ -294,3 +294,34 @@
 
   computeTotals();
 })();
+
+// ===== PATCH JS: totals spacing + step-scoped per-bottle footer guard =====
+
+// Make sure totals container rows behave as flex with right-justified values
+(function fixTotals() {
+  const box = document.querySelector('.co-totals');
+  if (!box) return;
+  box.querySelectorAll('.row').forEach(r=>{
+    const s = r.style;
+    if (getComputedStyle(r).display !== 'flex') s.display = 'flex';
+    s.alignItems = 'center';
+    s.justifyContent = 'flex-start'; // labels first...
+    // ...and push known value nodes to the right automatically
+    r.querySelectorAll('#coMerch,#coDisc,#coTax,#coShip,#coTotal')
+      .forEach(v=>{ v.style.marginLeft = 'auto'; });
+  });
+})();
+
+// Hide any static per-bottle footer when NOT on step 2
+(function guardPerBottleFooter(){
+  const perBottleFooter = document.querySelector('.co-per-bottle, .per-bottle, .price-per-bottle');
+  if (!perBottleFooter) return;
+  const update = () => {
+    const step2Active = document.querySelector('#coStep2.is-active');
+    perBottleFooter.style.display = step2Active ? '' : 'none';
+  };
+  // run on load and whenever step changes
+  update();
+  ['click','keyup'].forEach(evt=>document.addEventListener(evt, update, {passive:true}));
+  new MutationObserver(update).observe(document.getElementById('checkoutModal'), {attributes:true,subtree:true,attributeFilter:['class','aria-hidden','hidden']});
+})();
