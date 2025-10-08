@@ -1,13 +1,13 @@
-/* ===== script.js v5.4 — date, countdown (multi-target), marquee support, COA flip ===== */
+/* ===== script.js v5.5 — date, countdown (multi-target), COA flip ===== */
 (function(){
   const today = new Date();
   const fmtDate = {year:'numeric', month:'long', day:'numeric'};
-  document.getElementById('todayDate')?.replaceWith(Object.assign(document.createElement('time'),{id:'todayDate',textContent:today.toLocaleDateString(undefined,fmtDate)}));
+  const dateEl = document.getElementById('todayDate');
+  if (dateEl) dateEl.textContent = today.toLocaleDateString(undefined, fmtDate);
 
-  // Year
   const yEl = document.getElementById('year'); if (yEl) yEl.textContent = today.getFullYear();
 
-  // Countdown to midnight — update all [data-countdown] nodes
+  // Countdown to midnight — update all [data-countdown] nodes and #countdown
   const cdNodes = Array.from(document.querySelectorAll('[data-countdown]'));
   const cdId = document.getElementById('countdown');
   function tick(){
