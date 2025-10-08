@@ -183,3 +183,55 @@ body.modal-open .floating-cta {
   font-size: 1.1rem;
   color: #fff;
 }
+
+/* v1.9 — Sticky Step-2 footer + polish */
+.co-sticky{
+  position: sticky;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 2;
+  background: linear-gradient(180deg, rgba(23,24,31,0.0) 0%, rgba(23,24,31,0.85) 18%, #17181f 48%);
+  padding-top: .8rem;
+  margin-top: .8rem;
+}
+
+/* keep totals compact in sticky area */
+.co-sticky .co-totals{
+  margin: 0;
+  background: #141519;
+  border: 1px solid #2a2b31;
+  border-radius: 12px;
+  padding: .75rem .9rem;
+}
+
+/* button area breathing room */
+.co-sticky .co-actions{
+  margin-top: .9rem;
+}
+
+/* trust line */
+.co-secure{
+  text-align:center;
+  color:#a7a7ad;
+  font-size:.9rem;
+  margin:.5rem 0 0;
+}
+
+/* Continue button animation when enabled */
+.co-next[disabled]{
+  opacity:.6;
+  cursor:not-allowed;
+  box-shadow:none;
+}
+.co-next:not([disabled]){
+  animation: coPulse 2.2s infinite;
+}
+@keyframes coPulse{
+  0%   { transform: translateY(0); box-shadow: 0 10px 24px rgba(255,42,109,.28); }
+  50%  { transform: translateY(-1px); box-shadow: 0 16px 34px rgba(255,42,109,.40); }
+  100% { transform: translateY(0); box-shadow: 0 10px 24px rgba(255,42,109,.28); }
+}
+
+/* make step panes fade smoothly */
+.co-pane{
+  transition: opacity .25s ease;
+}
