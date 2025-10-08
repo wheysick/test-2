@@ -1,242 +1,11 @@
-/* ===== 3-Step Checkout — v1.5 ===== */
-.modal { position: fixed; inset: 0; background: rgba(0,0,0,.55); display:grid; place-items:center; }
-.modal-checkout { z-index:100500; opacity:0; display:none; transition:opacity .18s ease; }
-.modal-checkout.show { display:grid; opacity:1; }
+/* ===== checkout3.css v2.4 — Fullscreen modal + clean UI ===== */
 
-.checkout-card {
-  width:min(720px,92vw); max-height:92vh; overflow:auto;
-  -webkit-overflow-scrolling:touch;
-  background:#17181f; border:1px solid #22232a; border-radius:16px;
-  color:#fff; padding:1rem 1.1rem 1.2rem;
+/* Modal backdrop & fullscreen */
+#checkoutModal {
+  display: none;
 }
+#checkoutModal.show { display: block; }
 
-/* --- Stepper --- */
-.co-steps { display:grid; grid-template-columns:repeat(3,1fr); gap:.5rem; margin-bottom:.6rem; text-align:center; }
-.co-step { display:flex; align-items:center; justify-content:center; gap:.4rem; padding:.55rem .6rem; font-size:.95rem; background:#1b1c22; border:1px solid #2a2b31; border-radius:10px; color:#a7a7ad; font-weight:800; }
-.co-step span { display:grid; place-items:center; width:26px; height:26px; border-radius:50%; background:#2a2b31; color:#fff; font-weight:900; }
-.co-step.is-active { color:#fff; border-color:#ff2a6d; box-shadow:0 0 0 3px rgba(255,42,109,.22); }
-.co-step.is-active span { background:linear-gradient(90deg,#ff2a6d,#ff7a59); }
-
-/* --- Step panes --- */
-.co-pane { animation: fadeIn .18s ease; }
-@keyframes fadeIn { from{opacity:.9; transform:translateY(4px);} to{opacity:1; transform:none;} }
-.co-grid { display:grid; gap:.8rem; grid-template-columns:1fr; }
-label { display:flex; flex-direction:column; gap:.35rem; font-weight:800; color:#e9e9ee; }
-input, select {
-  width:100%; background:#111218; color:#e8e8ea; border:1px solid #2a2b31;
-  border-radius:10px; padding:.78rem .9rem; font-size:16px; outline:none;
-  transition:border-color .2s ease, box-shadow .2s ease;
-}
-input:focus, select:focus { border-color:#ff2a6d; box-shadow:0 0 0 3px rgba(255,42,109,.25); }
-
-/* --- Methods grid --- */
-.co-methods { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:.6rem; margin:.2rem 0 .4rem; }
-.co-method {
-  display:flex; justify-content:space-between; align-items:center; background:#1b1c22;
-  border:1px solid #2a2b31; border-radius:12px; padding:.8rem .9rem;
-  color:#e8e8ea; font-weight:800; cursor:pointer;
-  transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
-}
-.co-method:hover { transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.25); }
-.co-method[aria-selected="true"] { border-color:#ff2a6d; box-shadow:0 0 0 3px rgba(255,42,109,.22); }
-.co-title { font-weight:900; }
-.co-discount { font-weight:900; color:#34d399; }
-.co-badge { font-size:.85rem; font-weight:900; color:#ffd1e0; }
-
-/* --- Terms + actions --- */
-.co-terms { display:grid; grid-template-columns:auto 1fr; gap:.6rem; align-items:start; margin-top:.6rem; color:#cfcfd3; }
-.co-actions { display:flex; flex-wrap:wrap; justify-content:center; gap:.6rem; margin-top:.8rem; }
-.co-submit,.co-next { min-width:220px; width:100%; justify-content:center; }
-
-/* --- Success --- */
-.co-success { text-align:center; padding:.6rem 0 .2rem; }
-.co-success h4 { font-size:1.28rem; margin:.2rem 0 .5rem; }
-
-/* --- Misc --- */
-.floating-cta { pointer-events:auto; z-index:100; }
-.modal-checkout.show ~ .floating-cta { display:none!important; }
-.view-popup { pointer-events:none; }
-.view-popup button { pointer-events:auto; }
-
-@media (max-width:560px){
-  .checkout-card{width:92vw;padding:.9rem 1rem 1.1rem;}
-}
-
-/* v1.6 Step 1 form alignment */
-#coStep1 label {
-  text-align: left !important;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #e9e9ee;
-}
-
-#coStep1 input {
-  width: 100%;
-  background: #111218;
-  color: #e8e8ea;
-  border: 1px solid #2a2b31;
-  border-radius: 10px;
-  padding: 0.75rem 0.9rem;
-  font-size: 16px;
-  box-sizing: border-box;
-}
-
-#coStep1 .co-row {
-  display: grid;
-  grid-template-columns: 1fr 120px 120px;
-  gap: 0.75rem;
-}
-@media (max-width: 480px) {
-  #coStep1 .co-row { grid-template-columns: 1fr 1fr; }
-  #coStep1 .co-row label:last-child { grid-column: 1 / -1; }
-}
-
-/* Hide floating CTA while any modal is open */
-body.modal-open .floating-cta {
-  display: none !important;
-}
-
-/* More space before the primary button on Step 1 */
-#coStep1 .co-row { margin-bottom: .6rem; }
-#coStep1 .co-next.btn-main { margin-top: 1rem; }
-
-/* Consistent spacing on all steps */
-.co-actions { margin-top: 1rem; }
-
-/* v1.7 – Qty, pricing & totals */
-.co-h3 { text-align:center; font-weight:900; margin:.1rem 0 .6rem; }
-
-.co-qty {
-  display:flex; align-items:center; justify-content:center; gap:.5rem;
-  margin:.2rem 0 .2rem;
-}
-.qty-btn {
-  width:42px; height:42px; border-radius:10px; border:1px solid #2a2b31; background:#1b1c22; color:#fff;
-  font-weight:900; font-size:1.15rem; cursor:pointer;
-}
-#coQty {
-  width:72px; text-align:center; border:1px solid #2a2b31; border-radius:10px; background:#111218; color:#e8e8ea;
-  padding:.55rem .4rem; font-size:16px;
-}
-
-.co-free { text-align:center; color:#cfcfd3; margin:.1rem 0 .5rem; }
-.co-free strong { color:#fff; }
-
-.co-price { display:flex; align-items:baseline; justify-content:center; gap:.5rem; margin:.1rem 0 .6rem; }
-.co-price .was { color:#a7a7ad; text-decoration: line-through; }
-.co-price .now { font-weight:900; color:#ffd1e0; }
-.co-price .per { color:#cfcfd3; }
-
-.co-methods--tight { margin-top:.25rem; }
-.co-methods--tight .co-method { padding:.7rem .85rem; }
-
-.co-totals {
-  margin:.7rem 0 0; padding:.7rem .9rem; border:1px solid #2a2b31; border-radius:12px; background:#1b1c22;
-  display:grid; gap:.45rem; font-weight:700; color:#e8e8ea;
-}
-.co-totals > div { display:flex; justify-content:space-between; align-items:center; }
-.co-totals .co-total-row { border-top:1px dashed #2a2b31; padding-top:.55rem; font-size:1.05rem; }
-.co-free-ship { color:#34d399; font-weight:900; }
-
-@media (max-width:560px){
-  .co-methods { grid-template-columns:1fr 1fr; }
-}
-@media (max-width:420px){
-  .co-methods { grid-template-columns:1fr; }
-}
-
-/* v1.8 UX refinements */
-#coStep2 .co-h3 {
-  margin-top: .3rem;
-  margin-bottom: .9rem;
-  font-size: 1.2rem;
-  text-align: center;
-}
-
-.co-price .was {
-  color: #a7a7ad;
-  text-decoration: line-through;
-  font-weight: 600;
-}
-.co-price .now {
-  color: #fff;
-  font-weight: 900;
-  font-size: 1.1rem;
-}
-.co-price .per {
-  color: #cfcfd3;
-}
-
-/* spacing before continue */
-.co-actions { margin-top: 1.2rem !important; }
-
-/* totals polish */
-.co-totals {
-  background: #141519;
-  border: 1px solid #2a2b31;
-  border-radius: 12px;
-  padding: .8rem 1rem;
-  margin-top: .9rem;
-}
-.co-totals > div { font-size: .95rem; }
-.co-totals .co-total-row {
-  font-size: 1.1rem;
-  color: #fff;
-}
-
-/* v1.9 — Sticky Step-2 footer + polish */
-.co-sticky{
-  position: sticky;
-  bottom: max(12px, env(safe-area-inset-bottom));
-  z-index: 2;
-  background: linear-gradient(180deg, rgba(23,24,31,0.0) 0%, rgba(23,24,31,0.85) 18%, #17181f 48%);
-  padding-top: .8rem;
-  margin-top: .8rem;
-}
-
-/* keep totals compact in sticky area */
-.co-sticky .co-totals{
-  margin: 0;
-  background: #141519;
-  border: 1px solid #2a2b31;
-  border-radius: 12px;
-  padding: .75rem .9rem;
-}
-
-/* button area breathing room */
-.co-sticky .co-actions{
-  margin-top: .9rem;
-}
-
-/* trust line */
-.co-secure{
-  text-align:center;
-  color:#a7a7ad;
-  font-size:.9rem;
-  margin:.5rem 0 0;
-}
-
-/* Continue button animation when enabled */
-.co-next[disabled]{
-  opacity:.6;
-  cursor:not-allowed;
-  box-shadow:none;
-}
-.co-next:not([disabled]){
-  animation: coPulse 2.2s infinite;
-}
-@keyframes coPulse{
-  0%   { transform: translateY(0); box-shadow: 0 10px 24px rgba(255,42,109,.28); }
-  50%  { transform: translateY(-1px); box-shadow: 0 16px 34px rgba(255,42,109,.40); }
-  100% { transform: translateY(0); box-shadow: 0 10px 24px rgba(255,42,109,.28); }
-}
-
-/* make step panes fade smoothly */
-.co-pane{
-  transition: opacity .25s ease;
-}
-
-/* ===== Checkout fullscreen styles ===== */
 #checkoutModal.co-fullscreen {
   position: fixed !important;
   inset: 0 !important;
@@ -247,33 +16,32 @@ body.modal-open .floating-cta {
   background: rgba(0,0,0,0.6) !important; /* backdrop */
 }
 
+/* Inner panel (wrap your steps with .co-panel) */
 #checkoutModal.co-fullscreen .co-panel {
-  /* The inner white panel that wraps steps 1/2/3 */
-  background: #fff;
+  background: #0f1115;           /* dark UI; switch to #fff for light */
+  color: #eaecef;
   width: 100%;
-  max-width: 980px;              /* adjust if you want edge-to-edge */
+  max-width: 980px;
   height: 100%;
   max-height: 100%;
   margin: 0;
-  border-radius: 12px;
-  overflow: auto;                /* scroll inside the panel */
+  border-radius: 14px;
+  overflow: auto;                 /* scroll within panel, not the page */
   -webkit-overflow-scrolling: touch;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+  box-shadow: 0 14px 48px rgba(0,0,0,0.35);
 }
 
-/* Remove any side column layout when fullscreen */
-#checkoutModal.co-fullscreen .co-layout {
-  display: block !important;     /* single column */
-}
+/* Remove any previous two-column layout when fullscreen */
+#checkoutModal.co-fullscreen .co-layout { display: block !important; }
 
-/* Force-close button at top-right of the overlay */
+/* Always-visible close button in the viewport’s top-right */
 #checkoutClose {
-  position: fixed;               /* pin to viewport */
+  position: fixed;
   top: 16px;
   right: 16px;
   z-index: 1000000;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 999px;
   display: flex;
   align-items: center;
@@ -282,8 +50,132 @@ body.modal-open .floating-cta {
   color: #fff;
   border: none;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35);
 }
 
-/* kill sticky price bars if any CSS remains */
-#coStickyPrice, .co-sticky, .co-sticky-price, .co-sticky-bar { display: none !important; }
+/* Step containers */
+.co-step[aria-hidden="true"],
+.co-step[hidden] { display: none !important; }
+
+.co-step .co-title {
+  font-weight: 800;
+  font-size: 22px;
+  margin: 18px 18px 10px;
+}
+
+/* Form basics */
+.co-field { margin: 8px 18px; display: block; }
+.co-field label { display:block; font-size: 13px; margin-bottom: 6px; opacity: .9; }
+.co-field input, .co-field select {
+  width: 100%;
+  padding: 12px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  color: #eaecef;
+  outline: none;
+}
+.co-field input:focus, .co-field select:focus {
+  border-color: #a855f7; /* violet accent */
+}
+
+/* Quantity row + buttons */
+#coQtyRow, .co-qty-row {
+  margin: 16px 18px 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.co-qty-btn {
+  width: 42px; height: 42px;
+  display: inline-flex; align-items:center; justify-content:center;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  cursor: pointer;
+  user-select: none;
+}
+#coQty {
+  width: 70px; text-align: center;
+  padding: 10px 0;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  color: #eaecef;
+}
+
+/* Price line (non-sticky) */
+.co-price-line { margin: 6px 18px 12px; }
+.co-price .co-was { text-decoration: line-through; opacity: .55; margin-right: 8px; }
+.co-price .co-now { font-weight: 800; }
+
+/* Payment method buttons */
+.co-methods { margin: 14px 18px 6px; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+@media (max-width: 680px) { .co-methods { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+.co-method {
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.04);
+  color: #eaecef;
+  padding: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+.co-method[aria-selected="true"] {
+  border-color: #ff3ea5;
+  box-shadow: 0 0 0 2px rgba(255,62,165,0.25) inset;
+}
+
+/* Totals box (optional IDs referenced by JS) */
+.co-totals {
+  margin: 12px 18px 18px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+.co-totals .row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 0;
+}
+.co-totals .row.total {
+  border-top: 1px dashed rgba(255,255,255,0.12);
+  margin-top: 8px; padding-top: 10px;
+  font-weight: 800;
+}
+
+/* Step action buttons pinned at panel bottom */
+.co-actions {
+  position: sticky;
+  bottom: 0;
+  background: rgba(15,17,21,0.75);
+  backdrop-filter: blur(6px);
+  padding: 12px 18px;
+  z-index: 2;
+  box-shadow: 0 -8px 20px rgba(0,0,0,0.15);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+#coToStep3, #coBackTo1, #coBackTo2, #coSubmit {
+  display: inline-flex !important;
+  visibility: visible !important;
+  align-items: center; justify-content: center;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+}
+#coToStep3:disabled { opacity: .5; cursor: not-allowed; }
+.btn-primary { background: #a855f7; color: #fff; }
+.btn-ghost   { background: transparent; color: #eaecef; border: 1px solid rgba(255,255,255,0.18); }
+
+/* Step 3 card form */
+.cardset { margin: 8px 18px 18px; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12); }
+.cardset legend { padding: 0 6px; }
+.co-row { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; }
+@media (max-width: 680px) { .co-row { grid-template-columns: 1fr; } }
+
+/* Scoped sticky-price killer (only when fullscreen) */
+#checkoutModal.co-fullscreen #coStickyPrice,
+#checkoutModal.co-fullscreen [data-sticky="price"] { display: none !important; }
