@@ -8,8 +8,8 @@
   <meta name="robots" content="noindex,nofollow" />
   <meta name="theme-color" content="#0a0c10" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <link rel="stylesheet" href="css/style.css?v=570" />
-  <link rel="stylesheet" href="css/checkout3.css?v=570" />
+  <link rel="stylesheet" href="css/style.css?v=600" />
+  <link rel="stylesheet" href="css/checkout3.css?v=600" />
 </head>
 <body class="verge-theme">
   <header class="masthead" role="banner">
@@ -23,13 +23,12 @@
       <a href="#offer" class="masthead-cta open-checkout" data-cta onclick="checkoutOpen();return false;">Claim Free Sample</a>
     </div>
 
-    <!-- Mobile brand line and marquee slider underneath -->
+    <!-- Mobile brand line + announcement rotator -->
     <div class="masthead-mobile-brand">SELFHACKING</div>
-    <div class="masthead-marquee" aria-hidden="true">
-      <div class="marquee-track">
-        <span class="marquee-seg">Free sample ends in <strong data-countdown>00:00:00</strong><span class="sep">•</span>Shipping cutoff: midnight</span>
-        <span class="marquee-seg">Free sample ends in <strong data-countdown>00:00:00</strong><span class="sep">•</span>Shipping cutoff: midnight</span>
-      </div>
+    <div class="announcer" aria-live="polite">
+      <button class="ann-prev" aria-label="Previous">‹</button>
+      <div class="announce-msg">Free sample ends in <strong data-countdown>00:00:00</strong></div>
+      <button class="ann-next" aria-label="Next">›</button>
     </div>
     <div id="scrollProgress"></div>
   </header>
@@ -107,6 +106,44 @@
         </details>
       </section>
 
+      <!-- Reviews (mobile) -->
+      <section class="reviews-mobile" aria-label="Latest Customer Reviews">
+        <h3>Latest Customer Reviews</h3>
+        <div class="review-card">
+          <div class="review-hdr">
+            <div class="rev-avatar">J</div>
+            <div class="rev-meta">
+              <div class="rev-name">James S.</div>
+              <div class="rev-loc">Phoenix, AZ • <span class="stars">★★★★★</span></div>
+            </div>
+          </div>
+          <div class="badge" style="margin-top:6px;">Verified Purchase</div>
+          <div class="rev-body">Cravings and portions are down. Meaningful loss in 4 months; mild nausea week 1, then steady energy.</div>
+        </div>
+        <div class="review-card">
+          <div class="review-hdr">
+            <div class="rev-avatar">D</div>
+            <div class="rev-meta">
+              <div class="rev-name">Deborah K.</div>
+              <div class="rev-loc">Tampa, FL • <span class="stars">★★★★★</span></div>
+            </div>
+          </div>
+          <div class="badge" style="margin-top:6px;">Verified Purchase</div>
+          <div class="rev-body">Appetite finally quiet. With a high‑protein diet and walks, inches are moving in the right direction.</div>
+        </div>
+        <div class="review-card">
+          <div class="review-hdr">
+            <div class="rev-avatar">S</div>
+            <div class="rev-meta">
+              <div class="rev-name">Steven S.</div>
+              <div class="rev-loc">Boise, ID • <span class="stars">★★★★☆</span></div>
+            </div>
+          </div>
+          <div class="badge" style="margin-top:6px;">Verified Purchase</div>
+          <div class="rev-body">Scale is trending lower. Titration could be clearer, but absolutely worth it.</div>
+        </div>
+      </section>
+
       <section class="references">
         <h2>References</h2>
         <ul>
@@ -114,10 +151,6 @@
           <li><em>National Wellness Review, 2024</em></li>
         </ul>
       </section>
-
-      <div class="desktop-cta-block">
-        <a href="#offer" class="btn-main btn-lg open-checkout" data-cta onclick="checkoutOpen();return false;">Claim Your Free Sample</a>
-      </div>
     </article>
 
     <!-- Reviews Rail (desktop) -->
@@ -201,14 +234,19 @@
 
       <!-- Step 2 -->
       <section id="coStep2" class="co-pane" hidden aria-hidden="true">
-        <h3 class="co-h3">How Many Bottles Do You Want?</h3>
+        <h3 class="co-h3">Buy 1 Get 1 Free</h3>
         <div class="co-qty">
           <button type="button" class="qty-btn qty-dec" aria-label="Decrease">−</button>
           <input type="text" id="coQty" value="1" inputmode="numeric" aria-label="Quantity">
           <button type="button" class="qty-btn qty-inc" aria-label="Increase">+</button>
         </div>
-        <p class="co-free">You get <strong><span id="coFreeQty">1</span> FREE</strong> (match of your selection)</p>
         <div class="co-price"><span class="was">$90</span><span class="now">$45</span> <span class="per">/ bottle</span></div>
+
+        <!-- Stock meter (Step 2) -->
+        <div class="co-stock" id="coStock2" role="status" aria-live="polite">
+          <div class="co-stock-bar"><span class="co-stock-fill" style="width:100%"></span></div>
+          <div class="co-stock-label"><span class="qty">47</span> left in stock</div>
+        </div>
 
         <!-- Card primary -->
         <button class="co-xpay co-xpay-primary" data-method="card" data-discount="0" type="button" aria-label="Pay with card" style="background:#5b5bf7;color:#fff;justify-content:center;min-width:unset;width:100%;">
@@ -263,6 +301,12 @@
 
       <!-- Step 3 -->
       <section id="coStep3" class="co-pane" hidden aria-hidden="true">
+        <!-- Stock meter (Step 3) -->
+        <div class="co-stock" id="coStock3" role="status" aria-live="polite">
+          <div class="co-stock-bar"><span class="co-stock-fill" style="width:100%"></span></div>
+          <div class="co-stock-label"><span class="qty">47</span> left in stock</div>
+        </div>
+
         <div id="coPayWrap"></div>
         <div class="co-actions">
           <button class="btn-main btn-lg co-submit" id="coSubmit">Complete Reservation</button>
@@ -283,7 +327,7 @@
     <p>&copy; <span id="year"></span> Health Template Co.</p>
   </footer>
 
-  <script defer src="js/script.js?v=570"></script>
-  <script defer src="js/checkout3.js?v=570"></script>
+  <script defer src="js/script.js?v=600"></script>
+  <script defer src="js/checkout3.js?v=600"></script>
 </body>
 </html>
