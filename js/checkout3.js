@@ -1,4 +1,4 @@
-/* ===== checkout3.js v5.1 — mobile-solid open + polished steps + desktop CTA ready ===== */
+/* ===== checkout3.js v5.2 — mobile-solid open + consistent rhythm + hard bindings ===== */
 (function(){
   "use strict";
 
@@ -77,11 +77,13 @@
   function bindCTAs(){
     document.querySelectorAll(CTA_SEL).forEach(el=>{
       if(el.__bound) return;
-      const h=(ev)=>openModal(ev);
-      el.addEventListener("click",h,{capture:true});
+      const h=(ev)=>{ ev.preventDefault(); ev.stopPropagation(); openModal(ev); };
+      // Fast, capture-phase handlers
+      el.addEventListener("pointerdown",h,{capture:true});
       el.addEventListener("touchstart",h,{capture:true, passive:false});
       el.addEventListener("touchend",h,{capture:true, passive:false});
       el.addEventListener("pointerup",h,{capture:true});
+      el.addEventListener("click",h,{capture:true});
       el.__bound=true;
     });
   }
@@ -91,12 +93,11 @@
   // Document-level safety net
   function trap(ev){
     const t = ev.target.closest?.(CTA_SEL);
-    if (t){ openModal(ev); }
+    if (t){ ev.preventDefault(); ev.stopPropagation(); openModal(ev); }
   }
-  document.addEventListener("touchstart",trap,{capture:true,passive:false});
-  document.addEventListener("touchend",trap,{capture:true,passive:false});
-  document.addEventListener("pointerup",trap,{capture:true});
-  document.addEventListener("click",trap,{capture:true});
+  ["pointerdown","touchstart","touchend","pointerup","click"].forEach(evt=>{
+    document.addEventListener(evt, trap, {capture:true, passive:false});
+  });
 
   // Close
   closeX && closeX.addEventListener("click", closeModal);
