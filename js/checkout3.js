@@ -1,4 +1,4 @@
-/* ===== checkout3.js v2.2 — Steps + qty/free/discount/totals + CTA hide/show ===== */
+/* ===== checkout3.js v2.3 — Fullscreen modal + no sticky price ===== */
 (function () {
   const modal      = document.getElementById('checkoutModal');
   if (!modal) return;
@@ -16,16 +16,16 @@
   const submitBtn  = document.getElementById('coSubmit');
   const closeBtn   = document.getElementById('checkoutClose');
 
-  // pricing constants (current requirement: they pay $90/bottle)
-  const MSRP      = 90;     // compare-at (optional UI)
-  const SALE      = 90;     // actual per-paid-bottle price
+  // pricing constants
+  const MSRP      = 90;
+  const SALE      = 90;      // they pay $90 each
   const TAX_RATE  = 0.0875;
   const SHIPPING  = 0;
 
   // Step 2 state
   let chosenMethod = null;
-  let qty          = 1;       // paid bottles
-  let discountPct  = 0;       // 0, 10, 15 based on method
+  let qty          = 1;
+  let discountPct  = 0;
 
   // Helpers
   const $         = (id) => document.getElementById(id);
@@ -47,67 +47,87 @@
     });
   }
 
+  // Remove any sticky price bars on Step 2 (IDs/classes are flexible)
+  function killStickyPrice() {
+    document.querySelectorAll('#coStickyPrice,.co-sticky,.co-sticky-price,.co-sticky-bar')
+      .forEach(n => n.remove());
+  }
+
   function openModal(e) {
     if (e) { e.preventDefault(); e.stopPropagation(); }
-    modal.classList.add('show');
+    // fullscreen mode class
+    modal.classList.add('show','co-fullscreen');
     document.body.classList.add('modal-open');
     document.body.style.overflow = 'hidden';
+
+    // ensure close button visible
+    if (closeBtn) {
+      closeBtn.removeAttribute('hidden');
+      closeBtn.style.display = 'flex';
+    }
+
+    // start at step 1
     setActive(1); show(step1, true); show(step2, false); show(step3, false);
-    toggleGlobalCtas(true); // hide the “Claim Free Bottles” CTA when checkout is open
-    // spacing assist for CTA on the checkout form
+
+    // global CTA hidden
+    toggleGlobalCtas(true);
+
+    // tiny spacing assist for submit
     if (submitBtn) submitBtn.style.marginTop = '12px';
+
+    // kill any sticky price UI
+    killStickyPrice();
   }
 
   function closeModal() {
-    modal.classList.remove('show');
+    modal.classList.remove('show','co-fullscreen');
     document.body.classList.remove('modal-open');
     document.body.style.overflow = '';
-    toggleGlobalCtas(false); // restore CTA when exiting checkout
+    toggleGlobalCtas(false);
   }
 
   // Open from any CTA (desktop + mobile)
   const openTriggers = ['click','touchstart','pointerup'];
+  const OPEN_SEL = CTA_SEL;
   openTriggers.forEach(evt => {
     document.addEventListener(evt, (e) => {
-      const t = e.target.closest(CTA_SEL);
+      const t = e.target.closest(OPEN_SEL);
       if (t) openModal(e);
     }, { capture: true, passive: false });
   });
 
-  // Ensure late CTAs bind too
+  // Bind late-added CTAs
   new MutationObserver(() => bindAll()).observe(document.documentElement, { subtree: true, childList: true });
   function bindAll(){
-    document.querySelectorAll(CTA_SEL).forEach(el => {
+    document.querySelectorAll(OPEN_SEL).forEach(el => {
       if (el.__bound) return;
       openTriggers.forEach(v => el.addEventListener(v, openModal, { passive: false }));
       el.__bound = true;
     });
   } bindAll();
 
-  // Close modal interactions
+  // Close interactions
   closeBtn?.addEventListener('click', closeModal);
-  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+  modal.addEventListener('click', (e) => { 
+    // backdrop click closes (but not clicks inside the panel)
+    if (e.target === modal) closeModal(); 
+  });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('show')) closeModal(); });
 
-  /* ---------- PRICING / UI WRITES ---------- */
+  /* ---------- PRICING ---------- */
   function computeTotals(){
-    const free       = qty;                   // free bottles mirror qty
-    const perWas     = MSRP;
-    const perNow     = SALE;
-    const merch      = qty * perNow;         // they pay SALE each
+    const free       = qty;
+    const merch      = qty * SALE;
     const disc       = merch * (discountPct / 100);
     const taxable    = Math.max(0, merch - disc);
     const tax        = taxable * TAX_RATE;
     const total      = taxable + tax + SHIPPING;
 
-    // Per-bottle price display (supports strikethrough UI if you want to show a compare-at)
-    $('coPerWas')    && ($('coPerWas').innerText = fmt(perWas));
-    $('coPerNow')    && ($('coPerNow').innerText = fmt(perNow));
-    // Quantity & free mirror
+    $('coPerWas')    && ($('coPerWas').innerText = fmt(MSRP));
+    $('coPerNow')    && ($('coPerNow').innerText = fmt(SALE));
     $('coQty')       && ($('coQty').value = String(qty));
     $('coFreeQty')   && ($('coFreeQty').innerText = String(free));
     $('coItemsLine') && ($('coItemsLine').innerText = `${qty + free} bottles (${qty} paid + ${free} free)`);
-    // Money lines
     $('coMerch')     && ($('coMerch').innerText = fmt(merch));
     $('coDisc')      && ($('coDisc').innerText  = disc > 0 ? `-${fmt(disc)}` : '$0.00');
     $('coTax')       && ($('coTax').innerText   = fmt(tax));
@@ -126,25 +146,22 @@
     [name, email, addr].forEach(i => i && (i.style.borderColor = i.value.trim() ? '' : '#ff2a6d'));
     if (!ok) return;
 
-    // show step 2
     setActive(2); show(step1, false); show(step2, true); show(step3, false);
-
-    // Ensure Step 2 heading text & hide shipping header copy on Step 2
     if ($('coQtyTitle')) $('coQtyTitle').textContent = 'How Many Bottles Do You Want?';
     if ($('coShipHeader')) $('coShipHeader').hidden = true;
 
-    // default qty + compute
     if ($('coQty')) { qty = 1; $('coQty').value = '1'; }
     discountPct = 0;
 
-    // preselect Card
     step2.querySelector('.co-method[data-method="card"]')?.click();
     computeTotals();
+
+    // ensure no sticky price widgets survive
+    killStickyPrice();
   });
 
   /* ---------- STEP 2 (qty & method) ---------- */
   step2?.addEventListener('click', (e) => {
-    // Qty buttons
     if (e.target.closest('.qty-inc')) {
       const input = $('coQty');
       qty = Math.min(99, (parseInt(input.value, 10) || 1) + 1);
@@ -160,17 +177,14 @@
       return;
     }
 
-    // Method selection
     const btn = e.target.closest('.co-method');
     if (!btn) return;
 
     step2.querySelectorAll('.co-method').forEach(b => b.removeAttribute('aria-selected'));
     btn.setAttribute('aria-selected', 'true');
     chosenMethod = btn.dataset.method || 'card';
-
-    // Data attributes: data-discount="10" or "15" on the .co-method elements
     discountPct  = parseFloat(btn.dataset.discount || '0') || 0;
-    if (toStep3Btn) toStep3Btn.disabled = false;
+    toStep3Btn && (toStep3Btn.disabled = false);
 
     computeTotals();
   });
@@ -197,11 +211,12 @@
   /* ---------- Back buttons ---------- */
   back1?.addEventListener('click', () => { 
     setActive(1); show(step1, true);  show(step2, false); show(step3, false); 
-    if ($('coShipHeader')) $('coShipHeader').hidden = false; // show again on Step 1
+    if ($('coShipHeader')) $('coShipHeader').hidden = false;
   });
   back2?.addEventListener('click', () => { 
     setActive(2); show(step1, false); show(step2, true);  show(step3, false); 
-    if ($('coShipHeader')) $('coShipHeader').hidden = true; // keep hidden on Step 2
+    if ($('coShipHeader')) $('coShipHeader').hidden = true;
+    killStickyPrice();
   });
 
   /* ---------- STEP 3 renderer ---------- */
@@ -240,8 +255,7 @@
     $('checkoutSuccess') && ($('checkoutSuccess').hidden = false);
   });
 
-  /* ---------- Initial paint ---------- */
-  // Optionally reflect compare-at vs now (will still show $90 → $90 with current constants)
+  // Initial totals
   computeTotals();
 
 })();
