@@ -144,3 +144,42 @@ body.modal-open .floating-cta {
 @media (max-width:420px){
   .co-methods { grid-template-columns:1fr; }
 }
+
+/* v1.8 UX refinements */
+#coStep2 .co-h3 {
+  margin-top: .3rem;
+  margin-bottom: .9rem;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.co-price .was {
+  color: #a7a7ad;
+  text-decoration: line-through;
+  font-weight: 600;
+}
+.co-price .now {
+  color: #fff;
+  font-weight: 900;
+  font-size: 1.1rem;
+}
+.co-price .per {
+  color: #cfcfd3;
+}
+
+/* spacing before continue */
+.co-actions { margin-top: 1.2rem !important; }
+
+/* totals polish */
+.co-totals {
+  background: #141519;
+  border: 1px solid #2a2b31;
+  border-radius: 12px;
+  padding: .8rem 1rem;
+  margin-top: .9rem;
+}
+.co-totals > div { font-size: .95rem; }
+.co-totals .co-total-row {
+  font-size: 1.1rem;
+  color: #fff;
+}
