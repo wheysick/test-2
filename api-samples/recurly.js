@@ -2,8 +2,8 @@
 // npm i recurly --save
 import Recurly from 'recurly';
 
-const apiKey = process.env.d408cdc265f54f48bbff859526ec4303; // secret
-const siteId = process.env.addoctor; // required for the client
+const apiKey = process.env.RECURLY_API_KEY=d408cdc265f54f48bbff859526ec4303; // secret
+const siteId = process.env.RECURLY_SITE_ID=addoctor; // required for the client
 const recurly = new Recurly(apiKey);
 
 export default async function handler(req, res) {
