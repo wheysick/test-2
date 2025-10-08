@@ -8,8 +8,8 @@
   <meta name="robots" content="noindex,nofollow" />
   <meta name="theme-color" content="#0a0c10" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <link rel="stylesheet" href="css/style.css?v=550" />
-  <link rel="stylesheet" href="css/checkout3.css?v=550" />
+  <link rel="stylesheet" href="css/style.css?v=570" />
+  <link rel="stylesheet" href="css/checkout3.css?v=570" />
 </head>
 <body class="verge-theme">
   <header class="masthead" role="banner">
@@ -42,7 +42,7 @@
     <a href="#offer" class="share-icon open-checkout" title="Save" data-cta onclick="checkoutOpen();return false;">🔖</a>
   </nav>
 
-  <main class="wrap">
+  <main class="layout">
     <article class="article" itemscope itemtype="https://schema.org/AdvertiserContentArticle">
       <header class="article-hed">
         <p class="kicker">FEATURE</p>
@@ -73,33 +73,38 @@
       </ul>
       <p class="note small"><em>*Inspired by modern GLP‑1/GIP research.</em> <strong>Not a drug;</strong> not intended to diagnose, treat, cure, or prevent any disease.</p>
 
-      <blockquote class="pullquote reveal">
-        <p>“<strong>By week two</strong> I wasn’t raiding the pantry at 9pm. It’s the first routine I’ve actually <em>stuck with</em>.”</p>
-        <cite>— <em>Alex R., Verified</em></cite>
-      </blockquote>
-
-      <h2>What you’ll feel (week 1–4)</h2>
-      <ol class="timeline">
-        <li><strong>Week 1:</strong> Portions feel easier; <em>cravings drop</em></li>
-        <li><strong>Week 2:</strong> Afternoon energy <strong>stabilizes</strong></li>
-        <li><strong>Week 3:</strong> Clothes feel <em>more forgiving</em></li>
-        <li><strong>Week 4:</strong> The rhythm <strong>sticks</strong></li>
-      </ol>
-
+      <!-- FAQ (accordion) -->
       <section class="faq reveal" id="faq">
-        <h2>FAQs</h2>
-        <div class="faq-item">
-          <button class="faq-question"><strong>Is it safe?</strong></button>
-          <div class="faq-answer"><p><strong>Yes.</strong> The formula uses <em>research‑backed ingredients</em> with a strong safety profile. If you’re under care, <em>consult your provider</em>.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-question"><strong>Do I need a prescription?</strong></button>
-          <div class="faq-answer"><p><strong>No.</strong> This is a <em>non‑prescription</em> wellness product.</p></div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-question"><strong>How fast will I notice changes?</strong></button>
-          <div class="faq-answer"><p>Many people notice changes in <em>appetite and energy</em> within <strong>1–2 weeks</strong>, with continued improvements after week 3.</p></div>
-        </div>
+        <h2>Frequently Asked Questions</h2>
+
+        <details class="faq-item" open>
+          <summary><span class="faq-q">Is Tirzepatide legal?</span><span class="faq-arrow">›</span></summary>
+          <div class="faq-body">Tirzepatide is an FDA‑approved prescription medicine in the United States and is regulated.</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-q">Do I need a prescription?</span><span class="faq-arrow">›</span></summary>
+          <div class="faq-body">This offer is for a non‑prescription wellness product inspired by current research.</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-q">How fast will I notice changes?</span><span class="faq-arrow">›</span></summary>
+          <div class="faq-body">Most notice appetite and energy changes within 1–2 weeks; momentum builds after week 3.</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-q">Will it make me drowsy?</span><span class="faq-arrow">›</span></summary>
+          <div class="faq-body">Typical use does not cause drowsiness; always listen to your body and consult your provider.</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-q">Are there side effects or interactions?</span><span class="faq-arrow">›</span></summary>
+          <div class="faq-body">Mild, transient effects are possible (nausea in week 1 for some). Check interactions with your clinician.</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-q">Who shouldn’t use this?</span><span class="faq-arrow">›</span></summary>
+          <div class="faq-body">People with known sensitivities or those pregnant/breastfeeding should consult a provider first.</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-q">How long does shipping take?</span><span class="faq-arrow">›</span></summary>
+          <div class="faq-body">Most orders ship within 24–48 hours; you’ll receive tracking via email.</div>
+        </details>
       </section>
 
       <section class="references">
@@ -114,6 +119,48 @@
         <a href="#offer" class="btn-main btn-lg open-checkout" data-cta onclick="checkoutOpen();return false;">Claim Your Free Sample</a>
       </div>
     </article>
+
+    <!-- Reviews Rail (desktop) -->
+    <aside class="reviews-rail" aria-label="Verified Reviews">
+      <div class="review-card">
+        <div class="review-hdr">
+          <div class="rev-avatar">J</div>
+          <div class="rev-meta">
+            <div class="rev-name">James S.</div>
+            <div class="rev-loc">Phoenix, AZ • <span class="stars">★★★★★</span></div>
+          </div>
+        </div>
+        <div class="badge" style="margin-top:6px;">Verified Purchase</div>
+        <div class="rev-body">Under my doctor's care, cravings and portions are down. Meaningful loss in 4 months; mild nausea week 1, then steady energy.</div>
+        <div class="rev-actions"><button>Helpful 42</button><button>Report</button></div>
+      </div>
+
+      <div class="review-card">
+        <div class="review-hdr">
+          <div class="rev-avatar">D</div>
+          <div class="rev-meta">
+            <div class="rev-name">Deborah K.</div>
+            <div class="rev-loc">Tampa, FL • <span class="stars">★★★★★</span></div>
+          </div>
+        </div>
+        <div class="badge" style="margin-top:6px;">Verified Purchase</div>
+        <div class="rev-body">Appetite finally quiet. Paired with a high‑protein diet and daily walks, inches are moving in the right direction.</div>
+        <div class="rev-actions"><button>Helpful 36</button><button>Report</button></div>
+      </div>
+
+      <div class="review-card">
+        <div class="review-hdr">
+          <div class="rev-avatar">S</div>
+          <div class="rev-meta">
+            <div class="rev-name">Steven S.</div>
+            <div class="rev-loc">Boise, ID • <span class="stars">★★★★☆</span></div>
+          </div>
+        </div>
+        <div class="badge" style="margin-top:6px;">Verified Purchase</div>
+        <div class="rev-body">Appetite is way down and the scale is trending lower. Titration instructions could be clearer, but worth it.</div>
+        <div class="rev-actions"><button>Helpful 19</button><button>Report</button></div>
+      </div>
+    </aside>
   </main>
 
   <!-- Checkout Modal -->
@@ -170,19 +217,29 @@
 
         <p class="co-savings-note">save an additional <strong>15% off</strong> your order</p>
 
-        <!-- Sliding method strip (mobile friendly) -->
-        <div class="co-xpay-strip">
-          <button class="co-xpay paypal" data-method="paypal" data-discount="15" type="button">
-            <img src="assets/paypal.svg" class="pm-icon" alt=""/><span class="label">PayPal</span>
+        <!-- Sliding method strip with arrows -->
+        <div class="co-xpay-wrap">
+          <button class="xpay-nav prev" type="button" aria-label="Previous">
+            <svg viewBox="0 0 24 24"><path fill="currentColor" d="M15.4 5.4L14 4l-8 8 8 8 1.4-1.4L8.8 12z"/></svg>
           </button>
-          <button class="co-xpay venmo" data-method="venmo" data-discount="15" type="button">
-            <img src="assets/venmo.svg" class="pm-icon" alt=""/><span class="label">Venmo</span>
-          </button>
-          <button class="co-xpay cashapp" data-method="cashapp" data-discount="15" type="button">
-            <img src="assets/cashapp.svg" class="pm-icon" alt=""/><span class="label">Cash App</span>
-          </button>
-          <button class="co-xpay crypto" data-method="crypto" data-discount="15" type="button">
-            <img src="assets/crypto.svg" class="pm-icon" alt=""/><span class="label">Crypto</span>
+
+          <div class="co-xpay-strip">
+            <button class="co-xpay paypal" data-method="paypal" data-discount="15" type="button">
+              <img src="assets/paypal.svg" class="pm-icon" alt=""/><span class="label">PayPal</span>
+            </button>
+            <button class="co-xpay venmo" data-method="venmo" data-discount="15" type="button">
+              <img src="assets/venmo.svg" class="pm-icon" alt=""/><span class="label">Venmo</span>
+            </button>
+            <button class="co-xpay cashapp" data-method="cashapp" data-discount="15" type="button">
+              <img src="assets/cashapp.svg" class="pm-icon" alt=""/><span class="label">Cash App</span>
+            </button>
+            <button class="co-xpay crypto" data-method="crypto" data-discount="15" type="button">
+              <img src="assets/crypto.svg" class="pm-icon" alt=""/><span class="label">Crypto</span>
+            </button>
+          </div>
+
+          <button class="xpay-nav next" type="button" aria-label="Next">
+            <svg viewBox="0 0 24 24"><path fill="currentColor" d="M8.6 18.6L10 20l8-8-8-8-1.4 1.4L15.2 12z"/></svg>
           </button>
         </div>
 
@@ -226,7 +283,7 @@
     <p>&copy; <span id="year"></span> Health Template Co.</p>
   </footer>
 
-  <script defer src="js/script.js?v=550"></script>
-  <script defer src="js/checkout3.js?v=550"></script>
+  <script defer src="js/script.js?v=570"></script>
+  <script defer src="js/checkout3.js?v=570"></script>
 </body>
 </html>
