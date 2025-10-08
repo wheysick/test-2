@@ -1,46 +1,31 @@
-/* ===== checkout3.css v5.3 — Checkout polish per patch list ===== */
+/* ===== checkout3.css v5.4 — Express checkout icons + UI polish ===== */
 :root{
   --panel:#0F1319; --fg:#E9ECF2; --muted:rgba(255,255,255,.06); --border:rgba(255,255,255,.12);
   --accent:#C471F5; --accent2:#FA71CD; --radius:16px; --pad:clamp(18px,3.2vw,28px);
   --shadow:0 28px 64px rgba(0,0,0,.55); --body:16px; --small:13.5px; --title:clamp(20px,2.2vw,26px);
+  --sp:#635BFF; --pp:#FFC439; --ap:#000; --gp:#000; --vm:#008CFF; --ca:#00C244; --cp:#2A2E39;
 }
 #checkoutModal{display:none;}
 #checkoutModal.show{display:flex!important;}
-#checkoutModal.co-fullscreen{
-  position:fixed; inset:0; z-index:999999; align-items:center; justify-content:center;
-  background:rgba(10,12,16,.86); /* darker backdrop to match page */
-}
+#checkoutModal.co-fullscreen{ position:fixed; inset:0; z-index:999999; align-items:center; justify-content:center; background:rgba(10,12,16,.86); }
 #checkoutModal .modal-content.checkout-card{
-  width:min(92vw,580px); /* narrower on desktop to prevent horizontal scroll */
-  max-height:calc(100dvh - 4rem);
+  width:min(92vw,600px); max-height:calc(100dvh - 4rem);
   background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0)), var(--panel);
   color:var(--fg); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius);
   box-shadow:var(--shadow); overflow:auto; overflow-x:hidden; overscroll-behavior:contain; padding:28px var(--pad) 60px;
 }
-#checkoutClose{
-  position:fixed; top:14px; right:14px; z-index:1000000; width:44px; height:44px; border-radius:999px;
-  border:1px solid rgba(255,255,255,.14); background:rgba(18,19,23,.92); color:#fff; display:flex; align-items:center; justify-content:center;
-  backdrop-filter:blur(6px) saturate(120%); cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,.45);
-}
+#checkoutClose{ position:fixed; top:14px; right:14px; z-index:1000000; width:44px; height:44px; border-radius:999px; border:1px solid rgba(255,255,255,.14); background:rgba(18,19,23,.92); color:#fff; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(6px) saturate(120%); cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,.45); }
 
-/* Steps */
 .co-pane[hidden], .co-pane[aria-hidden="true"]{display:none!important;}
 .co-h3{font-size:var(--title); font-weight:900; letter-spacing:.2px; text-align:center; margin:4px 0 18px;}
 
 /* Step 1 */
 #coStep1 .co-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px 16px; margin-top:6px;}
 #coStep1 .co-row{display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px 16px;}
-@media (max-width:640px){
-  #coStep1 .co-grid{grid-template-columns:1fr;}
-  #coStep1 .co-row{grid-template-columns:1fr;}
-}
+@media (max-width:640px){ #coStep1 .co-grid{grid-template-columns:1fr;} #coStep1 .co-row{grid-template-columns:1fr;} }
 #coStep1 label{font-size:var(--small); opacity:.85; display:flex; flex-direction:column; gap:6px;}
-#coStep1 input{
-  width:100%; padding:12px 14px; border-radius:14px; font-size:16px; /* prevent iOS zoom */
-  border:1px solid var(--border); background:var(--muted); color:var(--fg); outline:none;
-}
+#coStep1 input{ width:100%; padding:12px 14px; border-radius:14px; font-size:16px; border:1px solid var(--border); background:var(--muted); color:var(--fg); outline:none; }
 #coStep1 input:focus{border-color:var(--accent); box-shadow:0 0 0 3px rgba(196,113,245,.2);}
-/* Center the continue button in Step 1 */
 #coStep1 .co-next{ display:flex; margin:16px auto 0; }
 
 /* Buttons */
@@ -51,8 +36,7 @@
 
 /* Step 2 */
 #coStep2{text-align:center;}
-/* Normalize type across sections */
-#coStep2 .co-qty, #coStep2 .co-price, #coStep2 .co-methods, #coStep2 .co-totals { font-size: var(--body); }
+#coStep2 .co-qty, #coStep2 .co-price, #coStep2 .co-xpay, #coStep2 .co-totals { font-size: var(--body); }
 
 .co-qty{display:flex; justify-content:center; align-items:center; gap:12px; margin:10px 0 8px;}
 .qty-btn{width:44px; height:44px; border-radius:12px; font-size:18px; border:1px solid var(--border); background:var(--muted); color:var(--fg);}
@@ -63,21 +47,46 @@
 .co-price .was{margin-right:8px; text-decoration:line-through; opacity:.55;}
 .co-price .now{font-weight:800;}
 
-.co-methods{display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); margin:18px 0 10px;}
-.co-method{border:1px solid var(--border); background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0)); border-radius:14px; padding:16px 14px; text-align:left; color:var(--fg); transition:border .15s ease, box-shadow .15s ease, transform .06s ease; cursor:pointer;}
-.co-method .co-title{font-weight:800; font-size:15px; line-height:1.25;}
-.co-method .co-badge,.co-method .co-discount{opacity:.85; font-size:13.5px; margin-top:6px; display:block;}
-.co-method:hover{border-color:rgba(255,255,255,.25);}
-.co-method:active{transform:translateY(1px);}
-.co-method[aria-selected="true"]{border-color:var(--accent); box-shadow:0 0 0 2px rgba(196,113,245,.35) inset;}
+/* Express checkout label + primary full-width card */
+.co-express-label{ margin:8px 0 10px; color:var(--fg); opacity:.8; font-size:14px; }
+.co-xpay-primary{
+  width:100%; border:none; border-radius:14px; padding:16px 18px; margin:0 0 8px;
+  display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer;
+  background:var(--sp); color:#fff; font-weight:900; font-size:18px;
+}
+.co-xpay-primary svg{ width:24px; height:24px; fill:#fff; }
 
-.co-sticky{position:relative; margin-top:8px;}
-.co-totals{border:1px solid var(--border); border-radius:14px; background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0)); padding:14px 16px; text-align:left;}
+/* Savings note */
+.co-savings-note{ margin:6px 0 10px; font-size:12px; opacity:.8; }
+
+/* Brand grid */
+.co-xpay-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+@media (max-width:520px){ .co-xpay-grid{ grid-template-columns:1fr 1fr; } }
+.co-xpay{
+  border:none; border-radius:14px; padding:14px;
+  display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; color:#fff; font-weight:800;
+}
+.co-xpay svg{ width:24px; height:24px; }
+
+.co-xpay.paypal{ background:var(--pp); color:#003087; }
+.co-xpay.applepay{ background:var(--ap); color:#fff; }
+.co-xpay.gpay{ background:var(--gp); color:#fff; }
+.co-xpay.venmo{ background:var(--vm); color:#fff; }
+.co-xpay.cashapp{ background:var(--ca); color:#003b12; }
+.co-xpay.crypto{ background:var(--cp); color:#cbd5e1; }
+
+/* Selected halo */
+.co-xpay[aria-selected="true"], .co-xpay-primary[aria-selected="true"]{
+  outline:3px solid rgba(196,113,245,.35); outline-offset:2px;
+}
+
+/* Totals */
+.co-totals{border:1px solid var(--border); border-radius:14px; background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0)); padding:14px 16px; text-align:left; margin-top:12px;}
 .co-totals > div{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:6px 0; font-size:var(--body); font-variant-numeric:tabular-nums;}
 .co-total-row{border-top:1px dashed var(--border); margin-top:8px; padding-top:10px; font-weight:800;}
 
-/* Actions: center on all steps; but remove sticky effect on Step 2 */
-.co-actions{position:sticky; bottom:0; z-index:3; display:flex; justify-content:center; gap:10px; padding:14px var(--pad); background:linear-gradient(180deg,rgba(11,13,17,0),rgba(11,13,17,.88)); backdrop-filter:blur(8px); box-shadow:0 -10px 28px rgba(0,0,0,.35);}
+/* Actions: centered; Step 2 non-sticky */
+.co-actions{ position:sticky; bottom:0; z-index:3; display:flex; justify-content:center; gap:10px; padding:14px var(--pad); background:linear-gradient(180deg,rgba(11,13,17,0),rgba(11,13,17,.88)); backdrop-filter:blur(8px); box-shadow:0 -10px 28px rgba(0,0,0,.35); }
 #coStep2 .co-actions{ position:static; background:none; box-shadow:none; padding:12px 0; }
 
 .co-secure{margin:10px 0 0; text-align:center; opacity:.9; font-size:var(--small);}
@@ -86,18 +95,10 @@
 .cardset{margin:16px 0; padding:14px; border:1px solid var(--border); border-radius:14px; max-width:100%;}
 .cardset legend{padding:0 6px; font-size:var(--small); opacity:.9;}
 .cardset label{ font-size: var(--small); opacity: .9; display:flex; flex-direction:column; gap:6px; }
-.cardset input{
-  font-size:16px; padding:12px 14px; border-radius:12px; width:100%;
-  border:1px solid var(--border); background:var(--muted); color:var(--fg);
-}
+.cardset input{ font-size:16px; padding:12px 14px; border-radius:12px; width:100%; border:1px solid var(--border); background:var(--muted); color:var(--fg); }
 .cardset input:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(196,113,245,.2); }
-
 .co-row{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; max-width:100%;}
 @media (max-width:640px){.co-row{grid-template-columns:1fr;}}
-/* Center the action bar on Step 3 (already centered globally) */
-
-/* Remove terms checkbox (hidden) */
-.co-terms{ display:none !important; }
 
 .co-trust{margin-top:8px; text-align:center; opacity:.8; font-size:var(--small);}
 
@@ -105,5 +106,5 @@
 .co-success[hidden]{display:none!important;}
 .co-success h4{font-size:var(--title); font-weight:900; margin:8px 0 6px;}
 
-/* Ensure theme sticky bars don't appear inside modal */
+/* Kill external sticky elements inside modal */
 #checkoutModal [data-sticky="price"], #checkoutModal #coStickyPrice{display:none!important;}
