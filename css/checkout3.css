@@ -61,3 +61,32 @@ input:focus, select:focus { border-color:#ff2a6d; box-shadow:0 0 0 3px rgba(255,
 @media (max-width:560px){
   .checkout-card{width:92vw;padding:.9rem 1rem 1.1rem;}
 }
+
+/* v1.6 Step 1 form alignment */
+#coStep1 label {
+  text-align: left !important;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #e9e9ee;
+}
+
+#coStep1 input {
+  width: 100%;
+  background: #111218;
+  color: #e8e8ea;
+  border: 1px solid #2a2b31;
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+#coStep1 .co-row {
+  display: grid;
+  grid-template-columns: 1fr 120px 120px;
+  gap: 0.75rem;
+}
+@media (max-width: 480px) {
+  #coStep1 .co-row { grid-template-columns: 1fr 1fr; }
+  #coStep1 .co-row label:last-child { grid-column: 1 / -1; }
+}
