@@ -8,8 +8,8 @@
   <meta name="robots" content="noindex,nofollow" />
   <meta name="theme-color" content="#0a0c10" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <link rel="stylesheet" href="css/style.css?v=620" />
-  <link rel="stylesheet" href="css/checkout3.css?v=620" />
+  <link rel="stylesheet" href="css/style.css?v=630" />
+  <link rel="stylesheet" href="css/checkout3.css?v=630" />
 </head>
 <body class="verge-theme">
   <header class="masthead" role="banner">
@@ -250,7 +250,7 @@
           <img src="assets/card.svg" class="pm-icon" alt="" /><span class="label">Credit / Debit Card</span>
         </button>
 
-        <p class="co-savings-note">save an additional <strong>15% off</strong> your order</p>
+        <p class="co-savings-note">save an additional <strong>15% off</strong> your order by using a different payment method</p>
 
         <!-- Sliding method strip with arrows -->
         <div class="co-xpay-wrap">
@@ -303,7 +303,7 @@
 
         <div id="coPayWrap"></div>
         <div class="co-actions">
-          <button class="btn-main btn-lg co-submit" id="coSubmit">Complete Reservation</button>
+          <button class="btn-main btn-lg co-submit" id="coSubmit">Complete Order</button>
           <button class="btn-main btn-sm co-back" id="coBackTo2" type="button">Back</button>
         </div>
         <p class="tiny muted co-trust">🔒 256‑bit SSL • 🚚 Free shipping today • ↩️ 60‑Day Guarantee</p>
@@ -317,11 +317,26 @@
     </div>
   </div>
 
-  <footer class="site-footer">
-    <p>&copy; <span id="year"></span> Health Template Co.</p>
+  <!-- Footer (premium minimal) -->
+  <footer class="footer" role="contentinfo">
+    <div class="footer-cta">
+      <h2>Join the SelfHacking Community</h2>
+      <p>Get special offers, early access, and wellness tips.</p>
+      <form class="footer-form" onsubmit="event.preventDefault(); alert('Thanks!');">
+        <input type="email" placeholder="Enter your email" aria-label="Email">
+        <button type="submit">Subscribe</button>
+      </form>
+      <div class="footer-social" aria-label="Social links">
+        <a href="#" aria-label="Instagram">IG</a>
+        <a href="#" aria-label="Facebook">Fb</a>
+        <a href="#" aria-label="X / Twitter">X</a>
+        <a href="#" aria-label="YouTube">YT</a>
+      </div>
+    </div>
+    <div class="footer-legal">© 2025 SelfHacking. All rights reserved.</div>
   </footer>
 
-  <script defer src="js/script.js?v=620"></script>
-  <script defer src="js/checkout3.js?v=620"></script>
+  <script defer src="js/script.js?v=630"></script>
+  <script defer src="js/checkout3.js?v=630"></script>
 </body>
 </html>
