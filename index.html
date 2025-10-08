@@ -146,20 +146,39 @@
       <h3 id="coTitle">Where Should We Send Your Free Bottles?</h3>
 
       <!-- Step 1: User Info -->
-      <form id="coStep1" class="co-pane" novalidate>
-        <div class="co-grid">
-          <label>Full name
-            <input type="text" name="name" autocomplete="name" required />
-          </label>
-          <label>Email
-            <input type="email" name="email" autocomplete="email" required />
-          </label>
-          <label>Address
-            <input type="text" name="address" autocomplete="street-address" required />
-          </label>
-        </div>
-        <button type="submit" class="btn-main btn-lg co-next">Continue</button>
-      </form>
+<form id="coStep1" class="co-pane" novalidate>
+  <div class="co-grid">
+    <label>Full Name
+      <input type="text" name="name" autocomplete="name" required />
+    </label>
+
+    <label>Email
+      <input type="email" name="email" autocomplete="email" required />
+    </label>
+
+    <label>Phone
+      <input type="tel" name="phone" inputmode="tel" autocomplete="tel" required />
+    </label>
+
+    <label>Street Address
+      <input type="text" name="address" autocomplete="street-address" required />
+    </label>
+
+    <div class="co-row">
+      <label>City
+        <input type="text" name="city" autocomplete="address-level2" required />
+      </label>
+      <label>State
+        <input type="text" name="state" maxlength="2" placeholder="CA" required />
+      </label>
+      <label>Zip
+        <input type="text" name="zip" inputmode="numeric" maxlength="5" required />
+      </label>
+    </div>
+  </div>
+
+  <button type="submit" class="btn-main btn-lg co-next">Continue</button>
+</form>
 
       <!-- Step 2: Payment Method -->
       <section id="coStep2" class="co-pane" hidden aria-hidden="true">
