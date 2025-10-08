@@ -1,4 +1,4 @@
-/* ===== checkout3.js v2.5 — Fullscreen modal + robust CTA restore + spacing fix ===== */
+/* ===== checkout3.js v2.6 — fullscreen checkout, CTA restore, step-scoped price line ===== */
 (function () {
   const modal      = document.getElementById('checkoutModal');
   if (!modal) return;
@@ -17,21 +17,21 @@
   const closeBtn   = document.getElementById('checkoutClose');
 
   // Pricing constants
-  const MSRP      = 90;
-  const SALE      = 90;         // user pays $90 per paid bottle
-  const TAX_RATE  = 0.0875;
-  const SHIPPING  = 0;
+  const MSRP = 90;
+  const SALE = 90;          // they actually pay $90/bottle
+  const TAX_RATE = 0.0875;
+  const SHIPPING = 0;
 
   // State
   let chosenMethod = null;
-  let qty          = 1;
-  let discountPct  = 0;
+  let qty = 1;
+  let discountPct = 0;
 
   // Helpers
-  const $         = (id) => document.getElementById(id);
-  const show      = (el, yes = true) => { if(!el) return; el.hidden = !yes; el.setAttribute('aria-hidden', String(!yes)); };
+  const $  = (id) => document.getElementById(id);
+  const show = (el, yes = true) => { if(!el) return; el.hidden = !yes; el.setAttribute('aria-hidden', String(!yes)); };
   const setActive = (n) => steps.forEach(s => s.classList.toggle('is-active', s.dataset.step == n));
-  const fmt       = (n) => `$${n.toFixed(2)}`;
+  const fmt = (n) => `$${n.toFixed(2)}`;
 
   function ensureNav(stepNum){
     const s1 = stepNum === 1, s2 = stepNum === 2, s3 = stepNum === 3;
@@ -47,19 +47,16 @@
   }
 
   /* ---------- CTA hide/show (robust) ---------- */
-  // Anything matching these will hide while checkout is open
   const CTA_SEL = [
-    '#floatingCta', '.floating-cta', '[data-cta]', 'a[href="#offer"]',
-    '.adv-cta', '.hero-cta', '.cta', '#advCta', '#claimCta', '[data-hide-on-checkout]'
+    '#floatingCta','.floating-cta','[data-cta]','a[href="#offer"]',
+    '.adv-cta','.hero-cta','.cta','#advCta','#claimCta','[data-hide-on-checkout]'
   ].join(',');
 
   function toggleGlobalCtas(hide) {
     document.querySelectorAll(CTA_SEL).forEach(el => {
       if (!el) return;
       if (hide) {
-        if (el.__ctaShown === undefined) {
-          el.__ctaShown = getComputedStyle(el).display || '';
-        }
+        if (el.__ctaShown === undefined) el.__ctaShown = getComputedStyle(el).display || '';
         el.style.display = 'none';
         el.setAttribute('aria-hidden','true');
       } else {
@@ -69,27 +66,27 @@
       }
     });
   }
-
-  // Watchdog: if modal closes for any reason, make sure CTAs are back
-  function ctaWatchdog() {
+  function restoreCtasIfClosed() {
     if (!modal.classList.contains('show')) {
       document.documentElement.removeAttribute('data-checkout-open');
       toggleGlobalCtas(false);
     }
   }
-  document.addEventListener('visibilitychange', ctaWatchdog);
-  const ctaInterval = setInterval(ctaWatchdog, 1200);
+  document.addEventListener('visibilitychange', restoreCtasIfClosed);
+  window.addEventListener('pageshow', restoreCtasIfClosed);
+  const ctaInterval = setInterval(restoreCtasIfClosed, 1500);
 
-  // Only remove true sticky price bars
+  /* ---------- Price line handling ---------- */
+  // Only remove real sticky bars
   function killStickyPrice() {
     document.querySelectorAll('#coStickyPrice,[data-sticky="price"]').forEach(n => n.remove());
   }
-
-  // Create a price line if missing
+  // Create a non-sticky price line under qty controls (Step 2 only)
   function ensurePriceBox() {
     let wrap = $('coPriceBox');
     if (!wrap) {
-      const anchor = $('coQtyRow') || step2 || modal;
+      const anchor = $('coQtyRow') || step2;
+      if (!anchor) return;
       wrap = document.createElement('div');
       wrap.id = 'coPriceBox';
       wrap.className = 'co-price-line';
@@ -103,22 +100,26 @@
     }
     wrap.style.display = '';
   }
+  function hidePriceBox() {
+    const wrap = $('coPriceBox');
+    if (wrap) wrap.style.display = 'none';
+  }
 
+  /* ---------- Totals ---------- */
   function computeTotals(){
-    const free       = qty;
-    const merch      = qty * SALE;
-    const disc       = merch * (discountPct / 100);
-    const taxable    = Math.max(0, merch - disc);
-    const tax        = taxable * TAX_RATE;
-    const total      = taxable + tax + SHIPPING;
+    const free  = qty;
+    const merch = qty * SALE;
+    const disc  = merch * (discountPct / 100);
+    const taxable = Math.max(0, merch - disc);
+    const tax   = taxable * TAX_RATE;
+    const total = taxable + tax + SHIPPING;
 
     $('coPerWas')    && ($('coPerWas').innerText = fmt(MSRP));
     $('coPerNow')    && ($('coPerNow').innerText = fmt(SALE));
 
     $('coQty')       && ($('coQty').value = String(qty));
     $('coFreeQty')   && ($('coFreeQty').innerText = String(free));
-    // Note the leading space to avoid “Items2 …” butting into your static label
-    $('coItemsLine') && ($('coItemsLine').innerText = ` ${qty + free} bottles (${qty} paid + ${free} free)`);
+    $('coItemsLine') && ($('coItemsLine').innerText = `${qty + free} bottles (${qty} paid + ${free} free)`);
 
     $('coMerch')     && ($('coMerch').innerText = fmt(merch));
     $('coDisc')      && ($('coDisc').innerText  = disc > 0 ? `-${fmt(disc)}` : '$0.00');
@@ -127,60 +128,53 @@
     $('coTotal')     && ($('coTotal').innerText = fmt(total));
   }
 
-  /* ---------- Open/close (fullscreen) ---------- */
+  /* ---------- Open/close ---------- */
   function openModal(e) {
     if (e) { e.preventDefault(); e.stopPropagation(); }
     modal.classList.add('show','co-fullscreen');
     document.body.classList.add('modal-open');
     document.body.style.overflow = 'hidden';
-
-    // flag on root so CSS can also hide CTAs deterministically
     document.documentElement.setAttribute('data-checkout-open','1');
 
-    // visible close button
     if (closeBtn) { closeBtn.removeAttribute('hidden'); closeBtn.style.display = 'flex'; }
 
     setActive(1); show(step1,true); show(step2,false); show(step3,false);
     ensureNav(1);
     toggleGlobalCtas(true);
     killStickyPrice();
+    hidePriceBox();               // never show price line on Step 1
   }
-
   function closeModal() {
     modal.classList.remove('show','co-fullscreen');
     document.body.classList.remove('modal-open');
     document.body.style.overflow = '';
-
     document.documentElement.removeAttribute('data-checkout-open');
     toggleGlobalCtas(false);
   }
 
-  // Open from any CTA (desktop + mobile)
-  const openTriggers = ['click','touchstart','pointerup'];
+  // Triggers
   const OPEN_SEL = CTA_SEL;
-  openTriggers.forEach(evt => {
+  ['click','touchstart','pointerup'].forEach(evt => {
     document.addEventListener(evt, (e) => {
       const t = e.target.closest(OPEN_SEL);
       if (t) openModal(e);
     }, { capture: true, passive: false });
   });
-
-  // Bind late-added CTAs
   new MutationObserver(() => bindAll()).observe(document.documentElement, { subtree: true, childList: true });
   function bindAll(){
     document.querySelectorAll(OPEN_SEL).forEach(el => {
       if (el.__bound) return;
-      openTriggers.forEach(v => el.addEventListener(v, openModal, { passive: false }));
+      ['click','touchstart','pointerup'].forEach(v => el.addEventListener(v, openModal, { passive: false }));
       el.__bound = true;
     });
   } bindAll();
 
-  // Close interactions
+  // Close
   closeBtn?.addEventListener('click', closeModal);
   modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('show')) closeModal(); });
 
-  /* ---------- STEP 1 ---------- */
+  /* ---------- Step 1 ---------- */
   step1?.addEventListener('submit', (e) => {
     e.preventDefault();
     const name  = step1.querySelector('[name="name"]');
@@ -193,36 +187,30 @@
 
     setActive(2); show(step1,false); show(step2,true); show(step3,false);
     ensureNav(2);
-
     if ($('coQtyTitle')) $('coQtyTitle').textContent = 'How Many Bottles Do You Want?';
     if ($('coShipHeader')) $('coShipHeader').hidden = true;
 
     if ($('coQty')) { qty = 1; $('coQty').value = '1'; }
     discountPct = 0;
 
-    ensurePriceBox();
+    ensurePriceBox();             // visible on Step 2
     step2.querySelector('.co-method[data-method="card"]')?.click();
     killStickyPrice();
     computeTotals();
   });
 
-  /* ---------- STEP 2 (qty & method) ---------- */
+  /* ---------- Step 2 (qty & method) ---------- */
   step2?.addEventListener('click', (e) => {
     if (e.target.closest('.qty-inc')) {
       const input = $('coQty');
       qty = Math.min(99, (parseInt(input.value, 10) || 1) + 1);
-      input.value = qty;
-      computeTotals();
-      return;
+      input.value = qty; computeTotals(); return;
     }
     if (e.target.closest('.qty-dec')) {
       const input = $('coQty');
       qty = Math.max(1, (parseInt(input.value, 10) || 1) - 1);
-      input.value = qty;
-      computeTotals();
-      return;
+      input.value = qty; computeTotals(); return;
     }
-
     const btn = e.target.closest('.co-method');
     if (!btn) return;
 
@@ -239,12 +227,11 @@
     if (e.target.id === 'coQty') {
       const v = e.target.value.replace(/[^0-9]/g, '');
       qty = Math.max(1, Math.min(99, parseInt(v || '1', 10)));
-      e.target.value = qty;
-      computeTotals();
+      e.target.value = qty; computeTotals();
     }
   });
 
-  /* ---------- STEP 2 → STEP 3 ---------- */
+  /* ---------- Step 2 → Step 3 ---------- */
   toStep3Btn?.addEventListener('click', (e) => {
     e.preventDefault();
     if (!chosenMethod) return;
@@ -259,15 +246,17 @@
     setActive(1); show(step1,true); show(step2,false); show(step3,false);
     if ($('coShipHeader')) $('coShipHeader').hidden = false;
     ensureNav(1);
+    hidePriceBox();               // hide price line again on Step 1
   });
   back2?.addEventListener('click', () => {
     setActive(2); show(step1,false); show(step2,true); show(step3,false);
     if ($('coShipHeader')) $('coShipHeader').hidden = true;
     ensureNav(2);
+    ensurePriceBox();
     killStickyPrice();
   });
 
-  /* ---------- STEP 3 renderer ---------- */
+  /* ---------- Step 3 renderer ---------- */
   const renderPay = (m) => {
     const txt = (h) => `<div class="altpay"><h4>${h[0]}</h4><p>${h[1]}</p></div>`;
     const map = {
@@ -295,7 +284,7 @@
     payWrap.innerHTML = map[m] || map.card;
   };
 
-  /* ---------- STEP 3 submit (demo) ---------- */
+  /* ---------- Step 3 submit (demo) ---------- */
   submitBtn?.addEventListener('click', (e) => {
     e.preventDefault();
     if (!tos?.checked) { tos?.focus(); return; }
