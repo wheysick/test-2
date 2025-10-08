@@ -6,9 +6,10 @@
   <title>Free Sample — Weekly Wellness Formula</title>
   <meta name="description" content="A magazine‑style feature with a limited free sample offer. Shipping ends at midnight." />
   <meta name="robots" content="noindex,nofollow" />
-  <meta name="theme-color" content="#ff2a6d" />
-  <link rel="stylesheet" href="css/style.css?v=520" />
-  <link rel="stylesheet" href="css/checkout3.css?v=520" />
+  <!-- Use page background color for mobile UI (no pink) -->
+  <meta name="theme-color" content="#0a0c10" />
+  <link rel="stylesheet" href="css/style.css?v=530" />
+  <link rel="stylesheet" href="css/checkout3.css?v=530" />
 </head>
 <body class="verge-theme">
   <header class="masthead" role="banner">
@@ -55,14 +56,10 @@
         <figcaption><em>Lobbyist Push For Federal Crackdowns—Thousands Are Stocking Up Before It’s Banned...</em></figcaption>
       </figure>
 
-      <section class="lede">
-        <p><strong>Imagine a once‑a‑week routine</strong> that supports appetite control and balanced energy — <em>without the jittery crash</em> of traditional stimulants. That’s the idea behind this wellness formula, which has quietly built a cult following and an increasingly loud buzz.</p>
-        <p><strong>It’s 2025,</strong> and a breakthrough treatment has emerged — <strong>Tirzepatide</strong>, an injection so powerful it slashes body weight by <strong>20%+</strong>.</p>
-      </section>
-
       <h2>What is it?</h2>
       <figure class="inline-img">
-        <img src="assets/tirz.png" alt="TIRZ premium vials" loading="lazy" decoding="async" />
+        <img id="productImg" src="assets/tirz.png" data-src="assets/tirz.png" alt="TIRZ premium vials" loading="lazy" decoding="async" />
+        <div class="coa-link"><a id="coaLink" href="#">Certificate of Analysis</a></div>
       </figure>
       <ul>
         <li><strong>Each pack</strong> includes <strong>4 weekly servings</strong></li>
@@ -189,6 +186,7 @@
             <div><span>Shipping</span><span class="co-free-ship">FREE</span></div>
             <div class="co-total-row"><span>Total</span><span id="coTotal">$90.00</span></div>
           </div>
+          <!-- Actions (centered, non-sticky on Step 2) -->
           <div class="co-actions">
             <button class="btn-main btn-lg co-next" id="coToStep3" disabled>Continue</button>
             <button class="btn-main btn-sm co-back" id="coBackTo1" type="button">Back</button>
@@ -200,9 +198,7 @@
       <!-- Step 3 -->
       <section id="coStep3" class="co-pane" hidden aria-hidden="true">
         <div id="coPayWrap"></div>
-        <div class="co-terms">
-          <label><input type="checkbox" id="coTos" required /> I agree to the Terms and understand this is a <strong>free sample</strong> and I will only be charged for shipping.</label>
-        </div>
+        <!-- Terms removed per request -->
         <div class="co-actions">
           <button class="btn-main btn-lg co-submit" id="coSubmit">Complete Reservation</button>
           <button class="btn-main btn-sm co-back" id="coBackTo2" type="button">Back</button>
@@ -222,7 +218,7 @@
     <p>&copy; <span id="year"></span> Health Template Co.</p>
   </footer>
 
-  <script defer src="js/script.js?v=520"></script>
-  <script defer src="js/checkout3.js?v=520"></script>
+  <script defer src="js/script.js?v=530"></script>
+  <script defer src="js/checkout3.js?v=530"></script>
 </body>
 </html>
