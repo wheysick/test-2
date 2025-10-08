@@ -1,4 +1,4 @@
-/* ===== checkout3.js v5.7 — arrows, method error, double-tap, wallets for card ===== */
+/* ===== checkout3.js v6.0 — polished arrows, stock meter countdown, tweaks ===== */
 (function(){
   "use strict";
 
@@ -34,15 +34,14 @@
 
   function setStep(n){
     if (n===1){ show(step1); hide(step2); hide(step3); step1.querySelector('input')?.focus({preventScroll:true}); }
-    if (n===2){ hide(step1); show(step2); hide(step3); }
-    if (n===3){ hide(step1); hide(step2); show(step3); step3.querySelector('input,button')?.focus({preventScroll:true}); }
+    if (n===2){ hide(step1); show(step2); hide(step3); ensureStockUI(); }
+    if (n===3){ hide(step1); hide(step2); show(step3); ensureStockUI(); step3.querySelector('input,button')?.focus({preventScroll:true}); }
   }
 
   function totals(){
     const free=qty, merch=qty*SALE, disc=merch*(discount/100);
     const taxable=Math.max(0, merch-disc), tax=taxable*TAX, total=taxable+tax+SHIPPING;
     const set=(id,v)=>{ const n=$(id); if(n) n.textContent=v; };
-    set("coFreeQty", String(free));
     set("coItemsLine", `${qty+free} bottles (${qty} paid + ${free} free)`);
     set("coMerch", fmt(merch));
     set("coDisc", disc>0?`-${fmt(disc)}`:"$0.00");
@@ -66,6 +65,7 @@
     priceNow && (priceNow.textContent=fmt(DISPLAY));
     qty=1; method=null; discount=0; totals(); setStep(1);
     if (methodErr) hide(methodErr);
+    startStockCountdown(); // initialize stock when opening
   }
   function closeModal(e){
     e?.preventDefault?.(); e?.stopPropagation?.();
@@ -196,6 +196,66 @@
     e.preventDefault();
     hide(step3); show(success);
   });
+
+  // -------- Stock meter (shared across steps 2 & 3) --------
+  let stockInitTime = null, stockEndTime = null, stockStart = 47, stockCurrent = 47, stockTimer = null;
+  const durationMs = 15 * 60 * 1000; // 15 minutes
+
+  function ensureStockUI(){
+    const nodes = [$("#coStock2"), $("#coStock3")].filter(Boolean);
+    nodes.forEach(n=>{
+      const fill = n.querySelector(".co-stock-fill");
+      const label = n.querySelector(".co-stock-label");
+      const qtyEl = n.querySelector(".qty");
+      const pct = Math.max(0, (stockCurrent/stockStart)*100);
+      if (fill) fill.style.width = pct+"%";
+      if (qtyEl) qtyEl.textContent = String(stockCurrent);
+      if (stockCurrent <= 0){
+        n.classList.add("soldout");
+        if (label) label.innerHTML = `Sold out — <strong>Restocks at 9am tomorrow</strong>`;
+      } else {
+        n.classList.remove("soldout");
+        if (label) label.innerHTML = `<span class="qty">${stockCurrent}</span> left in stock`;
+      }
+    });
+  }
+
+  function startStockCountdown(){
+    if (stockInitTime) return; // already started
+    stockStart = 47;
+    stockCurrent = stockStart;
+    stockInitTime = Date.now();
+    stockEndTime = stockInitTime + durationMs;
+    clearInterval(stockTimer);
+    stockTimer = setInterval(step, 7000); // first tick after 7s
+    ensureStockUI();
+  }
+
+  function step(){
+    const now = Date.now();
+    if (stockCurrent <= 0){ clearInterval(stockTimer); ensureStockUI(); return; }
+    if (now >= stockEndTime){
+      stockCurrent = 0; ensureStockUI(); clearInterval(stockTimer); return;
+    }
+
+    // Estimate ticks left based on average delay ~12s (randomized below)
+    const avgDelay = 12000;
+    const ticksLeft = Math.max(1, Math.floor((stockEndTime - now) / avgDelay));
+    const idealPerTick = Math.max(1, Math.ceil(stockCurrent / ticksLeft));
+
+    // pick decrement 1..3 biased toward meeting ideal
+    let dec = Math.min(3, Math.max(1, idealPerTick + (Math.random()>.6 ? 1 : 0)));
+    dec = Math.min(dec, stockCurrent);
+    stockCurrent -= dec;
+    ensureStockUI();
+
+    // randomize next interval 8–18s, get slightly faster if behind schedule
+    const factor = stockCurrent / Math.max(1, ticksLeft);
+    let next = Math.floor(8000 + Math.random()*10000);
+    if (factor > 2) next = Math.max(6000, next - 2500);
+    clearInterval(stockTimer);
+    stockTimer = setInterval(step, next);
+  }
 
   // initial
   priceWas && (priceWas.textContent="$90");
