@@ -278,3 +278,42 @@ html[data-checkout-open="1"] .adv-cta,
 html[data-checkout-open="1"] .hero-cta,
 html[data-checkout-open="1"] .cta,
 html[data-checkout-open="1"] [data-hide-on-checkout]{ display:none !important; }
+
+/* ===== PATCH: layout + spacing fixes ===== */
+
+/* Step 1: make labels sit above inputs, tidy 2-col grid */
+#coStep1 .co-form-grid{ 
+  display:grid; grid-template-columns:1fr 1fr; gap:12px 16px; 
+  margin:12px 18px; align-items:start;
+}
+@media (max-width:680px){ #coStep1 .co-form-grid{ grid-template-columns:1fr; } }
+#coStep1 .co-field{ display:flex; flex-direction:column; min-width:0; }
+#coStep1 .co-field label{ text-align:left; margin-bottom:6px; font-size:13px; opacity:.9; }
+#coStep1 .co-field input, 
+#coStep1 .co-field select{ width:100%; display:block; }
+
+/* Hide any static “per-bottle” footer on Step 1 only */
+#coStep1 .per-bottle, 
+#coStep1 .co-per-bottle, 
+#coStep1 .price-per-bottle { display:none !important; }
+
+/* Step 2: keep the non-sticky price line centered and readable */
+#coStep2 #coPriceBox.co-price-line{ text-align:center; margin:10px 18px 12px; }
+#coStep2 .co-price .co-was{ text-decoration:line-through; opacity:.55; margin-right:8px; }
+#coStep2 .co-price .co-now{ font-weight:800; }
+
+/* Totals: push numbers to the right without needing extra spans */
+#coMerch,#coDisc,#coTax,#coShip,#coTotal{ margin-left:auto; }
+
+/* “Items 2 …” spacing: give the dynamic part breathing room */
+#coItemsLine{ margin-left:.35rem; }
+
+/* Action row: ensure shadow/pad so buttons don’t look “floating” */
+.co-actions{ 
+  padding:14px 20px; 
+  box-shadow:0 -8px 20px rgba(0,0,0,.18);
+}
+
+/* Little polish on method tiles (tight dark UIs sometimes look flat) */
+.co-method{ transition:border-color .15s ease, box-shadow .15s ease; }
+.co-method:hover{ border-color:rgba(255,255,255,.25); }
