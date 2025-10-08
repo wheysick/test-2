@@ -162,3 +162,7 @@ button{
 /* Hide CTAs while checkout open */
 html[data-checkout-open='1'] .cta,
 html[data-checkout-open='1'] [data-hide-on-checkout]{display:none!important;}
+
+/* Ensure modal is actually visible when .show is added */
+#checkoutModal.show { display: flex !important; }
+
