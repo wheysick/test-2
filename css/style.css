@@ -1,747 +1,128 @@
-/* =====================================
-   Verge‑style Magazine Theme (CRO v3)
-   ===================================== */
+/* ===== style.css v5.1 — Base advertorial styles (readable, premium, dark) ===== */
 :root{
-  --bg:#0b0b0c;
-  --text:#e8e8ea;
-  --muted:#a7a7ad;
-  --card:#151518;
-  --line:#22232a;
-  --accent:#ff2a6d;
-  --accent-2:#ff7a59;
-  --accent-grad: linear-gradient(90deg,#ff2a6d,#ff7a59);
+  --bg:#0a0c10;
+  --surface:#0e1116;
+  --ink:#e9ecf2;
+  --ink-dim:#c8cdd7;
+  --muted:rgba(255,255,255,.06);
+  --border:rgba(255,255,255,.12);
+  --accent:#C471F5;
+  --accent2:#FA71CD;
   --radius:16px;
+  --wrap:max(320px, min(920px, 94vw));
+  --shadow:0 22px 60px rgba(0,0,0,.55);
+  --font:Inter, ui-sans-serif, system-ui, Segoe UI, Arial, sans-serif;
+  --h1:clamp(28px, 4vw, 44px);
+  --h2:clamp(20px, 3vw, 28px);
+  --kicker:12px;
+  --body:17px;
+  --small:14px;
 }
-html,body{margin:0;padding:0}
-body.verge-theme{background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.8}
 
-/* Masthead */
-.masthead{position:sticky;top:0;z-index:10000;background:var(--card);border-bottom:1px solid var(--line);}
-.masthead-inner{display:flex;align-items:center;justify-content:space-between;gap:1rem;max-width:1120px;margin:0 auto;padding:.7rem 1rem;}
-.brand{font-weight:900;letter-spacing:.08em;color:#fff;background:var(--accent-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-.masthead-meta{color:#ffffff9c;font-weight:600;display:flex;gap:.6rem;align-items:center}
-.masthead .dot{opacity:.5}
-.theme-toggle{background:transparent;border:0;color:#fff;cursor:pointer;font-size:1.2rem}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
 
-/* Progress */
-#scrollProgress{position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--accent-grad)}
+a{color:#98b7ff;text-decoration:none}
+a:hover{text-decoration:underline}
 
-/* Share rail */
-.share-rail{position:fixed;top:140px;left:20px;display:none;flex-direction:column;gap:.6rem;z-index:20}
-.share-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:var(--card);border:1px solid var(--line);color:#fff;text-decoration:none}
-@media(min-width:1200px){.share-rail{display:flex}}
+/* Layout wrapper */
+.wrap{width:var(--wrap);margin:0 auto;padding:0 0 80px}
 
-/* Wrapper & article */
-.wrap{max-width:980px;margin:0 auto;padding:20px}
-.article-hed{margin-top:28px}
-.kicker{color:var(--accent);text-transform:uppercase;font-weight:800;letter-spacing:.16em;font-size:.8rem}
-.headline{font-weight:900;font-size:clamp(1.8rem,2.6vw + 1rem,3rem);line-height:1.1;margin:.3rem 0 .6rem}
-.byline{color:#ffffff9c;font-weight:600;display:flex;gap:.6rem;flex-wrap:wrap}
-.byline .dot{opacity:.5}
+/* ---------- Masthead ---------- */
+.masthead{
+  position:sticky;top:0;z-index:50;background:linear-gradient(180deg,#0b0d12,#0b0d12cc 70%,transparent);
+  border-bottom:1px solid var(--border);backdrop-filter:blur(8px);
+}
+.masthead-inner{
+  display:flex;align-items:center;gap:12px;
+  width:var(--wrap);margin:0 auto;padding:10px 0;
+}
+.brand{font-weight:900;letter-spacing:.4px;flex:0 0 auto;}
+.masthead-meta{opacity:.9;font-size:13px;display:flex;gap:8px;align-items:center;justify-content:center;flex:1 1 auto;}
+.dot{opacity:.5}
+#scrollProgress{position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));transform:scaleX(0);transform-origin:left;}
 
-/* Hero */
-.hero{margin:22px 0;border-radius:var(--radius);overflow:hidden;background:var(--card);border:1px solid var(--line)}
-.hero img{display:block;width:100%;height:auto}
-.hero figcaption{font-size:.9rem;color:#ffffff9c;padding:.6rem .8rem;border-top:1px solid var(--line)}
+/* Desktop header CTA */
+.masthead-cta{display:none}
+@media (min-width:900px){
+  .masthead-cta{
+    display:inline-flex;align-items:center;justify-content:center;
+    padding:12px 18px;border-radius:999px;border:none;cursor:pointer;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;
+    font-weight:800;box-shadow:0 12px 28px rgba(250,113,205,.28);
+    text-decoration:none;
+  }
+  .masthead-cta:hover{filter:brightness(1.06)}
+}
 
-/* Lede */
-.lede{margin:8px 0 20px}
-.dropcap:first-letter{float:left;font-size:4.2rem;line-height:.9;padding:.45rem .65rem .1rem 0;font-weight:900;background:var(--accent-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+/* ---------- Article ---------- */
+.article{line-height:1.65}
+.article, .article p, .article li, .article h2 { color: var(--ink); } /* enforce contrast */
+.article .kicker{font-size:var(--kicker);color:#ffd2f3;letter-spacing:.3px;margin:24px 0 6px;text-transform:uppercase}
+.article .headline{font-size:var(--h1);line-height:1.15;margin:6px 0 8px}
+.byline{opacity:.85;font-size:14px}
 
-/* Body */
-.body h2{font-size:1.4rem;margin:1.4rem 0 .4rem;color:#fff}
-.body h3{font-size:1.05rem;margin:.8rem 0 .3rem;color:#fff}
-.body p{color:var(--text)}
-.body ul,.body ol{padding-left:1.1rem}
-.note{color:var(--muted)}
-.small{font-size:.92rem}
-.muted{color:var(--muted)}
+.hero{margin:18px 0}
+.hero img{width:100%;border-radius:12px;display:block;box-shadow:0 14px 38px rgba(0,0,0,.4)}
+.hero figcaption{font-size:13px;color:var(--ink-dim);margin-top:6px}
 
-/* Inline image */
-.inline-img{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:10px;margin:.6rem 0 1rem}
-.inline-img img{display:block;max-width:720px;width:100%;margin:0 auto;border-radius:12px}
+.inline-img{margin:18px 0}
+.inline-img img{width:100%;border-radius:12px;display:block}
 
-/* Grid */
-.grid-2{display:grid;gap:1rem;grid-template-columns:1fr}
-@media(min-width:760px){.grid-2{grid-template-columns:1fr 1fr}}
+.article h2{font-size:var(--h2);margin:26px 0 8px}
+.article ul, .article ol{padding-left:20px}
+.article li{margin:6px 0}
+.note.small{font-size:13px;color:var(--ink-dim)}
 
-/* Pullquote */
-.pullquote{margin:1.2rem 0;background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);padding:1rem;border-radius:var(--radius);}
-.pullquote p{font-size:1.15rem;font-weight:700}
-.pullquote cite{display:block;margin-top:.4rem;color:var(--muted)}
+.pullquote{border-left:4px solid var(--accent);padding:8px 14px;margin:18px 0;background:rgba(255,255,255,.04);border-radius:8px}
+.pullquote p{font-size:18px;margin:0}
+.pullquote cite{font-size:13px;opacity:.8}
 
-/* CTA card */
-.aside-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:1rem;margin:1rem 0}
-.aside-card h3{margin:.2rem 0 .6rem;color:#fff}
-.aside-card .tight{margin:.3rem 0 1rem;padding-left:1rem}
-.btn-main{display:inline-block;border-radius:999px;padding:.9rem 1.4rem;background:var(--accent-grad);color:#fff;text-decoration:none;font-weight:900;letter-spacing:.3px;box-shadow:0 12px 24px rgba(255,42,109,.25);transition:transform .2s ease, box-shadow .2s ease}
-.btn-main:hover{transform:translateY(-2px);box-shadow:0 18px 32px rgba(255,42,109,.35)}
-.btn-lg{font-size:1rem}
-.btn-xl{font-size:1.05rem;padding:1rem 1.6rem}
-.pulse{animation:pulse 1.9s infinite}
-@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.02)}100%{transform:scale(1)}}
-.micro{font-size:.9rem}
-.tiny{font-size:.82rem}
+.faq h2{margin-top:28px}
+.faq-item{border:1px solid var(--border);border-radius:12px;margin:12px 0;background:var(--surface)}
+.faq-question{width:100%;text-align:left;background:none;border:none;color:var(--ink);padding:12px 14px;font-weight:700;cursor:pointer}
+.faq-answer{padding:0 14px 14px;color:var(--ink-dim)}
 
-/* Ratings */
-.ratings{display:grid;grid-template-columns:auto 1fr;gap:1rem;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:1rem}
-.score{font-weight:900;font-size:1.6rem}
-.bars .bar{position:relative;padding-left:62px;margin:.25rem 0;color:var(--muted)}
-.bars .bar span{position:absolute;left:0;top:50%;transform:translateY(-50%);height:8px;width:var(--w);background:linear-gradient(90deg,#34d399,#059669);border-radius:999px}
-.bars .bar::before{content:"";position:absolute;left:0;right:10px;top:50%;transform:translateY(-50%);height:8px;background:#2a2b31;border-radius:999px}
+.references li{color:var(--ink-dim)}
 
-/* Offer block */
-.offer-box{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:1rem;margin:1.2rem 0}
-.offer-head{display:flex;gap:1rem;align-items:center;justify-content:space-between;flex-wrap:wrap}
-.stock-line{font-weight:800;color:#fff}
-.stock-bar{height:10px;background:#2a2b31;border-radius:999px;position:relative;overflow:hidden}
-.stock-bar span{position:absolute;left:0;top:0;bottom:0;width:60%;background:var(--accent-grad)}
-
-/* FAQ */
-.faq .faq-item{border:1px solid var(--line);border-radius:12px;margin:.6rem 0;background:var(--card);overflow:hidden}
-.faq-question{width:100%;text-align:left;background:#191a1f;border:0;color:#fff;padding:1rem;cursor:pointer;font-weight:800}
-.faq-answer{padding:1rem;border-top:1px solid var(--line);max-height:0;overflow:hidden;transition:max-height .35s ease}
-.faq-item.active .faq-answer{max-height:280px}
-
-/* Trustbar */
-.trustbar{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:.7rem .9rem;margin:1.2rem 0}
-.trustbar ul{list-style:none;padding:0;margin:0;display:flex;gap:.6rem .8rem;flex-wrap:wrap}
-.trustbar li{background:#1e2027;border:1px solid var(--line);border-radius:999px;padding:.35rem .7rem;color:var(--muted)}
-
-/* Reveal */
-.reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
-.reveal.visible{opacity:1;transform:translateY(0)}
-
-/* Floating CTA */
-.floating-cta{position:fixed;left:12px;right:12px;bottom:12px;z-index:9999;display:none;text-align:center;padding:.95rem 1rem;border-radius:999px;background:var(--accent-grad);color:#fff;font-weight:900;text-decoration:none;box-shadow:0 14px 32px rgba(255,42,109,.35)}
-.floating-cta.show{display:block}
-
-/* View popup */
-.view-popup{position:fixed;bottom:18px;right:18px;border:1px solid var(--line);background:#16171d;border-radius:12px;padding:.7rem .9rem;display:flex;gap:.6rem;align-items:center;opacity:0;transform:translateY(20px);transition:opacity .45s ease,transform .45s ease;z-index:9999;color:#fff}
-.view-popup.show{opacity:1;transform:translateY(0)}
-.view-popup button{background:transparent;border:0;color:#fff;cursor:pointer;font-size:1rem}
-
-/* Toasts */
-.toasts{position:fixed;left:12px;bottom:84px;z-index:9999;display:flex;flex-direction:column;gap:.4rem}
-.toast{background:#16171d;border:1px solid var(--line);border-radius:10px;padding:.55rem .7rem;opacity:0;transform:translateY(8px);transition:opacity .3s ease,transform .3s ease;font-size:.92rem}
-.toast.show{opacity:1;transform:translateY(0)}
-
-/* Modal */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;place-items:center;padding:1rem;z-index:100000}
-.modal.show{display:grid}
-.modal-content{background:#17181f;border:1px solid var(--line);border-radius:16px;max-width:520px;width:100%;padding:1rem 1.2rem;text-align:center;color:#fff}
-.modal-close{position:absolute;right:12px;top:12px;background:transparent;border:0;color:#fff;font-size:1.4rem;cursor:pointer}
+/* End-of-article desktop CTA block */
+.desktop-cta-block{display:none}
+@media (min-width:900px){
+  .desktop-cta-block{
+    display:flex;align-items:center;justify-content:center;
+    margin:28px 0 8px;padding:18px;background:var(--surface);
+    border:1px solid var(--border);border-radius:14px;
+  }
+  .desktop-cta-block .btn-main{font-size:16px;padding:14px 22px}
+}
 
 /* Footer */
-.site-footer{border-top:1px solid var(--line);margin-top:30px;color:var(--muted);text-align:center;padding:20px}
+.site-footer{border-top:1px solid var(--border);padding:24px 0;margin-top:40px;text-align:center;color:var(--ink-dim)}
 
-/* Light scheme toggle */
-body:not(.dark-mode).verge-theme{}
-body.dark-mode{}
+/* Share rail */
+.share-rail{position:fixed;left:14px;top:120px;display:flex;flex-direction:column;gap:10px}
+@media (max-width:960px){.share-rail{display:none}}
+.share-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:10px;background:var(--surface);border:1px solid var(--border);box-shadow:0 10px 24px rgba(0,0,0,.3)}
+.share-icon:hover{border-color:#99a3ff}
 
-/* ============================
-   TYPOGRAPHY SYSTEM — PATCH
-   Drop this at the end of CSS
-   ============================ */
-
-/* 1) Global rhythm & legibility */
-html {
-  /* Responsive base: ~16px on phones → ~18.5px on wide screens */
-  font-size: clamp(16px, 0.95vw + 14px, 18.5px);
+/* Floating CTA (mobile only) */
+.floating-cta{
+  position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:60;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;font-weight:800;
+  border:none;border-radius:999px;padding:14px 22px;box-shadow:0 16px 36px rgba(250,113,205,.3);
+  touch-action:manipulation;
 }
-.verge-theme, .verge-theme body {
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  font-feature-settings: "liga" 1, "kern" 1, "calt" 1;
-  line-height: 1.75;
-  letter-spacing: 0.01em; /* subtle openness for dark UI */
-  color: var(--text);
-}
+@media (min-width:900px){.floating-cta{display:none}}
 
-/* 2) Comfortable measure (column width) for long reads */
-.article p,
-.article ul,
-.article ol,
-.article blockquote,
-.article .timeline {
-  max-width: 68ch;           /* ~optimal line length */
-}
+/* Toast placeholder */
+.toasts{position:fixed;right:16px;bottom:80px;display:flex;flex-direction:column;gap:10px;z-index:70}
 
-/* Prevent “double spacing” between different blocks */
-.article p + p,
-.article p + ul,
-.article p + ol,
-.article ul + p,
-.article ol + p,
-.article blockquote + p {
-  margin-top: 0.6rem;
-}
+/* View popup */
+.view-popup{position:fixed;right:16px;bottom:20px;z-index:70;display:none;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px 12px;color:var(--ink)}
+.view-popup.show{display:flex}
+.view-popup button{background:transparent;border:none;color:#fff;cursor:pointer}
 
-/* 3) Heading scale (fluid, tight tracking) */
-.headline, .article h1 {
-  font-weight: 900;
-  font-size: clamp(1.9rem, 2.6vw + 1rem, 3.1rem);
-  line-height: 1.1;
-  letter-spacing: -0.015em;
-}
-.article h2 {
-  font-weight: 800;
-  font-size: clamp(1.2rem, 0.8vw + 1rem, 1.6rem);
-  line-height: 1.25;
-  margin: 1.6rem 0 0.6rem;
-  letter-spacing: -0.01em;
-  color: #fff;
-}
-.article h3 {
-  font-weight: 800;
-  font-size: clamp(1.05rem, 0.4vw + 0.95rem, 1.25rem);
-  line-height: 1.3;
-  margin: 1rem 0 0.4rem;
-  color: #fff;
-}
+.hidden{display:none!important}
 
-/* 4) Body copy polishing */
-.article p { 
-  color: var(--text);
-  hanging-punctuation: first;     /* optical margin for quotes (supported browsers) */
-  hyphens: auto;
-  overflow-wrap: anywhere;
-}
-
-/* Lists: clearer rhythm */
-.article li { margin: 0.3rem 0; }
-.article li + li { margin-top: 0.15rem; }
-
-/* 5) Kicker / byline improvements */
-.kicker {
-  text-transform: uppercase;
-  font-weight: 900;
-  letter-spacing: 0.18em;
-  font-size: 0.78rem;
-  color: var(--accent);
-}
-.byline {
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--muted);
-}
-
-/* 6) Links inside copy (accessible contrast & hover) */
-.article a {
-  color: #ffd1e0;                       /* readable on dark bg */
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 2px;
-}
-.article a:hover {
-  color: #fff;
-  text-decoration-color: var(--accent);
-}
-
-/* 7) Pull-quotes: larger, but still within the measure */
-.pullquote p {
-  font-size: clamp(1.1rem, 0.6vw + 1rem, 1.35rem);
-  line-height: 1.45;
-  letter-spacing: -0.005em;
-}
-.pullquote cite {
-  font-style: normal;
-  font-weight: 700;
-  color: var(--muted);
-}
-
-/* 8) Small text tokens */
-.micro   { font-size: 0.92rem; line-height: 1.5; color: var(--muted); }
-.tiny    { font-size: 0.86rem; line-height: 1.45; color: var(--muted); }
-.muted   { color: var(--muted); }
-
-/* 9) Drop cap tuning (keeps it elegant on mobile) */
-.dropcap:first-letter {
-  font-size: clamp(3.2rem, 5.2vw, 4.2rem);
-  line-height: 0.9;
-  padding: .45rem .55rem .15rem 0;
-  font-weight: 900;
-}
-
-/* 10) Responsive refinements */
-@media (max-width: 720px) {
-  .article p,
-  .article ul,
-  .article ol,
-  .article blockquote { max-width: 78ch; } /* allow slightly wider measure on mobile */
-  .headline { letter-spacing: -0.01em; }
-}
-
-/* 11) Reduced motion respects */
-@media (prefers-reduced-motion: reduce) {
-  .pulse { animation: none !important; }
-}
-
-/* ============================
-   FLOATING CTA — NARROW VERSION
-   ============================ */
-.floating-cta {
-  position: fixed;
-  bottom: 24px;          /* lift it up slightly from the bottom */
-  left: 50%;
-  transform: translateX(-50%);
-  width: clamp(280px, 80%, 480px); /* responsive max width */
-  text-align: center;
-  padding: 1rem 1.2rem;
-  border-radius: 999px;
-  background: var(--accent-grad);
-  color: #fff;
-  font-weight: 900;
-  text-decoration: none;
-  box-shadow: 0 10px 28px rgba(255, 42, 109, 0.45);
-  transition: transform .25s ease, box-shadow .25s ease;
-}
-.floating-cta.show { display: block; }
-.floating-cta:hover {
-  transform: translateX(-50%) translateY(-3px);
-  box-shadow: 0 16px 38px rgba(255, 42, 109, 0.55);
-}
-
-/* For small screens, keep a little margin from edges */
-@media (max-width: 600px) {
-  .floating-cta {
-    width: calc(100% - 40px);
-    left: 20px;
-    transform: none;
-  }
-}
-
-/* Masthead sizing & breathing room */
-.masthead {
-  position: sticky; top: 0; z-index: 10000;
-  background: var(--card);
-  border-bottom: 1px solid var(--line);
-}
-
-.masthead-inner {
-  /* fluid horizontal padding, never cramped or too wide */
-  padding: clamp(.55rem, 1.2vw, .9rem) clamp(16px, 4vw, 28px);
-  max-width: 1120px;
-  margin: 0 auto;
-  gap: .75rem;
-}
-
-/* give the area under the masthead a consistent top rhythm */
-.wrap { 
-  padding-top: clamp(10px, 1.2vh, 16px);
-}
-
-/* progress bar stays aligned and visible without jumping */
-#scrollProgress {
-  position: absolute; left: 0; bottom: 0; height: 2px;
-  width: 0; background: var(--accent-grad);
-}
-
-/* Keep big visuals aligned with the text column on phones */
-.hero,
-.inline-img,
-.aside-card,
-.cta-card,
-.offer-box { 
-  border-radius: 16px; 
-  margin-left: auto; 
-  margin-right: auto; 
-}
-
-/* Prevent tiny accidental overflow caused by shadows/borders */
-.hero img,
-.inline-img img { width: 100%; height: auto; display: block; }
-
-/* ============================
-   FIX: Center the top meta line
-   ============================ */
-
-/* Make masthead content stack on small screens and center text */
-.masthead-inner {
-  flex-wrap: wrap;
-  justify-content: center;          /* centers horizontally */
-  text-align: center;
-  gap: 0.5rem 1rem;
-}
-
-/* Center the meta line and prevent text from hugging the edges */
-.masthead-meta {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  color: var(--muted);
-  font-weight: 600;
-  font-size: 0.92rem;
-}
-
-/* Small tweak: on desktop keep brand left, meta centered */
-@media (min-width: 992px) {
-  .masthead-inner {
-    justify-content: space-between;
-    align-items: center;
-  }
-  .masthead-meta {
-    flex: 1;
-    justify-content: center;
-    text-align: center;
-  }
-  .brand {
-    flex: 0 0 auto;
-    margin-right: auto;
-  }
-}
-
-/* Optional: smooth vertical rhythm below header */
-.wrap {
-  padding-top: clamp(10px, 1.2vh, 16px);
-}
-
-/* =========================================
-   MOBILE POLISH — gutters, measure, spacing
-   ========================================= */
-
-/* 0) Safe-area gutters for notches / rounded corners */
-:root {
-  --safe-l: max(16px, env(safe-area-inset-left));
-  --safe-r: max(16px, env(safe-area-inset-right));
-  --safe-b: max(14px, env(safe-area-inset-bottom));
-}
-
-/* 1) Core mobile layout (container + consistent side padding) */
-@media (max-width: 768px) {
-  .wrap {
-    padding-left: var(--safe-l);
-    padding-right: var(--safe-r);
-    padding-top: 14px;              /* breathing room under the masthead */
-    max-width: 100%;
-  }
-
-  /* 2) Headlines: calmer size + balanced wrapping */
-  .headline {
-    font-size: clamp(1.6rem, 4.8vw + 0.6rem, 2.2rem);
-    line-height: 1.15;
-    letter-spacing: -0.01em;
-    text-wrap: balance;
-    margin-bottom: .6rem;
-  }
-
-  /* 3) Comfortable reading measure for long text blocks */
-  .article p,
-  .article ul,
-  .article ol,
-  .article blockquote {
-    max-width: 74ch;               /* a touch wider on phones for fewer breaks */
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  /* 4) Vertical rhythm between sections */
-  .article p + h2,
-  .article ul + h2,
-  .article ol + h2,
-  .pullquote + h2,
-  .inline-img + h2 { margin-top: 1.25rem; }
-
-  /* 5) Hero + inline media: align to column & prevent edge bleed */
-  .hero,
-  .inline-img {
-    margin: 12px auto 16px;
-    border-radius: 14px;
-  }
-  .hero figcaption { padding: .5rem .7rem; font-size: .88rem; }
-
-  /* 6) FAQ tap targets (bigger buttons, nicer spacing) */
-  .faq .faq-item { margin: .5rem 0; border-radius: 12px; }
-  .faq-question  { padding: 14px 16px; font-size: .95rem; }
-  .faq-answer    { padding: 12px 16px; }
-
-  /* 7) Floating CTA: narrow, centered, safe-area-aware */
-  .floating-cta {
-    left: 50%; transform: translateX(-50%);
-    width: calc(100% - (var(--safe-l) + var(--safe-r) + 24px));
-    bottom: calc(18px + var(--safe-b));
-  }
-
-  /* 8) Masthead meta: truly centered on small screens */
-  .masthead-inner {
-    flex-wrap: wrap;
-    justify-content: center;
-    text-align: center;
-    gap: .5rem 1rem;
-  }
-  .masthead-meta {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    gap: .5rem;
-    font-size: .92rem;
-  }
-}
-
-/* 9) Ultra-small phones: tighten just a bit more */
-@media (max-width: 420px) {
-  .headline { font-size: clamp(1.45rem, 6vw + .4rem, 2rem); }
-  .article p,
-  .article ul,
-  .article ol,
-  .article blockquote { max-width: 70ch; }
-}
-
-/* 10) Optional: disable drop cap on mobile if present */
-@media (max-width: 768px) {
-  .dropcap:first-letter { float: none; padding: 0; font-size: 1em; }
-}
-
-/* 1) Make padding count toward width everywhere (prevents width+padding overflow) */
-*, *::before, *::after { box-sizing: border-box; }
-
-/* 2) Never allow horizontal scroll, but keep vertical scrolling */
-html, body { overflow-x: clip; }  /* better than hidden; avoids scrollbar jumps */
-
-/* 3) Clamp any content blocks to the viewport width on mobile */
-.wrap,
-.hero,
-.inline-img,
-.offer-box,
-.faq .faq-item,
-.trustbar,
-.ratings {
-  max-width: 100%;
-}
-
-/* 4) Images/videos can never exceed their container */
-img, video { max-width: 100%; height: auto; display: block; }
-
-/* 5) Progress bar can’t exceed the viewport even if JS rounds up */
-#scrollProgress {
-  position: absolute;
-  inset-inline: 0;           /* left:0; right:0; */
-  width: auto !important;    /* ignore any accidental width > 100% */
-  max-width: 100vw;          /* hard clamp */
-}
-
-/* 6) Safety for fixed elements that sit near edges */
-.share-rail { max-width: 100vw; }
-.floating-cta { max-width: 100vw; }
-
-/* ===== HORIZONTAL OVERFLOW KILLER PACK ===== */
-
-/* Make padding part of width everywhere */
-*, *::before, *::after { box-sizing: border-box; }
-
-/* Cross-browser clamp: stop any horizontal scroll */
-html, body { overflow-x: hidden; }
-.wrap, .article, .masthead, .masthead-inner { overflow-x: clip; }
-
-/* Images/media never exceed their containers */
-img, video { display:block; max-width:100%; height:auto; }
-
-/* Big cards can’t exceed viewport width on phones */
-.hero, .inline-img, .offer-box, .faq .faq-item, .trustbar, .ratings {
-  max-width: 100%;
-  overflow: hidden;                /* shadows/borders can't create overflow */
-}
-
-/* Progress bar can't grow past the viewport */
-#scrollProgress{
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
-  width: auto !important;
-  max-width: 100vw;
-}
-
-/* Desktop share rail & floating CTA: ensure they never affect page width */
-.share-rail, .floating-cta { max-width: 100vw; }
-
-/* Safe width for the main wrapper on all screens */
-.wrap { width: min(980px, 100%); margin-inline: auto; }
-
-/* iOS notch-safe gutters (won't extend beyond viewport) */
-:root{
-  --safe-l: max(16px, env(safe-area-inset-left));
-  --safe-r: max(16px, env(safe-area-inset-right));
-}
-@media (max-width: 768px){
-  .wrap{ padding-left: var(--safe-l); padding-right: var(--safe-r); }
-}
-
-/* --- HARD CLAMP: fixed UI can never create horizontal scroll --- */
-
-/* Global box model + horizontal overflow guard */
-*, *::before, *::after { box-sizing: border-box; }
-html, body { overflow-x: hidden; }
-
-/* Safe-area insets (iOS notch) */
-:root {
-  --safe-l: max(16px, env(safe-area-inset-left));
-  --safe-r: max(16px, env(safe-area-inset-right));
-  --safe-b: max(14px, env(safe-area-inset-bottom));
-}
-
-/* Bottom CTA: centered but clamped to viewport */
-.floating-cta {
-  left: 50%;
-  transform: translateX(-50%);
-  width: clamp(280px, 80vw, 480px);
-  max-width: calc(100vw - (var(--safe-l) + var(--safe-r) + 24px));
-  bottom: calc(18px + var(--safe-b));
-  /* If your shadow still triggers a scrollbar on some Android browsers, cap overflow */
-  contain: layout paint;     /* isolates its rendering box */
-}
-
-/* View popup toast (bottom-right): never overhang */
-.view-popup {
-  right: max(18px, var(--safe-r));
-  max-width: calc(100vw - (var(--safe-l) + var(--safe-r) + 36px));
-  contain: layout paint;
-}
-
-/* Exit modal overlay (when visible): make sure it doesn't push layout width */
-.modal {
-  inset: 0;
-  max-width: 100vw;
-  overflow-x: clip;
-}
-
-/* Desktop share rail: hard-stop against viewport */
-.share-rail { left: max(12px, var(--safe-l)); max-width: 100vw; }
-
-/* Main wrapper: never exceed viewport even when inner cards have shadows */
-.wrap, .hero, .inline-img, .offer-box, .faq .faq-item, .trustbar, .ratings {
-  max-width: 100%;
-  overflow-x: clip;
-}
-
-/* Images/video never exceed containers */
-img, video { display: block; max-width: 100%; height: auto; }
-
-/* ===== checkout3.css v4.0 — premium, restrained, mobile-first (designed for your HTML) ===== */
-:root{
-  --bg:#0b0e12; --panel:#0f1217; --fg:#e9ecf2;
-  --muted:rgba(255,255,255,.06); --border:rgba(255,255,255,.12);
-  --accent:#C471F5; --accent2:#FA71CD;
-  --radius:16px; --shadow:0 22px 60px rgba(0,0,0,.55);
-  --pad: clamp(18px, 3.2vw, 28px);
-  font-family: Inter, ui-sans-serif, system-ui, Segoe UI, Arial, sans-serif;
-}
-
-/* Backdrop + container */
-#checkoutModal{ display:none; }
-#checkoutModal.show{ display:flex !important; }
-#checkoutModal.co-fullscreen{
-  position:fixed; inset:0; z-index:999999;
-  align-items:center; justify-content:center;
-  background:rgba(5,7,10,.78);
-}
-
-/* Card */
-#checkoutModal .modal-content.checkout-card{
-  width:min(92vw, 640px);
-  max-height:calc(100dvh - 4rem);
-  background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0)), var(--panel);
-  color:var(--fg);
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  overflow:auto;
-  padding:28px var(--pad) 96px;
-}
-
-/* Close */
-#checkoutClose{
-  position:fixed; top:14px; right:14px; z-index:1000000;
-  width:42px; height:42px; border-radius:999px; border:1px solid rgba(255,255,255,.1);
-  background:rgba(17,18,21,.92); color:#fff; display:flex; align-items:center; justify-content:center;
-  backdrop-filter:blur(6px) saturate(120%);
-  box-shadow:0 6px 18px rgba(0,0,0,.45);
-  cursor:pointer;
-}
-
-/* Headings */
-.co-h3{ text-align:center; font-weight:900; letter-spacing:.2px; font-size:clamp(20px,2.2vw,26px); margin:6px 0 18px; }
-
-/* Step containers */
-.co-pane[hidden], .co-pane[aria-hidden="true"]{ display:none !important; }
-
-/* Step 1 form grid */
-#coStep1 .co-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px 16px; }
-#coStep1 .co-row{ display:grid; grid-template-columns:1fr 120px 1fr; gap:14px 16px; }
-@media (max-width:640px){
-  #coStep1 .co-grid{ grid-template-columns:1fr; }
-  #coStep1 .co-row { grid-template-columns:1fr 1fr; }
-}
-#coStep1 label{ font-size:12.5px; opacity:.8; display:flex; flex-direction:column; gap:6px; }
-#coStep1 input{
-  width:100%; padding:12px 14px; border-radius:14px;
-  border:1px solid var(--border); background:var(--muted); color:var(--fg);
-}
-#coStep1 input:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(196,113,245,.2); }
-
-/* Step 2 qty */
-.co-qty{ display:flex; justify-content:center; align-items:center; gap:12px; margin:8px 0 6px; }
-.qty-btn{
-  width:42px; height:42px; border-radius:12px;
-  border:1px solid var(--border); background:var(--muted); color:var(--fg);
-}
-#coQty{
-  width:78px; text-align:center; padding:12px; border-radius:12px; border:1px solid var(--border); background:var(--muted); color:var(--fg);
-}
-.co-free{ text-align:center; opacity:.9; margin:2px 0 12px; }
-
-/* Step 2 price row */
-.co-price{ text-align:center; margin:10px 0 16px; font-size:18px; }
-.co-price .was{ text-decoration:line-through; opacity:.55; margin-right:8px; }
-.co-price .now{ font-weight:800; }
-
-/* Methods grid */
-.co-methods{ display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); margin:16px 0 10px; }
-.co-method{
-  border:1px solid var(--border);
-  background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0));
-  border-radius:14px; padding:16px 14px; color:var(--fg);
-  transition:border .15s ease, box-shadow .15s ease, transform .06s ease;
-  text-align:left;
-}
-.co-method .co-title{ font-weight:800; }
-.co-method .co-badge, .co-method .co-discount{ opacity:.8; font-size:.9rem; margin-top:4px; display:block; }
-.co-method:hover{ border-color:rgba(255,255,255,.25); }
-.co-method:active{ transform:translateY(1px); }
-.co-method[aria-selected="true"]{ border-color:var(--accent); box-shadow:0 0 0 2px rgba(196,113,245,.35) inset; }
-
-/* Sticky totals + actions region */
-.co-sticky{ position:relative; margin-top:8px; }
-.co-totals{ border:1px solid var(--border); border-radius:14px; background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0)); padding:14px 16px; }
-.co-totals > div{ display:flex; justify-content:space-between; gap:12px; padding:6px 0; }
-.co-total-row{ border-top:1px dashed var(--border); margin-top:8px; padding-top:10px; font-weight:800; }
-.co-actions{
-  position:sticky; bottom:0; z-index:3;
-  display:flex; justify-content:flex-end; gap:10px;
-  padding:14px var(--pad);
-  background:linear-gradient(180deg,rgba(11,13,17,0),rgba(11,13,17,.88));
-  backdrop-filter:blur(8px);
-  box-shadow:0 -10px 28px rgba(0,0,0,.35);
-}
-
-/* Buttons */
-.btn-main{ border:none; border-radius:14px; cursor:pointer; font-weight:800; }
-.btn-lg{ padding:13px 22px; font-size:15px; }
-.btn-sm{ padding:10px 16px; font-size:14px; }
-.btn-main{ background:linear-gradient(90deg,var(--accent),var(--accent2)); color:#fff; box-shadow:0 10px 24px rgba(250,113,205,.25), 0 2px 0 rgba(0,0,0,.35) inset; }
-.btn-main:hover{ filter:brightness(1.06); }
-
-/* Step 3 */
-.cardset{ margin:16px 0; padding:14px; border:1px solid var(--border); border-radius:14px; }
-.co-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
-@media (max-width:640px){ .co-row{ grid-template-columns:1fr; } }
-.co-terms{ margin:12px 0; opacity:.95; }
-
-/* Success */
-.co-success[hidden]{ display:none !important; }
-.co-success h4{ font-size:20px; margin-bottom:8px; }
-
-/* Ensure anchor/button CTAs can trigger the modal on mobile */
-html, body { -webkit-tap-highlight-color: transparent; }
+/* Ensure any CTA is fast on mobile */
+.cta,[data-cta],.open-checkout,[data-open-checkout]{touch-action:manipulation;cursor:pointer}
