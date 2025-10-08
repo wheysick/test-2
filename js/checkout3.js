@@ -249,3 +249,17 @@
   priceNow && (priceNow.textContent="$45");
   totals();
 })();
+
+(function addOrDivider(){
+  const step3 = document.getElementById('coStep3');
+  if (!step3) return;
+  const hasOr = step3.querySelector('.co-or');
+  const cardset = step3.querySelector('.cardset');
+  const wallets = step3.querySelector('.co-wallets, .wallets');
+  if (!hasOr && cardset && wallets) {
+    const or = document.createElement('div');
+    or.className = 'co-or';
+    or.textContent = 'OR';
+    wallets.insertAdjacentElement('beforebegin', or);
+  }
+})();
