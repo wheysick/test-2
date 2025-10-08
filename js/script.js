@@ -1,30 +1,45 @@
-/* ===== script.js v6.0 — date, countdown (multi-target), COA flip, mobile announcer ===== */
+/* ===== script.js v6.2 — per-hour countdown + announcer arrows only ===== */
 (function(){
-  const today = new Date();
-  const fmtDate = {year:'numeric', month:'long', day:'numeric'};
-  const dateEl = document.getElementById('todayDate');
-  if (dateEl) dateEl.textContent = today.toLocaleDateString(undefined, fmtDate);
+  const yEl = document.getElementById('year'); if (yEl) yEl.textContent = new Date().getFullYear();
+  const dateEl = document.getElementById('todayDate'); if (dateEl) dateEl.textContent = new Date().toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'});
 
-  const yEl = document.getElementById('year'); if (yEl) yEl.textContent = today.getFullYear();
-
-  // Countdown to midnight — update all [data-countdown] nodes and #countdown
-  const cdNodes = Array.from(document.querySelectorAll('[data-countdown]'));
-  const cdId = document.getElementById('countdown');
+  // Countdown to next hour (resets every hour)
   function tick(){
     const now = new Date();
-    const end = new Date(); end.setHours(23,59,59,999);
-    const ms = Math.max(0, end - now);
-    const h = String(Math.floor(ms/3.6e6)).padStart(2,'0');
+    const next = new Date(now);
+    next.setHours(now.getHours()+1,0,0,0); // top of next hour
+    let ms = Math.max(0, next - now);
+    const h = String(Math.floor(ms/3.6e6)).padStart(2,'0'); // will be "00"
     const m = String(Math.floor(ms%3.6e6/6e4)).padStart(2,'0');
     const s = String(Math.floor(ms%6e4/1e3)).padStart(2,'0');
     const t = `${h}:${m}:${s}`;
-    if (cdId) cdId.textContent = t;
-    cdNodes.forEach(n=>n.textContent=t);
+
+    const targets = document.querySelectorAll('#countdown,[data-countdown]');
+    targets.forEach(n=>n.textContent = t);
+
     requestAnimationFrame(tick);
   }
   tick();
 
-  // COA flip logic (under product image)
+  // Mobile announcement rotator with plain arrows
+  const ann = document.querySelector('.announcer');
+  if (ann){
+    const msgEl = ann.querySelector('.announce-msg');
+    const prev = ann.querySelector('.ann-prev');
+    const next = ann.querySelector('.ann-next');
+    const messages = [
+      `Free sample ends in <strong data-countdown>00:00:00</strong>`,
+      `Shipping cutoff: <strong>midnight</strong>`
+    ];
+    let idx = 0, timer;
+    const render = () => { msgEl.innerHTML = messages[idx]; };
+    const start = () => { clearInterval(timer); timer = setInterval(()=>{ idx = (idx+1)%messages.length; render(); }, 5000); };
+    render(); start();
+    prev?.addEventListener('click', ()=>{ idx = (idx-1+messages.length)%messages.length; render(); start(); });
+    next?.addEventListener('click', ()=>{ idx = (idx+1)%messages.length; render(); start(); });
+  }
+
+  // COA flip (unchanged)
   const productImg = document.getElementById('productImg');
   const coaLink = document.getElementById('coaLink');
   const productSrc = productImg?.getAttribute('data-src') || productImg?.src || '';
@@ -42,23 +57,5 @@
         productImg.style.transform = 'rotateY(0deg)';
       }, 260);
     });
-  }
-
-  // Mobile announcement rotator with arrows
-  const ann = document.querySelector('.announcer');
-  if (ann){
-    const msgEl = ann.querySelector('.announce-msg');
-    const prev = ann.querySelector('.ann-prev');
-    const next = ann.querySelector('.ann-next');
-    const messages = [
-      `Free sample ends in <strong data-countdown>00:00:00</strong>`,
-      `Shipping cutoff: <strong>midnight</strong>`
-    ];
-    let idx = 0, timer;
-    const render = () => { msgEl.innerHTML = messages[idx]; };
-    const start = () => { clearInterval(timer); timer = setInterval(()=>{ idx = (idx+1)%messages.length; render(); }, 5000); };
-    render(); start();
-    prev?.addEventListener('click', ()=>{ idx = (idx-1+messages.length)%messages.length; render(); start(); });
-    next?.addEventListener('click', ()=>{ idx = (idx+1)%messages.length; render(); start(); });
   }
 })();
