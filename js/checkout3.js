@@ -1,4 +1,4 @@
-/* ===== checkout3.js v6.3 — centered step-3, fast 5-min stockline (47→1), OR divider ===== */
+/* ===== checkout3.js v6.4 — Back link (top-left), robust stock counter, Recurly + Coinbase scaffolds ===== */
 (function(){
   "use strict";
 
@@ -10,15 +10,22 @@
   const step3 = document.getElementById("coStep3");
 
   const toStep3 = document.getElementById("coToStep3");
-  const back1   = document.getElementById("coBackTo1");
-  const back2   = document.getElementById("coBackTo2");
-
   const qtyInput= document.getElementById("coQty");
   const payWrap = document.getElementById("coPayWrap");
   const submit  = document.getElementById("coSubmit");
   const closeX  = document.getElementById("checkoutClose");
   const success = document.getElementById("checkoutSuccess");
   const methodErr = document.getElementById("coMethodError");
+
+  // Add global Back link (top-left inside the panel)
+  let backLink = document.getElementById('coBackLink');
+  if (!backLink){
+    backLink = document.createElement('button');
+    backLink.id = 'coBackLink';
+    backLink.className = 'co-backlink';
+    backLink.innerHTML = '← Back';
+    modal.querySelector('.checkout-card')?.insertAdjacentElement('afterbegin', backLink);
+  }
 
   const priceWas = step2.querySelector(".co-price .was");
   const priceNow = step2.querySelector(".co-price .now");
@@ -33,9 +40,10 @@
   const hide=(el)=>{ if(el){ el.hidden=true;  el.setAttribute("aria-hidden","true");  } };
 
   function setStep(n){
-    if (n===1){ show(step1); hide(step2); hide(step3); step1.querySelector('input')?.focus({preventScroll:true}); }
-    if (n===2){ hide(step1); show(step2); hide(step3); ensureStockUI(); }
-    if (n===3){ hide(step1); hide(step2); show(step3); ensureStockUI(); step3.querySelector('input,button')?.focus({preventScroll:true}); }
+    const s1 = n===1, s2 = n===2, s3 = n===3;
+    if (s1){ show(step1); hide(step2); hide(step3); backLink.style.display='none'; }
+    if (s2){ hide(step1); show(step2); hide(step3); backLink.style.display='inline-flex'; stock.start(); }
+    if (s3){ hide(step1); hide(step2); show(step3); backLink.style.display='inline-flex'; stock.start(); }
   }
 
   function totals(){
@@ -65,7 +73,7 @@
     priceNow && (priceNow.textContent=fmt(DISPLAY));
     qty=1; method=null; discount=0; totals(); setStep(1);
     if (methodErr) hide(methodErr);
-    resetStockCountdown(); // new open → reset fast countdown
+    stock.reset(); stock.start(); // always (re)start
   }
   function closeModal(e){
     e?.preventDefault?.(); e?.stopPropagation?.();
@@ -79,24 +87,20 @@
     document.querySelectorAll(CTA_SEL).forEach(el=>{
       if(el.__bound) return;
       const h=(ev)=>{ ev.preventDefault(); ev.stopPropagation(); openModal(ev); };
-      el.addEventListener("pointerdown",h,{capture:true});
-      el.addEventListener("touchstart",h,{capture:true, passive:false});
-      el.addEventListener("touchend",h,{capture:true, passive:false});
-      el.addEventListener("pointerup",h,{capture:true});
       el.addEventListener("click",h,{capture:true});
+      el.addEventListener("pointerup",h,{capture:true});
+      el.addEventListener("touchend",h,{capture:true, passive:false});
       el.__bound=true;
     });
   }
   bindCTAs();
   new MutationObserver(bindCTAs).observe(document.documentElement,{subtree:true,childList:true,attributes:true});
 
-  // Safety net
-  function trap(ev){
-    const t = ev.target.closest?.(CTA_SEL);
-    if (t){ ev.preventDefault(); ev.stopPropagation(); openModal(ev); }
-  }
-  ["pointerdown","touchstart","touchend","pointerup","click"].forEach(evt=>{
-    document.addEventListener(evt, trap, {capture:true, passive:false});
+  // Back link behavior
+  backLink.addEventListener('click', (e)=>{
+    e.preventDefault();
+    if (!step2.hidden) { setStep(1); return; }
+    if (!step3.hidden) { setStep(2); return; }
   });
 
   // Close
@@ -119,7 +123,6 @@
     if(e.target.closest(".qty-inc")){ qty=Math.min(99,qty+1); totals(); return; }
     if(e.target.closest(".qty-dec")){ qty=Math.max(1, qty-1); totals(); return; }
 
-    // Arrow navigation
     const strip = step2.querySelector(".co-xpay-strip");
     if (e.target.closest(".xpay-nav.prev")){ strip?.scrollBy({left:-240,behavior:"smooth"}); return; }
     if (e.target.closest(".xpay-nav.next")){ strip?.scrollBy({left: 240,behavior:"smooth"}); return; }
@@ -134,7 +137,7 @@
     totals();
     if (methodErr) hide(methodErr);
 
-    // double tap: go to step 3
+    // double tap to step 3
     const now = Date.now();
     if (lastMethod===method && (now - lastTapTime) < 350){
       renderPay(method); setStep(3); return;
@@ -157,109 +160,171 @@
     }
     renderPay(method); setStep(3);
   });
-  back1 && back1.addEventListener("click",()=>setStep(1));
-  back2 && back2.addEventListener("click",()=>setStep(2));
 
-  // Step 3
+  // Step 3 Payment Renderer (Recurly hosted fields for card + wallet row + OR)
   function renderPay(m){
-    const txt=(t)=>`<div class="altpay" style="text-align:center"><h4>${t[0]}</h4><p>${t[1]}</p></div>`;
     const wallets = `
       <div class="co-or">OR</div>
       <div class="co-alt-wallets">
-        <button class="co-wallet apple" type="button" aria-label="Apple Pay">
-          <img src="assets/applepay.svg" alt="" width="24" height="24"/><span>Apple&nbsp;Pay</span>
-        </button>
-        <button class="co-wallet gpay" type="button" aria-label="Google Pay">
-          <img src="assets/gpay.svg" alt="" width="24" height="24"/><span>Google&nbsp;Pay</span>
-        </button>
+        <button class="co-wallet apple" type="button" aria-label="Apple Pay"><img src="assets/applepay.svg" alt="" width="24" height="24"/><span>Apple&nbsp;Pay</span></button>
+        <button class="co-wallet gpay" type="button" aria-label="Google Pay"><img src="assets/gpay.svg" alt="" width="24" height="24"/><span>Google&nbsp;Pay</span></button>
       </div>`;
 
-    const cardHTML = `<fieldset class="cardset"><legend>Card details</legend>
-              <label>Card number<input type="text" inputmode="numeric" placeholder="4242 4242 4242 4242"></label>
-              <div class="co-row">
-                <label>Expiry<input inputmode="numeric" placeholder="MM/YY"></label>
-                <label>CVC<input inputmode="numeric" maxlength="4"></label>
-                <label>ZIP<input inputmode="numeric" maxlength="5"></label>
-              </div>
-            </fieldset>`;
+    const recurlyCard = `
+      <form id="recurlyForm">
+        <fieldset class="cardset">
+          <legend>Card details</legend>
+          <div class="recurly-hosted-field" data-recurly="number"></div>
+          <div class="co-row" style="margin-top:10px">
+            <div class="recurly-hosted-field" data-recurly="month"></div>
+            <div class="recurly-hosted-field" data-recurly="year"></div>
+            <div class="recurly-hosted-field" data-recurly="cvv"></div>
+          </div>
+          <label style="margin-top:10px">ZIP
+            <input id="coPostal" inputmode="numeric" maxlength="10" placeholder="Zip / Postal">
+          </label>
+        </fieldset>
+      </form>`;
+
+    const txt=(t)=>`<div class="altpay" style="text-align:center"><h4>${t[0]}</h4><p>${t[1]}</p></div>`;
 
     const map={
-      card: cardHTML + wallets,
+      card: recurlyCard + wallets,
       venmo:txt(["Venmo","Send to @YourHandle — 15% off applied"]),
       cashapp:txt(["Cash App","Send to $YourCashtag — 15% off applied"]),
       paypal:txt(["PayPal","Redirect to PayPal — 15% off applied"]),
       crypto:txt(["Crypto","BTC/ETH/USDC — 15% off applied; address next"])
     };
-    payWrap.innerHTML = map[m] || (cardHTML + wallets);
+    payWrap.innerHTML = map[m] || (recurlyCard + wallets);
+    if ((m||'card')==='card') initRecurlyHostedFields();
   }
 
-  submit && submit.addEventListener("click",(e)=>{
+  // Submit (Complete Order)
+  submit && submit.addEventListener("click", async (e)=>{
     e.preventDefault();
-    hide(step3); show(success);
+    const order = buildOrder();
+
+    try {
+      if (method === 'card') {
+        const token = await getRecurlyToken();
+        if (!token) throw new Error('Card tokenization failed');
+        await fetch('/api/payments/recurly/charge', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ token: token.id || token, order })
+        });
+        hide(step3); show(success);
+        return;
+      }
+
+      if (method === 'crypto') {
+        const res = await fetch('/api/payments/coinbase/create-charge', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ order })
+        });
+        const data = await res.json();
+        if (data?.hosted_url) { window.location.href = data.hosted_url; return; }
+        throw new Error('Coinbase charge not created');
+      }
+
+      if (method === 'paypal' || method === 'venmo' || method === 'cashapp') {
+        // TODO: Implement PayPal/Braintree/Square flows server-side, then redirect here.
+        alert('This payment method requires server-side connector setup. See /api-samples for code.');
+        return;
+      }
+
+      // default (card)
+      hide(step3); show(success);
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Payment failed. Please try again.');
+    }
   });
 
-  // -------- FAST Stock line (47 → 1 in ~5 minutes) --------
-  let stockStart = 47;
-  let stockCurrent = stockStart;
-  let stockEndTime = 0;
-  let stockTimeout = 0;
-  const durationMs = 5 * 60 * 1000; // 5 minutes
+  function buildOrder(){
+    const free=qty, merch=qty*SALE, disc=merch*(discount/100);
+    const taxable=Math.max(0, merch-disc), tax=taxable*TAX, total=taxable+tax+SHIPPING;
+    return { qty, free, merch, discountPct:discount, tax, total, method };
+  }
 
-  function ensureStockUI(){
-    const nodes = [$("#coStockLine2"), $("#coStockLine3")].filter(Boolean);
-    nodes.forEach(n=>{
-      if (!n) return;
-      if (stockCurrent <= 1){
-        n.classList.remove("soldout");
-        n.innerHTML = `<span class="qty">1</span> left in stock`;
-      } else {
-        n.classList.remove("soldout");
-        n.innerHTML = `<span class="qty">${stockCurrent}</span> left in stock`;
+  /* ---------- Recurly.js Hosted Fields integration (client side) ---------- */
+  let recurlyConfigured = false, hostedFields = null;
+
+  function initRecurlyHostedFields(){
+    if (!window.recurly) return;
+    try {
+      if (!recurlyConfigured){
+        const pk = document.querySelector('meta[name="recurly-public-key"]')?.content || window.RECURLY_PUBLIC_KEY;
+        if (!pk) { console.warn('Recurly public key missing. Add <meta name="recurly-public-key" content="pk_xxx">'); return; }
+        window.recurly.configure(pk);
+        recurlyConfigured = true;
       }
+      const form = document.getElementById('recurlyForm');
+      if (!form) return;
+      hostedFields?.destroy?.();
+      hostedFields = window.recurly.HostedFields({
+        fields: {
+          number: { selector: form.querySelector('[data-recurly="number"]') },
+          month:  { selector: form.querySelector('[data-recurly="month"]') },
+          year:   { selector: form.querySelector('[data-recurly="year"]') },
+          cvv:    { selector: form.querySelector('[data-recurly="cvv"]') }
+        },
+        style: {
+          all: { fontFamily: 'Inter, system-ui, -apple-system, Segoe UI, Arial', fontSize: '16px', color: '#E9ECF2' },
+          focus: { color: '#fff' }
+        }
+      });
+    } catch(e){ console.warn('Recurly init error', e); }
+  }
+
+  function getRecurlyToken(){
+    return new Promise((resolve, reject)=>{
+      try {
+        if (!hostedFields){ reject(new Error('Payment form not ready')); return; }
+        const postal = document.getElementById('coPostal')?.value || '';
+        hostedFields.token({ postal_code: postal }, (err, token)=>{
+          if (err) return reject(err);
+          resolve(token);
+        });
+      } catch(e){ reject(e); }
     });
   }
 
-  function scheduleNext(ms){ clearTimeout(stockTimeout); stockTimeout = setTimeout(step, ms); }
+  /* ---------- Robust stock counter (47 → 1 in ~5m) ---------- */
+  const stock = (function(){
+    const START=47, MIN=1, DURATION=5*60*1000;
+    let current=START, endAt=0, timer=0, running=false;
 
-  function resetStockCountdown(){
-    stockCurrent = stockStart;
-    stockEndTime = Date.now() + durationMs;
-    ensureStockUI();
-    scheduleNext(3000); // first update after 3s
-  }
-
-  function step(){
-    const now = Date.now();
-    if (stockCurrent <= 1){ ensureStockUI(); return; }
-    const msLeft = Math.max(1, stockEndTime - now);
-    // average ~5s between updates → compute ideal decrement to reach 1
-    const avgInterval = 5000;
-    const stepsLeft = Math.max(1, Math.floor(msLeft / avgInterval));
-    const idealDec = Math.max(1, Math.ceil((stockCurrent - 1) / stepsLeft));
-    let dec = Math.min(3, Math.max(1, idealDec + (Math.random()>.6?1:0)));
-    dec = Math.min(dec, stockCurrent - 1); // never below 1
-    stockCurrent -= dec;
-    ensureStockUI();
-    const next = Math.floor(3000 + Math.random()*4000);
-    scheduleNext(next);
-  }
+    function paint(){
+      document.querySelectorAll('#coStockLine2,#coStockLine3').forEach(n=>{
+        if(!n) return;
+        const val = Math.max(MIN, current);
+        n.innerHTML = `<span class="qty">${val}</span> left in stock`;
+      });
+    }
+    function step(){
+      const now = Date.now();
+      if (current <= MIN){ running=false; return; }
+      const msLeft = Math.max(1, endAt - now);
+      const avgInterval = 5000;
+      const stepsLeft = Math.max(1, Math.floor(msLeft / avgInterval));
+      const idealDec = Math.max(1, Math.ceil((current - MIN) / stepsLeft));
+      let dec = Math.min(3, Math.max(1, idealDec + (Math.random()>.6?1:0)));
+      dec = Math.min(dec, current - MIN);
+      current -= dec;
+      paint();
+      timer = setTimeout(step, Math.floor(3000 + Math.random()*4000));
+    }
+    return {
+      reset(){
+        clearTimeout(timer);
+        current = START; endAt = Date.now() + DURATION; running=false; paint();
+      },
+      start(){
+        if (running) return; running=true; paint(); timer=setTimeout(step, 2500);
+      }
+    };
+  })();
 
   // initial
-  priceWas && (priceWas.textContent="$90");
-  priceNow && (priceNow.textContent="$45");
   totals();
-})();
-
-(function addOrDivider(){
-  const step3 = document.getElementById('coStep3');
-  if (!step3) return;
-  const hasOr = step3.querySelector('.co-or');
-  const cardset = step3.querySelector('.cardset');
-  const wallets = step3.querySelector('.co-wallets, .wallets');
-  if (!hasOr && cardset && wallets) {
-    const or = document.createElement('div');
-    or.className = 'co-or';
-    or.textContent = 'OR';
-    wallets.insertAdjacentElement('beforebegin', or);
-  }
 })();
