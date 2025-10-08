@@ -1,4 +1,4 @@
-/* ===== style.css v5.1 — Base advertorial styles (readable, premium, dark) ===== */
+/* ===== style.css v5.2 — Base advertorial styles (readable, premium, dark) ===== */
 :root{
   --bg:#0a0c10;
   --surface:#0e1116;
@@ -21,7 +21,6 @@
 
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
-
 a{color:#98b7ff;text-decoration:none}
 a:hover{text-decoration:underline}
 
@@ -57,7 +56,9 @@ a:hover{text-decoration:underline}
 
 /* ---------- Article ---------- */
 .article{line-height:1.65}
-.article, .article p, .article li, .article h2 { color: var(--ink); } /* enforce contrast */
+/* Enforce high contrast regardless of theme overrides */
+.article, .article p, .article li, .article h2, .article .byline { color: var(--ink) !important; }
+
 .article .kicker{font-size:var(--kicker);color:#ffd2f3;letter-spacing:.3px;margin:24px 0 6px;text-transform:uppercase}
 .article .headline{font-size:var(--h1);line-height:1.15;margin:6px 0 8px}
 .byline{opacity:.85;font-size:14px}
@@ -107,7 +108,7 @@ a:hover{text-decoration:underline}
 
 /* Floating CTA (mobile only) */
 .floating-cta{
-  position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:60;
+  position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:2147483647;
   background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;font-weight:800;
   border:none;border-radius:999px;padding:14px 22px;box-shadow:0 16px 36px rgba(250,113,205,.3);
   touch-action:manipulation;
@@ -115,14 +116,20 @@ a:hover{text-decoration:underline}
 @media (min-width:900px){.floating-cta{display:none}}
 
 /* Toast placeholder */
-.toasts{position:fixed;right:16px;bottom:80px;display:flex;flex-direction:column;gap:10px;z-index:70}
-
+.toasts{position:fixed;right:16px;bottom:80px;display:flex;flex-direction:column;gap:10px;z-index:70;pointer-events:none}
 /* View popup */
-.view-popup{position:fixed;right:16px;bottom:20px;z-index:70;display:none;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px 12px;color:var(--ink)}
+.view-popup{position:fixed;right:16px;bottom:20px;z-index:70;display:none;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px 12px;color:var(--ink);pointer-events:none}
 .view-popup.show{display:flex}
-.view-popup button{background:transparent;border:none;color:#fff;cursor:pointer}
+.view-popup button{background:transparent;border:none;color:#fff;cursor:pointer;pointer-events:auto}
 
+/* Utility */
 .hidden{display:none!important}
 
-/* Ensure any CTA is fast on mobile */
-.cta,[data-cta],.open-checkout,[data-open-checkout]{touch-action:manipulation;cursor:pointer}
+/* Ensure any CTA is fast and receives taps */
+.cta,[data-cta],.open-checkout,[data-open-checkout],.masthead-cta{
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+  cursor:pointer;
+  z-index:2147483647;
+  pointer-events:auto;
+}
