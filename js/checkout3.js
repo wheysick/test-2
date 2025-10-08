@@ -1,4 +1,4 @@
-/* ===== checkout3.js v6.2 — stock line faster (5min), titles, placement ===== */
+/* ===== checkout3.js v6.3 — centered step-3, fast 5-min stockline (47→1), OR divider ===== */
 (function(){
   "use strict";
 
@@ -65,7 +65,7 @@
     priceNow && (priceNow.textContent=fmt(DISPLAY));
     qty=1; method=null; discount=0; totals(); setStep(1);
     if (methodErr) hide(methodErr);
-    startStockCountdown(); // initialize stock when opening
+    resetStockCountdown(); // new open → reset fast countdown
   }
   function closeModal(e){
     e?.preventDefault?.(); e?.stopPropagation?.();
@@ -162,8 +162,9 @@
 
   // Step 3
   function renderPay(m){
-    const txt=(t)=>`<div class="altpay"><h4>${t[0]}</h4><p>${t[1]}</p></div>`;
+    const txt=(t)=>`<div class="altpay" style="text-align:center"><h4>${t[0]}</h4><p>${t[1]}</p></div>`;
     const wallets = `
+      <div class="co-or">OR</div>
       <div class="co-alt-wallets">
         <button class="co-wallet apple" type="button" aria-label="Apple Pay">
           <img src="assets/applepay.svg" alt="" width="24" height="24"/><span>Apple&nbsp;Pay</span>
@@ -180,16 +181,16 @@
                 <label>CVC<input inputmode="numeric" maxlength="4"></label>
                 <label>ZIP<input inputmode="numeric" maxlength="5"></label>
               </div>
-            </fieldset>${wallets}`;
+            </fieldset>`;
 
     const map={
-      card: cardHTML,
+      card: cardHTML + wallets,
       venmo:txt(["Venmo","Send to @YourHandle — 15% off applied"]),
       cashapp:txt(["Cash App","Send to $YourCashtag — 15% off applied"]),
       paypal:txt(["PayPal","Redirect to PayPal — 15% off applied"]),
       crypto:txt(["Crypto","BTC/ETH/USDC — 15% off applied; address next"])
     };
-    payWrap.innerHTML = map[m] || map.card;
+    payWrap.innerHTML = map[m] || (cardHTML + wallets);
   }
 
   submit && submit.addEventListener("click",(e)=>{
@@ -197,18 +198,20 @@
     hide(step3); show(success);
   });
 
-  // -------- Stock line (shared across steps 2 & 3) --------
-  let stockInitTime = null, stockEndTime = null, stockStart = 47, stockCurrent = 47, stockTimer = null;
-  const durationMs = 5 * 60 * 1000; // 5 minutes to zero
+  // -------- FAST Stock line (47 → 1 in ~5 minutes) --------
+  let stockStart = 47;
+  let stockCurrent = stockStart;
+  let stockEndTime = 0;
+  let stockTimeout = 0;
+  const durationMs = 5 * 60 * 1000; // 5 minutes
 
   function ensureStockUI(){
     const nodes = [$("#coStockLine2"), $("#coStockLine3")].filter(Boolean);
     nodes.forEach(n=>{
       if (!n) return;
-      const qtyEl = n.querySelector(".qty");
-      if (stockCurrent <= 0){
-        n.classList.add("soldout");
-        n.innerHTML = `Sold out — <strong>Restocks at 9am tomorrow</strong>`;
+      if (stockCurrent <= 1){
+        n.classList.remove("soldout");
+        n.innerHTML = `<span class="qty">1</span> left in stock`;
       } else {
         n.classList.remove("soldout");
         n.innerHTML = `<span class="qty">${stockCurrent}</span> left in stock`;
@@ -216,33 +219,29 @@
     });
   }
 
-  function startStockCountdown(){
-    if (stockInitTime) return; // already running
-    stockStart = 47;
+  function scheduleNext(ms){ clearTimeout(stockTimeout); stockTimeout = setTimeout(step, ms); }
+
+  function resetStockCountdown(){
     stockCurrent = stockStart;
-    stockInitTime = Date.now();
-    stockEndTime = stockInitTime + durationMs;
-    clearInterval(stockTimer);
-    stockTimer = setInterval(step, 4000); // first tick after 4s
+    stockEndTime = Date.now() + durationMs;
     ensureStockUI();
+    scheduleNext(3000); // first update after 3s
   }
 
   function step(){
     const now = Date.now();
-    if (stockCurrent <= 0){ clearInterval(stockTimer); ensureStockUI(); return; }
-    if (now >= stockEndTime){
-      stockCurrent = 0; ensureStockUI(); clearInterval(stockTimer); return;
-    }
-    // Make it drain to 0 over ~5 min with bursty 1–3 decrements every 3–8s
-    const msLeft = stockEndTime - now;
-    const avgStep = Math.max(1, Math.ceil(stockCurrent / Math.max(1, msLeft / 5000)));
-    let dec = Math.min(3, Math.max(1, avgStep + (Math.random()>.6?1:0)));
-    dec = Math.min(dec, stockCurrent);
+    if (stockCurrent <= 1){ ensureStockUI(); return; }
+    const msLeft = Math.max(1, stockEndTime - now);
+    // average ~5s between updates → compute ideal decrement to reach 1
+    const avgInterval = 5000;
+    const stepsLeft = Math.max(1, Math.floor(msLeft / avgInterval));
+    const idealDec = Math.max(1, Math.ceil((stockCurrent - 1) / stepsLeft));
+    let dec = Math.min(3, Math.max(1, idealDec + (Math.random()>.6?1:0)));
+    dec = Math.min(dec, stockCurrent - 1); // never below 1
     stockCurrent -= dec;
     ensureStockUI();
-    const next = Math.floor(3000 + Math.random()*5000);
-    clearInterval(stockTimer);
-    stockTimer = setInterval(step, next);
+    const next = Math.floor(3000 + Math.random()*4000);
+    scheduleNext(next);
   }
 
   // initial
