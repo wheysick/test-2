@@ -1,4 +1,4 @@
-/* ===== style.css v6.0 — Mobile rotator, mobile reviews, FAQ polish ===== */
+/* ===== style.css v6.2 — Mobile rotator arrows-only, mobile reviews ===== */
 :root{
   --bg:#0a0c10;
   --surface:#0e1116;
@@ -40,14 +40,14 @@ a:hover{text-decoration:underline}
   .masthead-cta:hover{ filter:brightness(1.06) }
 }
 
-/* Mobile brand bar + announcement rotator (with arrows) */
+/* Mobile brand bar + announcement rotator (arrows only) */
 .masthead-mobile-brand{ display:none; text-align:center; padding:10px 0; font-weight:900; }
 .announcer{ display:none; width:100%; border-top:1px solid var(--border); border-bottom:1px solid var(--border); background:#0b0d12; }
 @media (max-width:900px){
   .masthead-inner{ display:none; }
   .masthead-mobile-brand{ display:block; }
   .announcer{ display:flex; align-items:center; justify-content:center; gap:8px; padding:6px 8px; }
-  .announcer button{ width:32px; height:32px; border-radius:999px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.06); color:#fff; display:grid; place-items:center; }
+  .announcer button{ border:none; background:transparent; color:#fff; font-size:20px; line-height:1; padding:4px 10px; }
   .announce-msg{ flex:1 1 auto; text-align:center; font-size:14px; }
 }
 
