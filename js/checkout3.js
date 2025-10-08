@@ -16,11 +16,11 @@
   const submitBtn  = document.getElementById('coSubmit');
   const closeBtn   = document.getElementById('checkoutClose');
 
-  // Pricing constants
-  const MSRP       = 90;          // original price (display only)
-  const SALE       = 45;          // sale price per paid bottle
-  const TAX_RATE   = 0.0875;      // 8.75% tax (change for your locale)
-  const SHIPPING   = 0;           // free shipping
+// pricing constants
+const MSRP = 90;          // price per paid bottle
+const SALE = 90;          // they actually pay $90 each
+const TAX_RATE = 0.0875;
+const SHIPPING = 0;
 
   // Step 2 state
   let chosenMethod = null;
@@ -73,7 +73,7 @@
   /* ---------- PRICING ---------- */
   function computeTotals(){
     const free  = qty;                        // free bottles mirror qty
-    const merch = qty * SALE;                 // sale merchandise
+    const merch = qty * MSRP;                 // sale merchandise
     const disc  = merch * (discountPct / 100);
     const taxable = Math.max(0, merch - disc);
     const tax   = taxable * TAX_RATE;
