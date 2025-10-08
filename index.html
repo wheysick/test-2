@@ -7,8 +7,8 @@
   <meta name="description" content="A magazine‑style feature with a limited free sample offer. Shipping ends at midnight." />
   <meta name="robots" content="noindex,nofollow" />
   <meta name="theme-color" content="#ff2a6d" />
-  <link rel="stylesheet" href="css/style.css?v=510" />
-  <link rel="stylesheet" href="css/checkout3.css?v=510" />
+  <link rel="stylesheet" href="css/style.css?v=520" />
+  <link rel="stylesheet" href="css/checkout3.css?v=520" />
 </head>
 <body class="verge-theme">
   <header class="masthead" role="banner">
@@ -20,19 +20,19 @@
         <span><strong>Shipping cutoff: midnight</strong></span>
       </div>
       <!-- Desktop header CTA -->
-      <a href="#offer" class="masthead-cta open-checkout" data-cta>Claim Free Sample</a>
+      <a href="#offer" class="masthead-cta open-checkout" data-cta onclick="checkoutOpen();return false;">Claim Free Sample</a>
     </div>
     <div id="scrollProgress"></div>
   </header>
 
   <!-- Floating CTA (mobile) -->
-  <a href="#offer" class="floating-cta open-checkout" id="floatingCta" data-cta="floating"><strong>Claim Free Sample</strong></a>
+  <a href="#offer" class="floating-cta open-checkout" id="floatingCta" data-cta="floating" onclick="checkoutOpen();return false;"><strong>Claim Free Sample</strong></a>
 
   <!-- Share rail (desktop) -->
   <nav class="share-rail" aria-label="Share this">
-    <a href="#offer" class="share-icon open-checkout" title="Get offer" data-cta>🔥</a>
-    <a href="#offer" class="share-icon open-checkout" title="Share" data-cta>↗️</a>
-    <a href="#offer" class="share-icon open-checkout" title="Save" data-cta>🔖</a>
+    <a href="#offer" class="share-icon open-checkout" title="Get offer" data-cta onclick="checkoutOpen();return false;">🔥</a>
+    <a href="#offer" class="share-icon open-checkout" title="Share" data-cta onclick="checkoutOpen();return false;">↗️</a>
+    <a href="#offer" class="share-icon open-checkout" title="Save" data-cta onclick="checkoutOpen();return false;">🔖</a>
   </nav>
 
   <!-- Article -->
@@ -110,7 +110,7 @@
 
       <!-- End-of-article desktop CTA -->
       <div class="desktop-cta-block">
-        <a href="#offer" class="btn-main btn-lg open-checkout" data-cta>Claim Your Free Sample</a>
+        <a href="#offer" class="btn-main btn-lg open-checkout" data-cta onclick="checkoutOpen();return false;">Claim Your Free Sample</a>
       </div>
     </article>
   </main>
@@ -222,7 +222,7 @@
     <p>&copy; <span id="year"></span> Health Template Co.</p>
   </footer>
 
-  <script defer src="js/script.js?v=510"></script>
-  <script defer src="js/checkout3.js?v=510"></script>
+  <script defer src="js/script.js?v=520"></script>
+  <script defer src="js/checkout3.js?v=520"></script>
 </body>
 </html>
