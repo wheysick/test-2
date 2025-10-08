@@ -1,4 +1,4 @@
-/* ===== checkout3.css v5.2 — Premium dark checkout with rhythm fixes ===== */
+/* ===== checkout3.css v5.3 — Checkout polish per patch list ===== */
 :root{
   --panel:#0F1319; --fg:#E9ECF2; --muted:rgba(255,255,255,.06); --border:rgba(255,255,255,.12);
   --accent:#C471F5; --accent2:#FA71CD; --radius:16px; --pad:clamp(18px,3.2vw,28px);
@@ -8,13 +8,14 @@
 #checkoutModal.show{display:flex!important;}
 #checkoutModal.co-fullscreen{
   position:fixed; inset:0; z-index:999999; align-items:center; justify-content:center;
-  background:rgba(5,7,10,.78);
+  background:rgba(10,12,16,.86); /* darker backdrop to match page */
 }
 #checkoutModal .modal-content.checkout-card{
-  width:min(92vw,680px); max-height:calc(100dvh - 4rem);
+  width:min(92vw,580px); /* narrower on desktop to prevent horizontal scroll */
+  max-height:calc(100dvh - 4rem);
   background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0)), var(--panel);
   color:var(--fg); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius);
-  box-shadow:var(--shadow); overflow:auto; overscroll-behavior:contain; padding:28px var(--pad) 96px;
+  box-shadow:var(--shadow); overflow:auto; overflow-x:hidden; overscroll-behavior:contain; padding:28px var(--pad) 60px;
 }
 #checkoutClose{
   position:fixed; top:14px; right:14px; z-index:1000000; width:44px; height:44px; border-radius:999px;
@@ -39,6 +40,8 @@
   border:1px solid var(--border); background:var(--muted); color:var(--fg); outline:none;
 }
 #coStep1 input:focus{border-color:var(--accent); box-shadow:0 0 0 3px rgba(196,113,245,.2);}
+/* Center the continue button in Step 1 */
+#coStep1 .co-next{ display:flex; margin:16px auto 0; }
 
 /* Buttons */
 .btn-main{border:none; border-radius:14px; cursor:pointer; font-weight:800; color:#fff; background:linear-gradient(90deg,var(--accent),var(--accent2)); box-shadow:0 10px 24px rgba(250,113,205,.25), 0 2px 0 rgba(0,0,0,.35) inset;}
@@ -73,22 +76,29 @@
 .co-totals > div{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:6px 0; font-size:var(--body); font-variant-numeric:tabular-nums;}
 .co-total-row{border-top:1px dashed var(--border); margin-top:8px; padding-top:10px; font-weight:800;}
 
-.co-actions{position:sticky; bottom:0; z-index:3; display:flex; justify-content:flex-end; gap:10px; padding:14px var(--pad); background:linear-gradient(180deg,rgba(11,13,17,0),rgba(11,13,17,.88)); backdrop-filter:blur(8px); box-shadow:0 -10px 28px rgba(0,0,0,.35); padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));}
+/* Actions: center on all steps; but remove sticky effect on Step 2 */
+.co-actions{position:sticky; bottom:0; z-index:3; display:flex; justify-content:center; gap:10px; padding:14px var(--pad); background:linear-gradient(180deg,rgba(11,13,17,0),rgba(11,13,17,.88)); backdrop-filter:blur(8px); box-shadow:0 -10px 28px rgba(0,0,0,.35);}
+#coStep2 .co-actions{ position:static; background:none; box-shadow:none; padding:12px 0; }
+
 .co-secure{margin:10px 0 0; text-align:center; opacity:.9; font-size:var(--small);}
 
 /* Step 3 */
-.cardset{margin:16px 0; padding:14px; border:1px solid var(--border); border-radius:14px;}
+.cardset{margin:16px 0; padding:14px; border:1px solid var(--border); border-radius:14px; max-width:100%;}
 .cardset legend{padding:0 6px; font-size:var(--small); opacity:.9;}
 .cardset label{ font-size: var(--small); opacity: .9; display:flex; flex-direction:column; gap:6px; }
 .cardset input{
-  font-size:16px; padding:12px 14px; border-radius:12px;
+  font-size:16px; padding:12px 14px; border-radius:12px; width:100%;
   border:1px solid var(--border); background:var(--muted); color:var(--fg);
 }
 .cardset input:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(196,113,245,.2); }
 
-.co-row{display:grid; grid-template-columns:repeat(3,1fr); gap:12px;}
+.co-row{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; max-width:100%;}
 @media (max-width:640px){.co-row{grid-template-columns:1fr;}}
-.co-terms{margin:12px 0; font-size:var(--small); opacity:.95;}
+/* Center the action bar on Step 3 (already centered globally) */
+
+/* Remove terms checkbox (hidden) */
+.co-terms{ display:none !important; }
+
 .co-trust{margin-top:8px; text-align:center; opacity:.8; font-size:var(--small);}
 
 /* Success */
