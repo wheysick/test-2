@@ -1,151 +1,212 @@
-/* ===== checkout3.css v5.0 — Premium dark, mobile-first, consistent scale ===== */
-:root{
-  --bg:#0B0E12;            /* page backdrop */
-  --panel:#0F1319;         /* modal panel bg */
-  --fg:#E9ECF2;            /* body text */
-  --muted:rgba(255,255,255,.06);
-  --border:rgba(255,255,255,.12);
-  --border-strong:rgba(255,255,255,.18);
-  --accent:#C471F5;        /* violet */
-  --accent2:#FA71CD;       /* pink */
-  --success:#47d674;
-  --radius:16px;
-  --shadow:0 28px 64px rgba(0,0,0,.55);
-  --pad:clamp(18px,3.2vw,28px);
-  --font:Inter, ui-sans-serif, system-ui, Segoe UI, Arial, sans-serif;
-  --h1:clamp(20px,2.2vw,26px);
-  --h2:clamp(18px,2vw,22px);
-  --body:15px;
-  --small:13px;
-}
+/* ===== checkout3.js v5.0 — Instant mobile open, consistent steps, premium totals ===== */
+(function(){
+  "use strict";
 
-/* Make sure whole site uses a clean base and tap feels native on iOS */
-html,body{font-family:var(--font);-webkit-tap-highlight-color:transparent;background:#0A0C10;color:var(--fg);}
+  const modal    = document.getElementById("checkoutModal");
+  if (!modal) return;
 
-/* ---------- Modal Backdrop / Container ---------- */
-#checkoutModal{display:none;}
-#checkoutModal.show{display:flex!important;}
-#checkoutModal.co-fullscreen{
-  position:fixed; inset:0; z-index:999999; align-items:center; justify-content:center;
-  background:rgba(5,7,10,.78);
-}
+  const step1    = document.getElementById("coStep1");
+  const step2    = document.getElementById("coStep2");
+  const step3    = document.getElementById("coStep3");
 
-/* ---------- Card Panel ---------- */
-#checkoutModal .modal-content.checkout-card{
-  width:min(92vw,680px);
-  max-height:calc(100dvh - 4rem);
-  background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0)), var(--panel);
-  color:var(--fg);
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  overflow:auto; overscroll-behavior:contain;
-  padding:28px var(--pad) 96px;
-}
+  const toStep3  = document.getElementById("coToStep3");
+  const back1    = document.getElementById("coBackTo1");
+  const back2    = document.getElementById("coBackTo2");
 
-/* ---------- Close Button ---------- */
-#checkoutClose{
-  position:fixed; top:14px; right:14px; z-index:1000000;
-  width:44px; height:44px; border-radius:999px; border:1px solid rgba(255,255,255,.14);
-  background:rgba(18,19,23,.92); color:#fff; display:flex; align-items:center; justify-content:center;
-  backdrop-filter:blur(6px) saturate(120%);
-  cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,.45);
-}
+  const qtyInput = document.getElementById("coQty");
+  const payWrap  = document.getElementById("coPayWrap");
+  const tos      = document.getElementById("coTos");
+  const submit   = document.getElementById("coSubmit");
+  const closeX   = document.getElementById("checkoutClose");
+  const success  = document.getElementById("checkoutSuccess");
 
-/* ---------- Generic Step Pane ---------- */
-.co-pane[hidden], .co-pane[aria-hidden="true"]{display:none!important;}
-.co-h3{font-size:var(--h1); font-weight:900; letter-spacing:.2px; text-align:center; margin:4px 0 18px;}
-p,li{font-size:var(--body);}
+  // Visual price row (Step 2) — keep the *display* $90 $45 while charging $90/bottle
+  const priceWas = step2.querySelector(".co-price .was");
+  const priceNow = step2.querySelector(".co-price .now");
 
-/* ---------- STEP 1 — Address Form ---------- */
-#coStep1 .co-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px 16px; margin-top:6px;}
-#coStep1 .co-row{display:grid; grid-template-columns:1fr 120px 1fr; gap:14px 16px;}
-@media (max-width:640px){
-  #coStep1 .co-grid{grid-template-columns:1fr;}
-  #coStep1 .co-row{grid-template-columns:1fr 1fr;}
-}
-#coStep1 label{font-size:var(--small); opacity:.85; display:flex; flex-direction:column; gap:6px;}
-#coStep1 input{
-  width:100%; padding:12px 14px; border-radius:14px; font-size:var(--body);
-  border:1px solid var(--border); background:var(--muted); color:var(--fg); outline:none;
-}
-#coStep1 input:focus{border-color:var(--accent); box-shadow:0 0 0 3px rgba(196,113,245,.2);}
+  /* ---------- Business logic ---------- */
+  const MSRP      = 90;  // compare-at (visual only)
+  const DISPLAY   = 45;  // visual "now"
+  const SALE      = 90;  // actual price per paid bottle
+  const TAX_RATE  = 0.0875;
+  const SHIPPING  = 0;
 
-/* STEP 1 Primary CTA */
-.co-next, .co-submit, .btn-main{
-  border:none; border-radius:14px; cursor:pointer; font-weight:800; color:#fff;
-  background:linear-gradient(90deg,var(--accent),var(--accent2));
-  box-shadow:0 10px 24px rgba(250,113,205,.25), 0 2px 0 rgba(0,0,0,.35) inset;
-}
-.btn-lg{padding:13px 22px; font-size:15px;}
-.btn-sm{padding:10px 16px; font-size:14px;}
-.btn-main:hover{filter:brightness(1.06);}
+  let qty = 1, method = null, discountPct = 0;
 
-/* ---------- STEP 2 — Qty + Methods + Totals ---------- */
-#coStep2{text-align:center;}
-.co-qty{display:flex; justify-content:center; align-items:center; gap:12px; margin:10px 0 8px;}
-.qty-btn{
-  width:44px; height:44px; border-radius:12px; font-size:18px; line-height:1;
-  border:1px solid var(--border); background:var(--muted); color:var(--fg);
-}
-#coQty{
-  width:82px; text-align:center; padding:12px; border-radius:12px; font-size:16px;
-  border:1px solid var(--border); background:var(--muted); color:var(--fg);
-}
-.co-free{margin:4px 0 12px; opacity:.95;}
+  /* ---------- Utils ---------- */
+  const $ = (id) => document.getElementById(id);
+  const fmt = (n) => `$${n.toFixed(2)}`;
+  const show = (el) => { if(el){ el.hidden = false; el.setAttribute("aria-hidden","false"); } };
+  const hide = (el) => { if(el){ el.hidden = true;  el.setAttribute("aria-hidden","true");  } };
 
-.co-price{margin:10px 0 16px; font-size:18px;}
-.co-price .was{margin-right:8px; text-decoration:line-through; opacity:.55;}
-.co-price .now{font-weight:800;}
+  function setStep(n){
+    if (n===1){ show(step1); hide(step2); hide(step3); focusFirst(step1); }
+    if (n===2){ hide(step1); show(step2); hide(step3); }
+    if (n===3){ hide(step1); hide(step2); show(step3); focusFirst(step3); }
+  }
+  function focusFirst(scope){
+    const el = scope?.querySelector("input,button,select,textarea");
+    el && el.focus({preventScroll:true});
+  }
 
-/* Methods */
-.co-methods{display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); margin:18px 0 10px;}
-.co-method{
-  border:1px solid var(--border);
-  background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0));
-  border-radius:14px; padding:16px 14px; text-align:left; color:var(--fg);
-  transition:border .15s ease, box-shadow .15s ease, transform .06s ease;
-}
-.co-method .co-title{font-weight:800;}
-.co-method .co-badge,.co-method .co-discount{opacity:.85; font-size:.92rem; margin-top:4px; display:block;}
-.co-method:hover{border-color:var(--border-strong);}
-.co-method:active{transform:translateY(1px);}
-.co-method[aria-selected="true"]{border-color:var(--accent); box-shadow:0 0 0 2px rgba(196,113,245,.35) inset;}
+  function computeTotals(){
+    const free     = qty;               // 1:1 free
+    const merch    = qty * SALE;        // charge real price
+    const disc     = merch * (discountPct/100);
+    const taxable  = Math.max(0, merch - disc);
+    const tax      = taxable * TAX_RATE;
+    const total    = taxable + tax + SHIPPING;
 
-/* Totals box */
-.co-sticky{position:relative; margin-top:8px;}
-.co-totals{
-  border:1px solid var(--border); border-radius:14px;
-  background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0));
-  padding:14px 16px; text-align:left;
-}
-.co-totals > div{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:6px 0;}
-.co-total-row{border-top:1px dashed var(--border); margin-top:8px; padding-top:10px; font-weight:800;}
+    const set = (id, val) => { const n = $(id); if (n) n.textContent = val; };
 
-.co-actions{
-  position:sticky; bottom:0; z-index:3;
-  display:flex; justify-content:flex-end; gap:10px;
-  padding:14px var(--pad);
-  background:linear-gradient(180deg,rgba(11,13,17,0),rgba(11,13,17,.88));
-  backdrop-filter:blur(8px);
-  box-shadow:0 -10px 28px rgba(0,0,0,.35);
-}
-.co-secure{margin:10px 0 0; text-align:center; opacity:.9; font-size:var(--small);}
+    set("coFreeQty", String(free));
+    set("coItemsLine", `${qty + free} bottles (${qty} paid + ${free} free)`);
+    set("coMerch", fmt(merch));
+    set("coDisc", disc>0 ? `-${fmt(disc)}` : "$0.00");
+    set("coTax",  fmt(tax));
+    set("coTotal",fmt(total));
+    const shipText = step2.querySelector(".co-free-ship"); if (shipText) shipText.textContent = SHIPPING===0 ? "FREE" : fmt(SHIPPING);
 
-/* ---------- STEP 3 ---------- */
-.cardset{margin:16px 0; padding:14px; border:1px solid var(--border); border-radius:14px;}
-.cardset legend{padding:0 6px; font-size:var(--small); opacity:.9;}
-.co-row{display:grid; grid-template-columns:repeat(3,1fr); gap:12px;}
-@media (max-width:640px){.co-row{grid-template-columns:1fr;}}
+    if (qtyInput) qtyInput.value = String(qty);
+  }
 
-/* Terms / trust */
-.co-terms{margin:12px 0; font-size:var(--small); opacity:.95;}
-.co-trust{margin-top:8px; text-align:center; opacity:.8; font-size:var(--small);}
+  /* ---------- Open / Close with bulletproof mobile binding ---------- */
+  const CTA_SEL = ".floating-cta,[data-cta],[data-open-checkout],.open-checkout,.cta,a[href='#offer'],a[href*='#offer'],a[href*='#checkout']";
+  let openGuard = 0;
 
-/* Success state */
-.co-success[hidden]{display:none!important;}
-.co-success h4{font-size:var(--h2); font-weight:900; margin:8px 0 6px;}
-.co-success p{opacity:.95;}
+  function openModal(ev){
+    const now = Date.now(); if (now - openGuard < 300) return; // de-bounce double fire
+    openGuard = now;
 
-/* Kill any theme sticky price bars inside modal */
-#checkoutModal [data-sticky="price"], #checkoutModal #coStickyPrice{display:none!important;}
+    ev?.preventDefault?.(); ev?.stopPropagation?.();
+    modal.classList.add("show","co-fullscreen");
+    document.documentElement.setAttribute("data-checkout-open","1");
+    document.body.style.overflow="hidden";
+
+    // paint visual price
+    if (priceWas) priceWas.textContent = fmt(MSRP);
+    if (priceNow) priceNow.textContent = fmt(DISPLAY);
+
+    qty = 1; discountPct = 0; method = null;
+    if (qtyInput) qtyInput.value = "1";
+    if (toStep3) toStep3.disabled = true;
+
+    setStep(1);
+    computeTotals();
+  }
+  function closeModal(ev){
+    ev?.preventDefault?.(); ev?.stopPropagation?.();
+    modal.classList.remove("show","co-fullscreen");
+    document.documentElement.removeAttribute("data-checkout-open");
+    document.body.style.overflow="";
+  }
+
+  // Expose for inline fallback
+  window.checkoutOpen = openModal;
+  window.checkoutClose = closeModal;
+
+  function bindCTAs(){
+    document.querySelectorAll(CTA_SEL).forEach(el=>{
+      if (el.__boundCheckout) return;
+      const h = (e)=>openModal(e);
+      // Capture & non-passive so nothing swallows it on mobile
+      el.addEventListener("click", h, {capture:true});
+      el.addEventListener("touchend", h, {capture:true, passive:false});
+      el.addEventListener("pointerup", h, {capture:true});
+      el.__boundCheckout = true;
+    });
+  }
+  bindCTAs();
+  new MutationObserver(bindCTAs).observe(document.documentElement,{subtree:true,childList:true,attributes:true});
+
+  // Document-level trap (last resort for aggressive frameworks)
+  function docTrap(e){
+    const t = e.target.closest?.(CTA_SEL);
+    if (t){ openModal(e); }
+  }
+  document.addEventListener("touchend", docTrap, {capture:true, passive:false});
+  document.addEventListener("pointerup", docTrap, {capture:true});
+  document.addEventListener("click", docTrap, {capture:true});
+
+  // Close controls
+  closeX && closeX.addEventListener("click", closeModal);
+  modal.addEventListener("click", (e)=>{ if (e.target === modal) closeModal(e); });
+  document.addEventListener("keydown", (e)=>{ if (e.key === "Escape" && modal.classList.contains("show")) closeModal(e); });
+
+  /* ---------- Step 1 ---------- */
+  step1 && step1.addEventListener("submit",(e)=>{
+    e.preventDefault();
+    const req = ["name","email","address"].map(n=>step1.querySelector(`[name='${n}']`));
+    const ok  = req.every(i=>i && i.value.trim());
+    req.forEach(i => i && (i.style.borderColor = i.value.trim() ? "" : "#ff5a6e"));
+    if (!ok) return;
+    setStep(2);
+    computeTotals();
+  });
+
+  /* ---------- Step 2 ---------- */
+  step2 && step2.addEventListener("click",(e)=>{
+    if (e.target.closest(".qty-inc")) { qty = Math.min(99, qty+1); computeTotals(); return; }
+    if (e.target.closest(".qty-dec")) { qty = Math.max(1,  qty-1); computeTotals(); return; }
+
+    const btn = e.target.closest(".co-method");
+    if (!btn) return;
+    step2.querySelectorAll(".co-method").forEach(b=>b.removeAttribute("aria-selected"));
+    btn.setAttribute("aria-selected","true");
+    method = btn.dataset.method || "card";
+    discountPct = parseFloat(btn.dataset.discount || "0") || 0;
+    if (toStep3) toStep3.disabled = false;
+    computeTotals();
+  });
+
+  step2 && step2.addEventListener("input",(e)=>{
+    if (e.target.id !== "coQty") return;
+    const v = e.target.value.replace(/[^0-9]/g,"");
+    qty = Math.max(1, Math.min(99, parseInt(v || "1", 10)));
+    e.target.value = String(qty);
+    computeTotals();
+  });
+
+  toStep3 && toStep3.addEventListener("click",(e)=>{
+    e.preventDefault();
+    if (!method) return;
+    renderPay(method);
+    setStep(3);
+  });
+
+  back1 && back1.addEventListener("click",()=>setStep(1));
+  back2 && back2.addEventListener("click",()=>setStep(2));
+
+  /* ---------- Step 3 renderer ---------- */
+  function renderPay(m){
+    const txt = (t)=>`<div class="altpay"><h4>${t[0]}</h4><p>${t[1]}</p></div>`;
+    const map = {
+      card:`<fieldset class="cardset"><legend>Card details</legend>
+              <label>Card number<input type="text" inputmode="numeric" placeholder="4242 4242 4242 4242"></label>
+              <div class="co-row">
+                <label>Expiry<input inputmode="numeric" placeholder="MM/YY"></label>
+                <label>CVC<input inputmode="numeric" maxlength="4"></label>
+                <label>ZIP<input inputmode="numeric" maxlength="5"></label>
+              </div>
+            </fieldset>`,
+      venmo:  txt(["Venmo","Send to @YourHandle — 10% off applied"]),
+      cashapp:txt(["Cash App","Send to $YourCashtag — 10% off applied"]),
+      paypal: txt(["PayPal","Redirect to PayPal — 10% off applied"]),
+      crypto: txt(["Crypto","BTC/ETH/USDC — 15% off applied; address next"])
+    };
+    payWrap.innerHTML = map[m] || map.card;
+  }
+
+  /* ---------- Step 3 submit (demo) ---------- */
+  submit && submit.addEventListener("click",(e)=>{
+    e.preventDefault();
+    if (!tos?.checked){ tos?.focus(); return; }
+    hide(step3);
+    show(success);
+  });
+
+  // initial paint
+  if (priceWas) priceWas.textContent = "$90";
+  if (priceNow) priceNow.textContent = "$45";
+  computeTotals();
+})();
