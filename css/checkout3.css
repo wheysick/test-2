@@ -1,4 +1,4 @@
-/* ===== checkout3.css v5.7 — Step 2 arrows + polish ===== */
+/* ===== checkout3.css v6.0 — Step 2 polish, stock meter ===== */
 :root{
   --panel:#0F1319; --fg:#E9ECF2; --muted:rgba(255,255,255,.06); --border:rgba(255,255,255,.12);
   --accent:#C471F5; --accent2:#FA71CD; --radius:16px; --pad:clamp(18px,3.2vw,28px);
@@ -17,7 +17,7 @@
 #checkoutClose{ position:fixed; top:14px; right:14px; z-index:1000000; width:44px; height:44px; border-radius:999px; border:1px solid rgba(255,255,255,.14); background:rgba(18,19,23,.92); color:#fff; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(6px) saturate(120%); cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,.45); }
 
 .co-pane[hidden], .co-pane[aria-hidden="true"]{display:none!important;}
-.co-h3{font-size:var(--title); font-weight:900; letter-spacing:.2px; text-align:center; margin:4px 0 18px;}
+.co-h3{font-size:var(--title); font-weight:900; letter-spacing:.2px; text-align:center; margin:4px 0 10px;}
 
 /* Step 1 */
 #coStep1 .co-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px 16px; margin-top:6px;}
@@ -37,24 +37,22 @@
 /* Step 2 */
 #coStep2{text-align:center;}
 #coStep2 .co-qty, #coStep2 .co-price, #coStep2 .co-totals { font-size: var(--body); }
-
 .co-qty{display:flex; justify-content:center; align-items:center; gap:12px; margin:10px 0 8px;}
-.qty-btn{width:44px; height:44px; border-radius:12px; font-size:18px; border:1px solid var(--border); background:var(--muted); color:var(--fg);}
-#coQty{width:86px; text-align:center; padding:12px; border-radius:12px; font-size:16px; border:1px solid var(--border); background:var(--muted); color:var(--fg);}
+.qty-btn{width:44px; height:44px; border-radius:12px; font-size:18px; border:1px solid var(--border); background:var(--muted); color:#fff;}
+#coQty{width:86px; text-align:center; padding:12px; border-radius:12px; font-size:16px; border:1px solid var(--border); background:var(--muted); color:#fff;}
 
-.co-free{margin:4px 0 12px; opacity:.95; font-size:var(--body);}
-.co-price{margin:10px 0 16px; font-size:18px;}
+.co-price{margin:12px 0 14px; font-size:18px;}
 .co-price .was{margin-right:8px; text-decoration:line-through; opacity:.55;}
 .co-price .now{font-weight:800;}
 
 /* Savings note */
-.co-savings-note{ margin:6px 0 10px; font-size:12px; opacity:.8; }
+.co-savings-note{ margin:4px 0 10px; font-size:12px; opacity:.85; }
 
-/* Sliding strip w/ arrows */
-.co-xpay-wrap{ position:relative; }
-.co-xpay-strip{ display:flex; gap:12px; overflow-x:auto; padding:2px 2px 6px; -webkit-overflow-scrolling:touch; scroll-snap-type:x mandatory; }
+/* Sliding strip w/ polished arrows + edges */
+.co-xpay-wrap{ position:relative; margin-top:6px; }
+.co-xpay-strip{ display:flex; gap:12px; overflow-x:auto; padding:2px 2px 6px; -webkit-overflow-scrolling:touch; scroll-snap-type:x mandatory; scrollbar-width:none; }
 .co-xpay-strip::-webkit-scrollbar{ height:0 }
-.co-xpay{ border:none; border-radius:14px; padding:10px 12px; min-width:180px; display:flex; align-items:center; justify-content:flex-start; gap:10px; cursor:pointer; color:#fff; font-weight:800; scroll-snap-align:center; }
+.co-xpay{ border:none; border-radius:14px; padding:10px 12px; min-width:184px; display:flex; align-items:center; justify-content:flex-start; gap:10px; cursor:pointer; color:#fff; font-weight:800; scroll-snap-align:center; }
 .co-xpay .pm-icon{ width:24px; height:24px; object-fit:contain; display:block; }
 .co-xpay .label{ font-weight:800; }
 .co-xpay.paypal{ background:var(--pp); color:#003087; }
@@ -62,21 +60,29 @@
 .co-xpay.cashapp{ background:var(--ca); color:#003b12; }
 .co-xpay.crypto{ background:var(--cp); color:#cbd5e1; }
 
-.xpay-nav{ display:none; position:absolute; top:50%; transform:translateY(-50%); width:36px; height:36px; border-radius:999px; border:1px solid rgba(255,255,255,.2); background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,0)); color:#fff; box-shadow:0 10px 24px rgba(0,0,0,.35); cursor:pointer; align-items:center; justify-content:center; }
+/* Gradient edge hints (no interaction) */
+.co-xpay-wrap::before, .co-xpay-wrap::after{
+  content:""; position:absolute; top:0; bottom:0; width:32px; pointer-events:none; z-index:1;
+}
+.co-xpay-wrap::before{ left:0; background:linear-gradient(90deg, rgba(15,19,25,1), rgba(15,19,25,0)); }
+.co-xpay-wrap::after { right:0; background:linear-gradient(270deg, rgba(15,19,25,1), rgba(15,19,25,0)); }
+
+/* Arrow controls */
+.xpay-nav{ position:absolute; top:50%; transform:translateY(-50%); width:36px; height:36px; border-radius:999px; border:1px solid rgba(255,255,255,.24); background:rgba(26,30,38,.96); color:#fff; box-shadow:0 10px 24px rgba(0,0,0,.45); cursor:pointer; display:none; z-index:2; align-items:center; justify-content:center; }
 .xpay-nav svg{ width:18px; height:18px; }
-.xpay-nav.prev{ left:-6px; }
-.xpay-nav.next{ right:-6px; }
-@media (min-width:800px){ .xpay-nav{ display:flex; } }
+.xpay-nav.prev{ left:-14px; }
+.xpay-nav.next{ right:-14px; }
+@media (min-width:880px){ .xpay-nav{ display:flex; } }
 
 /* Selected halo */
-.co-xpay[aria-selected="true"]{ outline:3px solid rgba(196,113,245,.35); outline-offset:2px; }
+.co-xpay[aria-selected="true"], .co-xpay-primary[aria-selected="true"]{ outline:3px solid rgba(196,113,245,.35); outline-offset:2px; }
 
 /* Totals */
 .co-totals{border:1px solid var(--border); border-radius:14px; background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0)); padding:14px 16px; text-align:left; margin-top:12px;}
 .co-totals > div{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:6px 0; font-size:var(--body); font-variant-numeric:tabular-nums;}
 .co-total-row{border-top:1px dashed var(--border); margin-top:8px; padding-top:10px; font-weight:800;}
 
-/* Actions: centered; Step 2 non-sticky */
+/* Actions */
 .co-actions{ position:sticky; bottom:0; z-index:3; display:flex; justify-content:center; gap:10px; padding:14px var(--pad); background:linear-gradient(180deg,rgba(11,13,17,0),rgba(11,13,17,.88)); backdrop-filter:blur(8px); box-shadow:0 -10px 28px rgba(0,0,0,.35); }
 #coStep2 .co-actions{ position:static; background:none; box-shadow:none; padding:12px 0; }
 
@@ -89,7 +95,7 @@
 .cardset{margin:16px 0; padding:14px; border:1px solid var(--border); border-radius:14px; max-width:100%;}
 .cardset legend{padding:0 6px; font-size:var(--small); opacity:.9;}
 .cardset label{ font-size: var(--small); opacity: .9; display:flex; flex-direction:column; gap:6px; }
-.cardset input{ font-size:16px; padding:12px 14px; border-radius:12px; width:100%; border:1px solid var(--border); background:var(--muted); color:var(--fg); }
+.cardset input{ font-size:16px; padding:12px 14px; border-radius:12px; width:100%; border:1px solid var(--border); background:var(--muted); color:#fff; }
 .cardset input:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(196,113,245,.2); }
 .co-row{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; max-width:100%;}
 @media (max-width:640px){.co-row{grid-template-columns:1fr;}}
@@ -99,7 +105,15 @@
 .co-wallet.apple{ background:#000; color:#fff; }
 .co-wallet.gpay{ background:#000; color:#fff; }
 
-.co-trust{margin-top:8px; text-align:center; opacity:.8; font-size:var(--small);}
+/* Stock meter */
+.co-stock{ margin:8px 0 10px; }
+.co-stock-bar{ position:relative; height:10px; border-radius:999px; background:rgba(255,255,255,.07); overflow:hidden; border:1px solid var(--border); }
+.co-stock-fill{ position:absolute; left:0; top:0; bottom:0; width:100%; background:linear-gradient(90deg,#ffb877,#ff6aa6); }
+.co-stock-label{ margin-top:6px; font-size:13px; opacity:.9; text-align:center; }
+.co-stock .qty{ font-weight:900; animation:pulse 1.5s ease-in-out infinite; }
+@keyframes pulse{ 0%,100%{text-shadow:0 0 0 rgba(255,255,255,0)} 50%{ text-shadow:0 0 12px rgba(255,255,255,.6)} }
+.co-stock.soldout .co-stock-fill{ width:0!important; }
+.co-stock.soldout .co-stock-label{ color:#ff9ab3; animation:pulse 1.6s ease-in-out infinite; }
 
 /* Success */
 .co-success[hidden]{display:none!important;}
