@@ -1,4 +1,4 @@
-/* ===== checkout3.js v5.3 — Apply user's patch list ===== */
+/* ===== checkout3.js v5.4 — Express checkout icons + stable open ===== */
 (function(){
   "use strict";
 
@@ -111,24 +111,31 @@
     if(!ok) return; setStep(2); totals();
   });
 
-  // Step 2
+  // Step 2 — qty + express methods
   step2 && step2.addEventListener("click",(e)=>{
     if(e.target.closest(".qty-inc")){ qty=Math.min(99,qty+1); totals(); return; }
     if(e.target.closest(".qty-dec")){ qty=Math.max(1, qty-1); totals(); return; }
-    const btn=e.target.closest(".co-method"); if(!btn) return;
-    step2.querySelectorAll(".co-method").forEach(b=>b.removeAttribute("aria-selected"));
+
+    const btn = e.target.closest(".co-xpay, .co-xpay-primary, .co-method");
+    if(!btn) return;
+
+    // clear previous selection
+    step2.querySelectorAll(".co-xpay, .co-xpay-primary, .co-method").forEach(b=>b.removeAttribute("aria-selected"));
     btn.setAttribute("aria-selected","true");
+
     method = btn.dataset.method || "card";
     discount = parseFloat(btn.dataset.discount || "0") || 0;
     toStep3 && (toStep3.disabled=false);
     totals();
   });
+
   step2 && step2.addEventListener("input",(e)=>{
     if (e.target.id!=="coQty") return;
     const v=e.target.value.replace(/[^0-9]/g,"");
     qty = Math.max(1, Math.min(99, parseInt(v||"1",10)));
     e.target.value = String(qty); totals();
   });
+
   toStep3 && toStep3.addEventListener("click",(e)=>{
     e.preventDefault(); if(!method) return; renderPay(method); setStep(3);
   });
@@ -147,9 +154,11 @@
                 <label>ZIP<input inputmode="numeric" maxlength="5"></label>
               </div>
             </fieldset>`,
-      venmo:txt(["Venmo","Send to @YourHandle — 10% off applied"]),
-      cashapp:txt(["Cash App","Send to $YourCashtag — 10% off applied"]),
-      paypal:txt(["PayPal","Redirect to PayPal — 10% off applied"]),
+      venmo:txt(["Venmo","Send to @YourHandle — 15% off applied"]),
+      cashapp:txt(["Cash App","Send to $YourCashtag — 15% off applied"]),
+      paypal:txt(["PayPal","Redirect to PayPal — 15% off applied"]),
+      gpay:txt(["Google Pay","Redirect to GPay — 15% off applied"]),
+      applepay:txt(["Apple Pay","Complete with Apple Pay — 15% off applied"]),
       crypto:txt(["Crypto","BTC/ETH/USDC — 15% off applied; address next"])
     };
     payWrap.innerHTML = map[m] || map.card;
@@ -157,7 +166,7 @@
 
   submit && submit.addEventListener("click",(e)=>{
     e.preventDefault();
-    hide(step3); show(success); // Terms checkbox removed per request
+    hide(step3); show(success);
   });
 
   // initial
