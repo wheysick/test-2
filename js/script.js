@@ -1,4 +1,4 @@
-/* ===== script.js v5.1 — date, countdown, scroll progress ===== */
+/* ===== script.js v5.2 — date, countdown, scroll progress ===== */
 (function(){
   const today = new Date();
   const opts = {year:'numeric', month:'long', day:'numeric'};
