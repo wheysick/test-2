@@ -1,68 +1,63 @@
+/* ===== 3-Step Checkout — v1.5 ===== */
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,.55); display:grid; place-items:center; }
+.modal-checkout { z-index:100500; opacity:0; display:none; transition:opacity .18s ease; }
+.modal-checkout.show { display:grid; opacity:1; }
 
-/* v1.2 tweak: ensure floating CTA can be tapped */
-.floating-cta { pointer-events: auto; }
-
-/* v1.3: ensure view popup doesn't block taps behind it on mobile */
-.view-popup { pointer-events: none; }
-.view-popup button { pointer-events: auto; }
-
-/* ===== checkout3.css v1.4 — Layout fix for Step 1 form ===== */
-
-/* Force single-column grid on Step 1 */
-#coStep1 .co-grid {
-  display: grid !important;
-  grid-template-columns: 1fr !important;
-  gap: .85rem !important;
+.checkout-card {
+  width:min(720px,92vw); max-height:92vh; overflow:auto;
+  -webkit-overflow-scrolling:touch;
+  background:#17181f; border:1px solid #22232a; border-radius:16px;
+  color:#fff; padding:1rem 1.1rem 1.2rem;
 }
 
-/* Make labels stack text above input, never inline */
-.modal-checkout .checkout-card label {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: stretch !important;
-  gap: .35rem !important;
-  font-weight: 800;
-  color: #e9e9ee;
-}
+/* --- Stepper --- */
+.co-steps { display:grid; grid-template-columns:repeat(3,1fr); gap:.5rem; margin-bottom:.6rem; text-align:center; }
+.co-step { display:flex; align-items:center; justify-content:center; gap:.4rem; padding:.55rem .6rem; font-size:.95rem; background:#1b1c22; border:1px solid #2a2b31; border-radius:10px; color:#a7a7ad; font-weight:800; }
+.co-step span { display:grid; place-items:center; width:26px; height:26px; border-radius:50%; background:#2a2b31; color:#fff; font-weight:900; }
+.co-step.is-active { color:#fff; border-color:#ff2a6d; box-shadow:0 0 0 3px rgba(255,42,109,.22); }
+.co-step.is-active span { background:linear-gradient(90deg,#ff2a6d,#ff7a59); }
 
-/* Inputs always full width */
-.modal-checkout .checkout-card input,
-.modal-checkout .checkout-card select {
-  width: 100% !important;
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-  background:#111218;
-  color:#e8e8ea;
-  border:1px solid #2a2b31;
-  border-radius: 10px;
-  padding: .78rem .9rem;
-  font-size: 16px; /* avoid iOS zoom */
+/* --- Step panes --- */
+.co-pane { animation: fadeIn .18s ease; }
+@keyframes fadeIn { from{opacity:.9; transform:translateY(4px);} to{opacity:1; transform:none;} }
+.co-grid { display:grid; gap:.8rem; grid-template-columns:1fr; }
+label { display:flex; flex-direction:column; gap:.35rem; font-weight:800; color:#e9e9ee; }
+input, select {
+  width:100%; background:#111218; color:#e8e8ea; border:1px solid #2a2b31;
+  border-radius:10px; padding:.78rem .9rem; font-size:16px; outline:none;
+  transition:border-color .2s ease, box-shadow .2s ease;
 }
+input:focus, select:focus { border-color:#ff2a6d; box-shadow:0 0 0 3px rgba(255,42,109,.25); }
 
-/* Primary button full-width and centered */
-.modal-checkout .co-next.btn-main,
-.modal-checkout .co-submit.btn-main {
-  width: 100% !important;
-  justify-content: center;
+/* --- Methods grid --- */
+.co-methods { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:.6rem; margin:.2rem 0 .4rem; }
+.co-method {
+  display:flex; justify-content:space-between; align-items:center; background:#1b1c22;
+  border:1px solid #2a2b31; border-radius:12px; padding:.8rem .9rem;
+  color:#e8e8ea; font-weight:800; cursor:pointer;
+  transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
 }
+.co-method:hover { transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.25); }
+.co-method[aria-selected="true"] { border-color:#ff2a6d; box-shadow:0 0 0 3px rgba(255,42,109,.22); }
+.co-title { font-weight:900; }
+.co-discount { font-weight:900; color:#34d399; }
+.co-badge { font-size:.85rem; font-weight:900; color:#ffd1e0; }
 
-/* Stepper align + spacing */
-.modal-checkout .co-steps {
-  grid-template-columns: repeat(3, 1fr);
-  text-align: center;
-}
-.modal-checkout .co-step {
-  padding: .55rem .6rem;
-  font-size: .95rem;
-}
-.modal-checkout .co-step span {
-  margin-right: .2rem;
-}
+/* --- Terms + actions --- */
+.co-terms { display:grid; grid-template-columns:auto 1fr; gap:.6rem; align-items:start; margin-top:.6rem; color:#cfcfd3; }
+.co-actions { display:flex; flex-wrap:wrap; justify-content:center; gap:.6rem; margin-top:.8rem; }
+.co-submit,.co-next { min-width:220px; width:100%; justify-content:center; }
 
-/* Card max width and inner padding for small screens */
-@media (max-width: 560px) {
-  .modal-checkout .modal-content.checkout-card {
-    width: 92vw;
-    padding: .9rem 1rem 1.1rem;
-  }
+/* --- Success --- */
+.co-success { text-align:center; padding:.6rem 0 .2rem; }
+.co-success h4 { font-size:1.28rem; margin:.2rem 0 .5rem; }
+
+/* --- Misc --- */
+.floating-cta { pointer-events:auto; z-index:100; }
+.modal-checkout.show ~ .floating-cta { display:none!important; }
+.view-popup { pointer-events:none; }
+.view-popup button { pointer-events:auto; }
+
+@media (max-width:560px){
+  .checkout-card{width:92vw;padding:.9rem 1rem 1.1rem;}
 }
