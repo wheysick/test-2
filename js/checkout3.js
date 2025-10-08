@@ -1,4 +1,4 @@
-/* ===== checkout3.js v5.4 — Express checkout icons + stable open ===== */
+/* ===== checkout3.js v5.5 — method error + double-tap to step 3 + wallets on Step 3 for card ===== */
 (function(){
   "use strict";
 
@@ -18,6 +18,7 @@
   const submit  = document.getElementById("coSubmit");
   const closeX  = document.getElementById("checkoutClose");
   const success = document.getElementById("checkoutSuccess");
+  const methodErr = document.getElementById("coMethodError");
 
   const priceWas = step2.querySelector(".co-price .was");
   const priceNow = step2.querySelector(".co-price .now");
@@ -51,7 +52,7 @@
     if (qtyInput) qtyInput.value = String(qty);
   }
 
-  /* ---------- Open / close (mobile solid) ---------- */
+  /* ---------- Open / close ---------- */
   const CTA_SEL = ".floating-cta,[data-cta],[data-open-checkout],.open-checkout,.cta,a[href='#offer'],a[href*='#offer'],a[href*='#checkout'],.masthead-cta";
   let openGuard=0;
 
@@ -63,7 +64,8 @@
     document.body.style.overflow="hidden";
     priceWas && (priceWas.textContent=fmt(MSRP));
     priceNow && (priceNow.textContent=fmt(DISPLAY));
-    qty=1; method=null; discount=0; if(toStep3) toStep3.disabled=true; totals(); setStep(1);
+    qty=1; method=null; discount=0; totals(); setStep(1);
+    if (methodErr) hide(methodErr);
   }
   function closeModal(e){
     e?.preventDefault?.(); e?.stopPropagation?.();
@@ -111,22 +113,29 @@
     if(!ok) return; setStep(2); totals();
   });
 
-  // Step 2 — qty + express methods
+  // Step 2 — qty + methods (with double tap to continue)
+  let lastTapTime=0, lastMethod=null;
   step2 && step2.addEventListener("click",(e)=>{
     if(e.target.closest(".qty-inc")){ qty=Math.min(99,qty+1); totals(); return; }
     if(e.target.closest(".qty-dec")){ qty=Math.max(1, qty-1); totals(); return; }
 
-    const btn = e.target.closest(".co-xpay, .co-xpay-primary, .co-method");
+    const btn = e.target.closest(".co-xpay, .co-xpay-primary");
     if(!btn) return;
 
-    // clear previous selection
-    step2.querySelectorAll(".co-xpay, .co-xpay-primary, .co-method").forEach(b=>b.removeAttribute("aria-selected"));
+    // select
+    step2.querySelectorAll(".co-xpay, .co-xpay-primary").forEach(b=>b.removeAttribute("aria-selected"));
     btn.setAttribute("aria-selected","true");
-
     method = btn.dataset.method || "card";
     discount = parseFloat(btn.dataset.discount || "0") || 0;
-    toStep3 && (toStep3.disabled=false);
     totals();
+    if (methodErr) hide(methodErr);
+
+    // double-tap detection
+    const now = Date.now();
+    if (lastMethod===method && (now - lastTapTime) < 350){
+      renderPay(method); setStep(3); return;
+    }
+    lastMethod = method; lastTapTime = now;
   });
 
   step2 && step2.addEventListener("input",(e)=>{
@@ -137,7 +146,12 @@
   });
 
   toStep3 && toStep3.addEventListener("click",(e)=>{
-    e.preventDefault(); if(!method) return; renderPay(method); setStep(3);
+    e.preventDefault();
+    if(!method){
+      if (methodErr){ methodErr.textContent = "Must select payment method"; show(methodErr); }
+      return;
+    }
+    renderPay(method); setStep(3);
   });
   back1 && back1.addEventListener("click",()=>setStep(1));
   back2 && back2.addEventListener("click",()=>setStep(2));
@@ -145,20 +159,30 @@
   // Step 3
   function renderPay(m){
     const txt=(t)=>`<div class="altpay"><h4>${t[0]}</h4><p>${t[1]}</p></div>`;
-    const map={
-      card:`<fieldset class="cardset"><legend>Card details</legend>
+    const wallets = `
+      <div class="co-alt-wallets">
+        <button class="co-wallet apple" type="button" aria-label="Apple Pay">
+          <img src="assets/applepay.svg" alt="" width="24" height="24"/><span>Apple&nbsp;Pay</span>
+        </button>
+        <button class="co-wallet gpay" type="button" aria-label="Google Pay">
+          <img src="assets/gpay.svg" alt="" width="24" height="24"/><span>Google&nbsp;Pay</span>
+        </button>
+      </div>`;
+
+    const cardHTML = `<fieldset class="cardset"><legend>Card details</legend>
               <label>Card number<input type="text" inputmode="numeric" placeholder="4242 4242 4242 4242"></label>
               <div class="co-row">
                 <label>Expiry<input inputmode="numeric" placeholder="MM/YY"></label>
                 <label>CVC<input inputmode="numeric" maxlength="4"></label>
                 <label>ZIP<input inputmode="numeric" maxlength="5"></label>
               </div>
-            </fieldset>`,
+            </fieldset>${wallets}`;
+
+    const map={
+      card: cardHTML,
       venmo:txt(["Venmo","Send to @YourHandle — 15% off applied"]),
       cashapp:txt(["Cash App","Send to $YourCashtag — 15% off applied"]),
       paypal:txt(["PayPal","Redirect to PayPal — 15% off applied"]),
-      gpay:txt(["Google Pay","Redirect to GPay — 15% off applied"]),
-      applepay:txt(["Apple Pay","Complete with Apple Pay — 15% off applied"]),
       crypto:txt(["Crypto","BTC/ETH/USDC — 15% off applied; address next"])
     };
     payWrap.innerHTML = map[m] || map.card;
