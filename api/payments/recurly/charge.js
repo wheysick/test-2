@@ -1,11 +1,11 @@
-// /api/payments/recurly/charge.js  (CommonJS, one-time purchase, preview + clear errors)
+// /api/payments/recurly/charge.js  — CommonJS — one‑time purchase with preview + purchase
 const { Client } = require('recurly');
 
 function parseRecurlyError(e){
   let payload = null;
   try {
     payload = e && e.body && typeof e.body === 'string' ? JSON.parse(e.body) : e && e.body;
-  } catch {_=>{}} // ignore parse errors
+  } catch {}
   const message = (payload && payload.error && payload.error.message) || (e && e.message) || 'Validation error';
   const params  = (payload && payload.error && payload.error.params) || [];
   const errors  = params.map(p => (p && (p.param ? `${p.param}: ${p.message}` : p.message))).filter(Boolean);
