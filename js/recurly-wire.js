@@ -1,108 +1,70 @@
-
-/* ===== recurly-wire.js v23 — non-invasive bridge
-   - Replaces Step 3 legacy inputs with Recurly Elements markup
-   - Mounts/unmounts Elements on step enter/leave
-   - Handles submit: tokenizes and posts to /api/payments/recurly/charge
-*/
+/* ===== recurly-wire.js — dedupe legacy form, mount Elements on #recurly-* ===== */
 (function(){
   const $ = (s, ctx=document) => ctx.querySelector(s);
-  const on = (el, ev, fn, opts) => el && el.addEventListener(ev, fn, opts || {});
+  const on = (el, ev, fn, opts) => el && el.addEventListener(ev, fn, opts||{});
 
-  const step3   = $('#coStep3');
   const payWrap = $('#coPayWrap');
   const submit  = $('#coSubmit');
-  const back2   = $('#coBackTo2');
-  const close   = $('#checkoutClose');
+  const step1   = $('#coStep1');
 
-  if (!step3) return;
-
-  const recurlyMarkup = `
-    <fieldset class="cardset">
-      <legend>Card details</legend>
-      <label>Card number <div id="re-number"></div></label>
-      <div class="co-row">
-        <label>Expiry <div id="re-month"></div></label>
-        <label>Year   <div id="re-year"></div></label>
-        <label>CVC    <div id="re-cvv"></div></label>
-      </div>
-      <label>ZIP <div id="re-postal"></div></label>
-    </fieldset>`;
-
-  function ensureRecurlyMarkup(){
+  function killLegacy(){
     if (!payWrap) return;
-    // Remove any legacy input-based card fieldset
-    const legacy = payWrap.querySelector('input[name="card"], input[name="exp"], input[name="cvc"], input[name="cczip"]');
-    if (legacy) {
-      const fs = legacy.closest('fieldset');
+    // Remove obvious legacy inputs (plain HTML fields) if present
+    const legacyInputs = payWrap.querySelectorAll('input[name="card"], input[name="cardnumber"], input[name="exp"], input[name="month"], input[name="year"], input[name="cvc"], input[name="cczip"]');
+    legacyInputs.forEach(inp => {
+      const blk = inp.closest('fieldset,.co-field,.form-group,.row') || inp;
+      blk.remove();
+    });
+
+    // If both #recurly- and #re- containers exist, remove the #re-* to avoid duplicates
+    const reStyle = payWrap.querySelector('#re-number, #re-month, #re-year, #re-cvv, #re-postal');
+    if (reStyle) {
+      const fs = reStyle.closest('fieldset') || reStyle.parentElement;
       if (fs) fs.remove();
     }
-    // Inject our markup once
-    if (!payWrap.querySelector('#re-number')) {
-      payWrap.insertAdjacentHTML('afterbegin', recurlyMarkup);
-    }
   }
 
-  function mountIfNeeded(){
-    if (!step3 || step3.hidden) return;
-    ensureRecurlyMarkup();
-    if (window.__recurlyMount) window.__recurlyMount();
+  function customerMeta(){
+    const get = n => step1 ? (step1.querySelector(`[name='${n}']`)?.value || '').trim() : '';
+    const full = get('name');
+    let first = full, last = '';
+    if (full.includes(' ')){ const ix = full.lastIndexOf(' '); first = full.slice(0,ix); last = full.slice(ix+1); }
+    return { first_name: first || '', last_name: last || '', email: get('email'), phone: get('phone') };
   }
-  function unmountIfNeeded(){
-    if (window.__recurlyUnmount) window.__recurlyUnmount();
-  }
 
-  // Observe visibility changes of Step 3
-  const obs = new MutationObserver(() => {
-    if (!step3.hidden) mountIfNeeded();
-  });
-  obs.observe(step3, { attributes:true, attributeFilter:['hidden', 'aria-hidden', 'class'] });
-
-  // Initial check in case we're already on Step 3
-  if (!step3.hidden) mountIfNeeded();
-
-  on(back2, 'click', unmountIfNeeded);
-  on(close, 'click', unmountIfNeeded);
-
-  on(submit, 'click', async (e) => {
-    if (!window.__recurlyTokenize) return; // not our flow
-    e.preventDefault();
+  async function onSubmit(ev){
+    ev?.preventDefault?.();
+    if (!submit) return;
     submit.disabled = true;
     try {
-      const token = await window.__recurlyTokenize({});
-      const email = $('#coStep1 [name="email"]')?.value || '';
-      const totalNode = $('#coTotal');
-      const total = totalNode ? Number(String(totalNode.textContent || '0').replace(/[^0-9.]/g,'')) : 90;
-      const qtyNode = $('#coQty');
-      const qty = qtyNode ? Number(qtyNode.value || '1') : 1;
+      if (window.RecurlyUI) window.RecurlyUI.mount();
+      const token = await window.RecurlyUI.tokenize(customerMeta());
 
+      // Basic purchase payload (server endpoint already expects this)
+      const qty  = Number(document.querySelector('#coQty')?.value || 1) || 1;
+      const unit = Number(document.body.dataset.price || 90) || 90;
       const res = await fetch('/api/payments/recurly/charge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, order: { total, qty, customer: { email } } })
+        body: JSON.stringify({ token: token?.id, qty, unit_amount: unit })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'Charge failed');
-
-      // Success: trigger your success UI
-      const success = $('#checkoutSuccess');
-      if (success) {
-        step3.hidden = true;
-        success.hidden = false;
-      } else {
-        alert('Payment captured: ' + (data.id || 'OK'));
-      }
-      unmountIfNeeded();
-    } catch (err) {
-      alert(err.message || 'Payment failed');
+      const out = await res.json();
+      if (!res.ok) throw new Error(out?.error || out?.message || 'Charge failed');
+      document.getElementById('checkoutSuccess')?.removeAttribute('hidden');
+      document.getElementById('coStep3')?.setAttribute('hidden','hidden');
+    } catch (e) {
+      alert(e.message || 'Payment failed');
     } finally {
       submit.disabled = false;
     }
-  });
-})();
+  }
 
-// Before injecting any card markup:
-const legacy = document.querySelector('#coPayWrap input[name="card"], #coPayWrap input[name="exp"], #coPayWrap input[name="cvc"], #coPayWrap input[name="cczip"]');
-if (legacy) {
-  const fs = legacy.closest('fieldset');
-  if (fs) fs.remove();
-}
+  function boot(){
+    killLegacy();
+    if (window.RecurlyUI) window.RecurlyUI.mount();
+    on(submit, 'click', onSubmit);
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
