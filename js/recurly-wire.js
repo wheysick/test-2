@@ -11,20 +11,14 @@
   }
   function dedupe(){
     const wrap = $('#coPayWrap'); if (!wrap) return;
-    // Remove plain inputs (legacy)
-    wrap.querySelectorAll('input[name="card"], input[name="cardnumber"], input[name="exp"], input[name="month"], input[name="year"], input[name="exp-month"], input[name="exp-year"], input[name="cvc"], input[name="cczip"]').forEach(i=>{
-      (i.closest('fieldset,.co-field,.form-group,.row')||i).remove();
-    });
-    // Remove any #re-* block
-    wrap.querySelectorAll('#re-number, #re-month, #re-year, #re-cvv, #re-postal').forEach(el=>{
-      const blk = el.closest('fieldset')||el.parentElement; (blk||el).remove();
-    });
-    // If there are multiple .cardset fieldsets, keep the one containing .recurly-hosted-field containers
-    const sets = $$('#coPayWrap fieldset'); 
-    if (sets.length > 1){
-      sets.forEach(fs => { if (!fs.querySelector('.recurly-hosted-field')) fs.remove(); });
-    }
-    // If multiple #recurly-number exist, keep the last
+    // Remove legacy/plain inputs
+    wrap.querySelectorAll(
+      'input[name="card"], input[name="cardnumber"], input[name="exp"], input[name="month"], input[name="year"], input[name="exp-month"], input[name="exp-year"], input[name="cvc"], input[name="cczip"]'
+    ).forEach(inp => (inp.closest('fieldset,.co-field,.form-group,.row') || inp).remove());
+    // Remove any old #re-* containers
+    wrap.querySelectorAll('#re-number, #re-month, #re-year, #re-cvv, #re-postal')
+      .forEach(el => { const blk = el.closest('fieldset') || el.parentElement; (blk || el).remove(); });
+    // If multiple #recurly-number exist, keep the newest (last) and remove earlier
     const nums = $$('#coPayWrap #recurly-number');
     if (nums.length > 1){
       for (let i=0; i<nums.length-1; i++){ const fs = nums[i].closest('fieldset'); if (fs) fs.remove(); else nums[i].remove(); }
@@ -68,31 +62,31 @@
     })();
   }
 
-  // Mount loop: try until iframes show or we time out
+  // Mount loop: wait for step 3 + recurly.js + actual iframes
   let tries = 0, timer = null;
   function mountLoop(){
-    clearTimeout(timer);
-    tries++;
+    clearTimeout(timer); tries++;
     if (!hasContainers()){ timer = setTimeout(mountLoop, 150); return; }
     dedupe();
     if (!window.recurly){ timer = setTimeout(mountLoop, 150); return; }
     window.RecurlyUI.mount();
     if (!isMounted()){
-      if (tries < 40) { timer = setTimeout(mountLoop, 150); return; }
+      if (tries < 40) { timer = setTimeout(mountLoop, 150); return; } // ~6s max
       console.warn('[Recurly] mount timeout');
     }
   }
-
-  function startWhenVisible(){
+  function step3Visible(){
     const s3 = $('#coStep3');
-    if (s3 && (s3.hidden === false || getComputedStyle(s3).display !== 'none')){
-      tries = 0; mountLoop();
-    }
+    return s3 && (s3.hidden === false || getComputedStyle(s3).display !== 'none');
+  }
+  function startWhenVisible(){
+    if (step3Visible()){ tries = 0; mountLoop(); }
   }
 
   document.addEventListener('DOMContentLoaded', startWhenVisible);
   window.addEventListener('load', startWhenVisible);
-  new MutationObserver(startWhenVisible).observe(document.getElementById('checkoutModal') || document.documentElement, { subtree:true, childList:true });
+  new MutationObserver(startWhenVisible)
+    .observe(document.getElementById('checkoutModal') || document.documentElement, { subtree:true, childList:true });
 
   // Submit handler
   document.addEventListener('click', async (ev)=>{
@@ -102,14 +96,17 @@
     const step1 = document.getElementById('coStep1');
     const get = n => step1 ? (step1.querySelector(`[name='${n}']`)?.value || '').trim() : '';
     const full = get('name'); const ix = full.lastIndexOf(' ');
-    const meta = { first_name: ix>0? full.slice(0,ix) : full, last_name: ix>0? full.slice(ix+1):'', email:get('email'), phone:get('phone') };
+    const meta = { first_name: ix>0? full.slice(0,ix):full, last_name: ix>0? full.slice(ix+1):'', email:get('email'), phone:get('phone') };
     try{
       btn.disabled = true;
       if (!isMounted()){ tries = 0; mountLoop(); throw new Error('Payment form not ready'); }
       const token = await window.RecurlyUI.tokenize(meta);
       const qty  = Number(document.querySelector('#coQty')?.value || 1) || 1;
       const unit = Number(document.body.dataset.price || 90) || 90;
-      const res = await fetch('/api/payments/recurly/charge', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token: token?.id, qty, unit_amount: unit }) });
+      const res = await fetch('/api/payments/recurly/charge', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ token: token?.id, qty, unit_amount: unit })
+      });
       const out = await res.json();
       if (!res.ok) throw new Error(out?.error || out?.message || 'Charge failed');
       document.getElementById('checkoutSuccess')?.removeAttribute('hidden');
