@@ -5,24 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Free Sample — Weekly Wellness Formula</title>
 
-  <!-- Your public key (safe to be public) -->
+  <!-- Recurly public key (safe to be public) -->
   <meta name="recurly-public-key" content="ewr1-AxqCz2aZ9UMj5oOBsENPG2">
 
   <!-- Recurly core -->
   <script src="https://js.recurly.com/v4/recurly.js"></script>
 
-  <!-- Single‑instance Recurly Elements helpers (exports window.RecurlyUI) -->
-  <script src="js/recurly-elements.js?v=22"></script>
+  <!-- Single‑instance Recurly Elements helper -->
+  <script src="js/recurly-elements.js?v=23" defer></script>
 
-  <!-- Styles -->
+  <!-- Site styles (keep yours), then checkout overrides -->
   <link rel="stylesheet" href="css/style.css?v=640">
-  <!-- Use checkout.css (NOT checkout3.css) -->
-  <link rel="stylesheet" href="css/checkout.css?v=641">
+  <link rel="stylesheet" href="css/checkout.css?v=9001">
 
-  <!-- Fixes: CTA overlay + modal z-index + hosted-field clickability -->
+  <!-- Safety: modal on top + hosted-field clickability + hide CTA while open -->
   <style>
     html[data-checkout-open="1"] .floating-cta { display: none !important; }
-    #checkoutModal.modal-checkout { z-index: 2147483646; }
+    #checkoutModal.modal-checkout { z-index: 2147483646; } /* above everything */
     #checkoutModal.show { display: grid !important; }
     /* Hosted fields must receive clicks */
     #coStep3 label, #coStep3 .co-row, #coStep3 .co-field { pointer-events: none; }
@@ -34,8 +33,8 @@
 </head>
 
 <body>
-  <!-- ===== Masthead / content (kept intact) ===== -->
-  <header class="masthead" role="banner">
+  <!-- ======== Masthead ======== -->
+  <header class="masthead">
     <div class="masthead-inner">
       <div class="brand">SELFHACKING</div>
       <div class="masthead-meta">
@@ -45,8 +44,6 @@
       </div>
       <a href="#offer" class="masthead-cta open-checkout" data-cta onclick="checkoutOpen();return false;">Claim Free Sample</a>
     </div>
-
-    <!-- Mobile brand line + announcement rotator (arrows only) -->
     <div class="masthead-mobile-brand">SELFHACKING</div>
     <div class="announcer" aria-live="polite">
       <button class="ann-prev" aria-label="Previous">‹</button>
@@ -57,17 +54,11 @@
   </header>
 
   <!-- Floating CTA -->
-  <a href="#offer" class="floating-cta open-checkout" id="floatingCta" data-cta="floating" onclick="checkoutOpen();return false;"><strong>Claim Free Sample</strong></a>
+  <a href="#offer" class="floating-cta open-checkout" id="floatingCta" onclick="checkoutOpen();return false;"><strong>Claim Free Sample</strong></a>
 
-  <!-- Share rail -->
-  <nav class="share-rail" aria-label="Share this">
-    <a href="#offer" class="share-icon open-checkout" title="Get offer" data-cta onclick="checkoutOpen();return false;">🔥</a>
-    <a href="#offer" class="share-icon open-checkout" title="Share" data-cta onclick="checkoutOpen();return false;">↗️</a>
-    <a href="#offer" class="share-icon open-checkout" title="Save" data-cta onclick="checkoutOpen();return false;">🔖</a>
-  </nav>
-
-  <!-- ===== Article ===== -->
+  <!-- ======== Layout: article + reviews sidebar ======== -->
   <main class="layout">
+    <!-- Article -->
     <article class="article" itemscope itemtype="https://schema.org/AdvertiserContentArticle">
       <header class="article-hed">
         <p class="kicker">FEATURE</p>
@@ -98,7 +89,7 @@
       </ul>
       <p class="note small"><em>*Inspired by modern GLP‑1/GIP research; for educational purposes only. Not a drug or prescription. Not intended to diagnose, treat, cure, or prevent any disease.</em></p>
 
-      <!-- FAQ (accordion) -->
+      <!-- FAQ -->
       <section class="faq reveal" id="faq">
         <h2>Frequently Asked Questions</h2>
 
@@ -119,51 +110,51 @@
           <div class="faq-body">Not for individuals who are pregnant, nursing, or with contraindicated conditions. Consult a clinician.</div>
         </details>
       </section>
-
-      <!-- Reviews (trimmed to keep this message within limits; keep your originals if you prefer) -->
-      <section class="reviews">
-        <h2>Real People. Real Stories.</h2>
-
-        <div class="review-card">
-          <div class="review-hdr">
-            <div class="rev-avatar">J</div>
-            <div class="rev-meta">
-              <div class="rev-name">James S.</div>
-              <div class="rev-loc">Phoenix, AZ • <span class="stars">★★★★★</span></div>
-            </div>
-          </div>
-          <div class="badge" style="margin-top:6px;">Verified Purchase</div>
-          <div class="rev-body">Cravings down, steady energy. Meaningful progress in 4 months; mild nausea week 1.</div>
-          <div class="rev-actions"><button>Helpful 42</button><button>Report</button></div>
-        </div>
-
-        <div class="review-card">
-          <div class="review-hdr">
-            <div class="rev-avatar">D</div>
-            <div class="rev-meta">
-              <div class="rev-name">Deborah K.</div>
-              <div class="rev-loc">Tampa, FL • <span class="stars">★★★★★</span></div>
-            </div>
-          </div>
-          <div class="badge" style="margin-top:6px;">Verified Purchase</div>
-          <div class="rev-body">Appetite finally quiet. With protein and walks, inches moved in the right direction.</div>
-          <div class="rev-actions"><button>Helpful 36</button><button>Report</button></div>
-        </div>
-
-        <div class="review-card">
-          <div class="review-hdr">
-            <div class="rev-avatar">S</div>
-            <div class="rev-meta">
-              <div class="rev-name">Steven S.</div>
-              <div class="rev-loc">Boise, ID • <span class="stars">★★★★☆</span></div>
-            </div>
-          </div>
-          <div class="badge" style="margin-top:6px;">Verified Purchase</div>
-          <div class="rev-body">Energy is up and trending is positive. Could be clearer instructions on titration.</div>
-          <div class="rev-actions"><button>Helpful 19</button><button>Report</button></div>
-        </div>
-      </section>
     </article>
+
+    <!-- Reviews sidebar (sticky on desktop) -->
+    <aside class="reviews-col" aria-label="Reviews">
+      <h2>Real People. Real Stories.</h2>
+
+      <div class="review-card">
+        <div class="review-hdr">
+          <div class="rev-avatar">J</div>
+          <div class="rev-meta">
+            <div class="rev-name">James S.</div>
+            <div class="rev-loc">Phoenix, AZ • <span class="stars">★★★★★</span></div>
+          </div>
+        </div>
+        <div class="badge">Verified Purchase</div>
+        <div class="rev-body">Cravings down, steady energy. Meaningful progress in 4 months; mild nausea week 1.</div>
+        <div class="rev-actions"><button>Helpful 42</button><button>Report</button></div>
+      </div>
+
+      <div class="review-card">
+        <div class="review-hdr">
+          <div class="rev-avatar">D</div>
+          <div class="rev-meta">
+            <div class="rev-name">Deborah K.</div>
+            <div class="rev-loc">Tampa, FL • <span class="stars">★★★★★</span></div>
+          </div>
+        </div>
+        <div class="badge">Verified Purchase</div>
+        <div class="rev-body">Appetite finally quiet. With protein and walks, inches moved in the right direction.</div>
+        <div class="rev-actions"><button>Helpful 36</button><button>Report</button></div>
+      </div>
+
+      <div class="review-card">
+        <div class="review-hdr">
+          <div class="rev-avatar">S</div>
+          <div class="rev-meta">
+            <div class="rev-name">Steven S.</div>
+            <div class="rev-loc">Boise, ID • <span class="stars">★★★★☆</span></div>
+          </div>
+        </div>
+        <div class="badge">Verified Purchase</div>
+        <div class="rev-body">Energy is up and trending is positive. Could be clearer instructions on titration.</div>
+        <div class="rev-actions"><button>Helpful 19</button><button>Report</button></div>
+      </div>
+    </aside>
   </main>
 
   <!-- ===== Checkout Modal ===== -->
@@ -188,15 +179,17 @@
           <label>Street Address
             <input type="text" name="address" autocomplete="street-address" placeholder="Street Address" required />
           </label>
-          <label>City
-            <input type="text" name="city" autocomplete="address-level2" placeholder="City" required />
-          </label>
-          <label>State
-            <input type="text" name="state" maxlength="2" placeholder="CA" required />
-          </label>
-          <label>ZIP
-            <input type="text" name="zip" inputmode="numeric" placeholder="ZIP" required />
-          </label>
+          <div class="co-row">
+            <label>City
+              <input type="text" name="city" autocomplete="address-level2" placeholder="City" required />
+            </label>
+            <label>State
+              <input type="text" name="state" maxlength="2" placeholder="CA" required />
+            </label>
+            <label>ZIP
+              <input type="text" name="zip" inputmode="numeric" placeholder="ZIP" required />
+            </label>
+          </div>
         </div>
         <div class="co-actions">
           <a id="coToStep2" class="btn-main btn-lg" href="#" onclick="gotoStep2(); return false;">Continue</a>
@@ -204,45 +197,44 @@
         <p class="tiny muted co-trust">🔒 Encrypted checkout • 🚚 Free shipping today • ↩️ 60‑Day Guarantee</p>
       </form>
 
-      <!-- Step 2: Review & Pay -->
-      <section id="coStep2" class="co-pane" hidden aria-hidden="true">
-        <h3 class="co-h3">Review &amp; Pay</h3>
+      <!-- Step 2: Built to match your screenshot -->
+      <section id="coStep2" class="co-pane step2-pane" hidden aria-hidden="true">
+        <h3 class="co-h3 center">Buy 1 Get 1 Free</h3>
+        <div class="co-stockline center"><span class="qty" id="coStock">45</span> left in stock</div>
 
-        <div class="co-grid co-review-grid">
-          <div class="co-block">
-            <label>Quantity</label>
-            <div class="qty-ctrl">
-              <button class="qty-dec" type="button" aria-label="Decrease">−</button>
-              <input id="coQty" value="1" inputmode="numeric" pattern="\\d*" aria-label="Quantity" />
-              <button class="qty-inc" type="button" aria-label="Increase">+</button>
-            </div>
-          </div>
-
-          <div class="co-block co-totals">
-            <div class="line"><span>Subtotal</span><strong id="coSubtotal">$90.00</strong></div>
-            <div class="line"><span>Shipping</span><strong id="coShipping">$0.00</strong></div>
-            <div class="line"><span>Discount</span><strong id="coDiscount">-$0.00</strong></div>
-            <div class="line total"><span>Total</span><strong id="coTotal">$90.00</strong></div>
-          </div>
+        <div class="qtybar">
+          <button class="qty-dec" type="button" aria-label="Decrease">−</button>
+          <input id="coQty" value="1" inputmode="numeric" pattern="\d*" aria-label="Quantity" />
+          <button class="qty-inc" type="button" aria-label="Increase">+</button>
         </div>
 
-        <div class="co-paymethods">
-          <h4 class="co-h4">Payment method</h4>
-          <div class="pm-grid">
-            <label class="pm"><input type="radio" name="paymethod" value="card" checked><img src="assets/card.svg" alt=""> Card</label>
-            <label class="pm disabled"><input type="radio" name="paymethod" value="apple" disabled><img src="assets/applepay.svg" alt=""> Apple Pay</label>
-            <label class="pm disabled"><input type="radio" name="paymethod" value="gpay" disabled><img src="assets/gpay.svg" alt=""> Google Pay</label>
-            <label class="pm disabled"><input type="radio" name="paymethod" value="paypal" disabled><img src="assets/paypal.svg" alt=""> PayPal</label>
-            <label class="pm disabled"><input type="radio" name="paymethod" value="venmo" disabled><img src="assets/venmo.svg" alt=""> Venmo</label>
-            <label class="pm disabled"><input type="radio" name="paymethod" value="cashapp" disabled><img src="assets/cashapp.svg" alt=""> Cash App</label>
-            <label class="pm disabled"><input type="radio" name="paymethod" value="crypto" disabled><img src="assets/crypto.svg" alt=""> Crypto</label>
-          </div>
-          <p class="tiny muted">Other methods coming soon. Card works now.</p>
+        <div class="price-line center">
+          <s>$90</s> <strong id="pricePer">$45</strong> / bottle
         </div>
 
-        <div class="co-actions">
+        <button type="button" class="pm-card is-selected" id="pmCard">
+          <span class="pm-icon">💳</span> Credit / Debit Card
+        </button>
+
+        <div class="pm-alt">
+          <button type="button" class="pill" disabled><img src="assets/paypal.svg" alt="" aria-hidden="true"> PayPal</button>
+          <button type="button" class="pill" disabled><img src="assets/venmo.svg" alt="" aria-hidden="true"> Venmo</button>
+          <button type="button" class="pill" disabled><img src="assets/cashapp.svg" alt="" aria-hidden="true"> Cash App</button>
+        </div>
+
+        <div class="order-box">
+          <div class="line"><span>Items</span><span id="coItems">2 bottles (1 paid + 1 free)</span></div>
+          <div class="line"><span>Merch</span><span id="coMerch">$90.00</span></div>
+          <div class="line"><span>Method discount</span><span id="coMethod">$0.00</span></div>
+          <div class="line"><span>Tax</span><span id="coTax">$0.00</span></div>
+          <div class="line"><span>Shipping</span><span id="coShip">FREE</span></div>
+          <div class="line total"><span>Total</span><strong id="coTotal">$90.00</strong></div>
+        </div>
+
+        <div class="co-actions center">
           <a id="coToStep3" class="btn-main btn-lg" href="#" onclick="gotoStep3(); return false;">Continue</a>
         </div>
+        <p class="tiny muted center">🔒 100% encrypted checkout • 60‑Day Guarantee</p>
       </section>
 
       <!-- Step 3: Card -->
@@ -250,7 +242,6 @@
         <h3 class="co-h3">Complete Order</h3>
         <div class="co-stockline" id="coStockLine3"><span class="qty">44</span> left in stock</div>
 
-        <!-- Show exactly one card form: Recurly Elements containers -->
         <fieldset class="cardset">
           <legend>Card details</legend>
           <label>Card number <div id="re-number"></div></label>
@@ -262,7 +253,6 @@
           <label>ZIP <div id="re-postal"></div></label>
         </fieldset>
 
-        <!-- Keep this empty; we are NOT injecting another form here -->
         <div id="coPayWrap"></div>
 
         <div class="co-actions">
@@ -280,50 +270,22 @@
     </div>
   </div>
 
-  <!-- Footer, etc. ... -->
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <h4>Stay in the loop</h4>
+      <p>Get special offers, early access, and wellness tips.</p>
+      <form class="footer-form" onsubmit="event.preventDefault(); alert('Thanks!');">
+        <input type="email" placeholder="Enter your email" aria-label="Email">
+        <button type="submit">Subscribe</button>
+      </form>
+    </div>
+    <div class="footer-legal">© 2025 SelfHacking. All rights reserved.</div>
+  </footer>
 
-  <!-- ====== SCRIPTS (load once, at end) ====== -->
+  <!-- Scripts (load once) -->
   <script defer src="js/config.js?v=641"></script>
   <script defer src="js/script.js?v=641"></script>
-  <script defer src="js/checkout.js?v=641"></script>
-
-  <!-- Tiny helpers so inline anchors work even before JS bundles execute -->
-  <script>
-    function checkoutOpen(){ 
-      var m=document.getElementById('checkoutModal');
-      if(!m) return; m.classList.add('show'); m.style.display='grid';
-      document.documentElement.setAttribute('data-checkout-open','1');
-      document.body.style.overflow='hidden';
-      var s1=document.getElementById('coStep1'), s2=document.getElementById('coStep2'), s3=document.getElementById('coStep3');
-      if(s1){ s1.hidden=false; s1.setAttribute('aria-hidden','false'); }
-      if(s2){ s2.hidden=true;  s2.setAttribute('aria-hidden','true'); }
-      if(s3){ s3.hidden=true;  s3.setAttribute('aria-hidden','true'); }
-    }
-    function checkoutClose(){ 
-      var m=document.getElementById('checkoutModal');
-      if(!m) return; m.classList.remove('show'); m.style.display='none';
-      document.documentElement.removeAttribute('data-checkout-open');
-      document.body.style.overflow='';
-    }
-    function checkoutBack(){
-      var s1=document.getElementById('coStep1'), s2=document.getElementById('coStep2'), s3=document.getElementById('coStep3');
-      if(!s3.hidden){ s3.hidden=true; s3.setAttribute('aria-hidden','true'); s2.hidden=false; s2.setAttribute('aria-hidden','false'); return; }
-      if(!s2.hidden){ s2.hidden=true; s2.setAttribute('aria-hidden','true'); s1.hidden=false; s1.setAttribute('aria-hidden','false'); return; }
-    }
-    function gotoStep2(){
-      var s1=document.getElementById('coStep1'), s2=document.getElementById('coStep2'), s3=document.getElementById('coStep3');
-      if(!s1||!s2||!s3) return;
-      s1.hidden=true; s1.setAttribute('aria-hidden','true');
-      s2.hidden=false; s2.setAttribute('aria-hidden','false');
-      s3.hidden=true; s3.setAttribute('aria-hidden','true');
-    }
-    function gotoStep3(){
-      var s1=document.getElementById('coStep1'), s2=document.getElementById('coStep2'), s3=document.getElementById('coStep3');
-      if(!s1||!s2||!s3) return;
-      s1.hidden=true; s1.setAttribute('aria-hidden','true');
-      s2.hidden=true; s2.setAttribute('aria-hidden','true');
-      s3.hidden=false; s3.setAttribute('aria-hidden','false');
-    }
-  </script>
+  <script defer src="js/checkout.js?v=9002"></script>
 </body>
 </html>
