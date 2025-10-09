@@ -1,58 +1,53 @@
-/* ===== recurly-elements.js — final working Elements/tokenize for "addoctor" =====
-   Requirements:
-   - In your <head>:
-       <meta name="recurly-public-key" content="ewr1-AxqCz2aZ9UMj5oOBsENPG2">
-       <script src="https://js.recurly.com/v4/recurly.js"></script>
-   - This file must be loaded AFTER the script above.
-   - Step 3 containers must exist once:
-       #re-number  #re-month  #re-year  #re-cvv  #re-postal
+/* ===== recurly-elements.js — final safe mount/tokenize =====
+   Requires in <head> BEFORE this file:
+     <meta name="recurly-public-key" content="ewr1-AxqCz2aZ9UMj5oOBsENPG2">
+     <script src="https://js.recurly.com/v4/recurly.js"></script>
+   Step-3 containers required (once):
+     #re-number  #re-month  #re-year  #re-cvv  #re-postal
 */
 (function () {
   let elements = null;
   let fields = {};
 
-  /** Optional explicit configure (meta tag also works). */
   try {
     if (window.recurly && typeof window.recurly.configure === 'function') {
-      window.recurly.configure({
-        publicKey: 'ewr1-AxqCz2aZ9UMj5oOBsENPG2' // safe: public key
-        // No need to set subdomain for JS Elements; API key is server-side only
-      });
+      window.recurly.configure({ publicKey: 'ewr1-AxqCz2aZ9UMj5oOBsENPG2' });
     }
   } catch (_) {}
 
   function ensureContainers() {
-    const ids = ['re-number', 're-month', 're-year', 're-cvv', 're-postal'];
-    return ids.every(id => document.getElementById(id));
+    return ['re-number','re-month','re-year','re-cvv'].every(id => document.getElementById(id));
   }
 
   function mount() {
     if (!window.recurly) { console.error('[Recurly] library missing'); return null; }
     if (elements) return elements;
-
-    if (!ensureContainers()) {
-      console.error('[Recurly] One or more containers are missing (#re-number, #re-month, #re-year, #re-cvv, #re-postal).');
-      return null;
-    }
+    if (!ensureContainers()) { console.error('[Recurly] required containers missing'); return null; }
 
     elements = window.recurly.Elements();
-    const style = {
-      fontSize: '16px',
-      color: '#E9ECF2',
-      placeholder: { color: 'rgba(234,236,239,.55)' }
-    };
+    const style = { fontSize: '16px', color: '#E9ECF2', placeholder: { color: 'rgba(234,236,239,.55)' } };
 
     fields.number = elements.CardNumberElement({ style });
     fields.month  = elements.CardMonthElement({ style });
     fields.year   = elements.CardYearElement({ style });
     fields.cvv    = elements.CardCvvElement({ style });
-    fields.postal = elements.CardPostalCodeElement({ style });
+
+    // Postal code is optional; some builds don’t expose CardPostalCodeElement.
+    let postalCtor = elements.CardPostalCodeElement || elements.PostalCodeElement;
+    if (typeof postalCtor === 'function') {
+      fields.postal = postalCtor.call(elements, { style });
+    } else {
+      console.warn('[Recurly] Postal code element not available in this build — continuing without it.');
+      fields.postal = null;
+    }
 
     fields.number.attach('#re-number');
     fields.month.attach('#re-month');
     fields.year.attach('#re-year');
     fields.cvv.attach('#re-cvv');
-    fields.postal.attach('#re-postal');
+    if (fields.postal && document.getElementById('re-postal')) {
+      fields.postal.attach('#re-postal');
+    }
 
     return elements;
   }
@@ -68,17 +63,13 @@
     elements = null;
   }
 
-  /** Tokenize the mounted Elements; resolves Recurly token object. */
   function tokenize(meta) {
     return new Promise((resolve, reject) => {
       if (!elements) return reject(new Error('Payment form not ready'));
       window.recurly.token(elements, meta || {}, (err, token) => {
         if (err) {
-          // Build a readable error with field details, if any
           const details = err.fields
-            ? Object.entries(err.fields)
-                .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
-                .join('; ')
+            ? Object.entries(err.fields).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`).join('; ')
             : '';
           return reject(new Error(details ? `${err.message} — ${details}` : err.message));
         }
@@ -87,6 +78,5 @@
     });
   }
 
-  // Expose stable API
   window.RecurlyUI = { mount, unmount, tokenize };
 })();
