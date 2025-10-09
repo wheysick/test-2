@@ -1,85 +1,110 @@
-
-// Full checkout controller (3 steps) + Recurly Elements wiring
+// ===== checkout.js — 3-step modal + Recurly tokenization =====
 (function(){
-  const modal   = document.getElementById('checkoutModal');
-  const card    = document.getElementById('checkoutCard');
-  const openBtn = document.getElementById('openCheckout');
-  const closeBtn= document.getElementById('checkoutClose');
-  const back    = document.getElementById('coBack');
-  const step1   = document.getElementById('coStep1');
-  const step2   = document.getElementById('coStep2');
-  const step3   = document.getElementById('coStep3');
-  const submit  = document.getElementById('coSubmit');
-  const totalEl = document.getElementById('coTotal');
-  const qtyEl   = document.getElementById('coQty');
+  const $  = (s, r=document) => r.querySelector(s);
+  const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
-  function show(m){ modal.classList.add('show'); document.documentElement.style.overflow='hidden'; }
-  function hide(){ modal.classList.remove('show'); document.documentElement.style.overflow=''; }
+  const modal   = $('#checkoutModal');
+  const step1   = $('#coStep1');
+  const step3   = $('#coStep3');
+  const submit  = $('#coSubmit');
+  const close   = $('#checkoutClose');
+  const back    = $('#coBackLink');
+  const toStep3 = $('#coToStep3');
 
-  openBtn?.addEventListener('click', e=>{ e.preventDefault(); show(); setStep(1); });
-  closeBtn?.addEventListener('click', hide);
-  back?.addEventListener('click', ()=>{ if (!step2.hidden) setStep(1); else if (!step3.hidden) setStep(2); });
+  if (!modal) return;
 
-  document.addEventListener('keydown', e=>{ if (e.key==='Escape' && modal.classList.contains('show')) hide(); });
-  modal.addEventListener('click', e=>{ if (e.target===modal) hide(); });
+  // Basic open/close helpers (your inline helpers call these too)
+  function open(){ modal.classList.add('show'); modal.style.display='grid'; }
+  function hide(){ modal.classList.remove('show'); modal.style.display='none'; }
 
-  let qty=1;
-  function computeTotal(){
-    const SALE=90, TAX=0.0875, SHIP=0;
-    const merch = qty*SALE;
-    const tax = (merch)*TAX;
-    const total = merch+tax+SHIP;
-    totalEl.textContent = `$${total.toFixed(2)}`;
-    return total;
-  }
-  document.getElementById('qtyPlus')?.addEventListener('click',()=>{ qty=Math.min(99,qty+1); qtyEl.textContent=qty; computeTotal(); });
-  document.getElementById('qtyMinus')?.addEventListener('click',()=>{ qty=Math.max(1,qty-1); qtyEl.textContent=qty; computeTotal(); });
-
-  function setStep(n){
-    [step1,step2,step3].forEach((el,i)=>{ el.hidden = (i!==n-1); });
-    if (n===3){
-      // Remove any legacy inputs (safety)
-      const legacy = document.querySelector('#coPayWrap input[name="card"], #coPayWrap input[name="exp"], #coPayWrap input[name="cvc"], #coPayWrap input[name="zip"]');
-      if (legacy){ const fs=legacy.closest('fieldset'); fs && fs.remove(); }
-      // Ensure Recurly mounts
-      if (window.RecurlyUI) window.RecurlyUI.mount();
-    } else {
-      if (window.RecurlyUI) window.RecurlyUI.unmount();
-    }
+  // Go to Step 3 and mount Recurly fields
+  function showStep3(){
+    step1.hidden = true;
+    step3.hidden = false;
+    if (window.RecurlyUI) window.RecurlyUI.mount();
   }
 
-  document.getElementById('toStep2')?.addEventListener('click',()=>setStep(2));
-  document.getElementById('toStep3')?.addEventListener('click',()=>setStep(3));
+  // Back to Step 1 and unmount Recurly
+  function showStep1(){
+    step3.hidden = true;
+    step1.hidden = false;
+    if (window.RecurlyUI) window.RecurlyUI.unmount();
+  }
 
-  submit?.addEventListener('click', async (e)=>{
+  // Wire UI
+  close?.addEventListener('click', (e)=>{ e.preventDefault(); hide(); });
+  back?.addEventListener('click',  (e)=>{ e.preventDefault(); showStep1(); });
+  toStep3?.addEventListener('click',(e)=>{ e.preventDefault(); showStep3(); });
+
+  // Quantity buttons (optional; adjust to your markup)
+  $$('.qty-inc').forEach(btn => btn.addEventListener('click', () => {
+    const qty = $('#coQty'); if (!qty) return;
+    qty.value = Math.min(99, Math.max(1, (+qty.value||1) + 1));
+  }));
+  $$('.qty-dec').forEach(btn => btn.addEventListener('click', () => {
+    const qty = $('#coQty'); if (!qty) return;
+    qty.value = Math.min(99, Math.max(1, (+qty.value||1) - 1));
+  }));
+
+  // Submit: tokenize + purchase
+  submit?.addEventListener('click', async (e) => {
     e.preventDefault();
-    submit.disabled=true; submit.textContent='Processing…';
+    if (!window.RecurlyUI){ alert('Payment form not ready'); return; }
+
+    submit.disabled = true;
+    const original = submit.textContent;
+    submit.textContent = 'Processing…';
+
     try {
-      // 1) Tokenize with Recurly
-      const token = await window.RecurlyUI.tokenize({});
-      // 2) Build order
-      const order = {
-        total: computeTotal(),
-        qty,
-        customer: { email: document.querySelector('#coStep1 [name="email"]')?.value || '' }
+      // Collect customer/shipping from Step 1
+      const get = (n) => step1.querySelector(`[name="${n}"]`)?.value?.trim() || '';
+      const full = get('name') || '';
+      let first = full, last = '';
+      if (full.includes(' ')){ const i = full.lastIndexOf(' '); first = full.slice(0,i); last = full.slice(i+1); }
+
+      const meta = {
+        first_name: first,
+        last_name:  last,
+        email:      get('email'),
+        phone:      get('phone'),
+        address:    get('address'),
+        city:       get('city'),
+        state:      get('state'),
+        zip:        get('zip'),
+        // simple line items
+        items: [{ sku: 'tirz-vial', qty: 1, price: 90 }]
       };
-      // 3) Charge via serverless
+
+      // 1) Tokenize with Recurly
+      const token = await window.RecurlyUI.tokenize(meta);
+
+      // 2) Purchase via your Vercel function
       const resp = await fetch('/api/payments/recurly/charge', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ token, order })
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: token.id || token, customer: meta })
       });
+
       const data = await resp.json();
-      if (!resp.ok) throw new Error((data && data.error) || 'Payment failed.');
-      alert('Payment captured: ' + (data.id || 'OK'));
-      hide();
+      if (!resp.ok) {
+        const reasons = Array.isArray(data?.errors) ? `\n\n${data.errors.join('\n')}` : '';
+        throw new Error((data && data.error) ? `${data.error}${reasons}` : 'Payment failed.');
+      }
+
+      // Success UI
+      step3.hidden = true;
+      $('#checkoutSuccess').hidden = false;
     } catch (err) {
-      alert(err.message || 'Payment failed');
+      alert(err?.message || 'Payment failed');
     } finally {
-      submit.disabled=false; submit.textContent='Complete Order';
+      submit.disabled = false;
+      submit.textContent = original;
     }
   });
 
-  // init
-  qtyEl.textContent=qty;
-  computeTotal();
+  // Expose helpers for inline anchors
+  window.checkoutOpen  = open;
+  window.checkoutClose = hide;
+  window.checkoutBack  = showStep1;
+  window.gotoStep3     = showStep3;
 })();
