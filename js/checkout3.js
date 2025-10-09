@@ -356,3 +356,21 @@ submitBtn.addEventListener('click', async (e) => {
     submitBtn.disabled = false;
   }
 });
+
+
+// === Clickability fix: remove legacy fields, denest forms, raise z-index ===
+;(function(){
+  const payWrap = document.getElementById('coPayWrap');
+  if (!payWrap) return;
+  // Remove obvious legacy inputs if any still exist
+  ['input[name="card"]','input[name="cardnumber"]','input[name="exp"]','input[name="exp-month"]','input[name="exp-year"]','input[name="cvc"]','input[name="cczip"]']
+    .forEach(sel => payWrap.querySelectorAll(sel).forEach(el => { const blk = el.closest('.co-field,.form-group,fieldset')||el; blk.remove(); }));
+  // De-nest forms
+  document.querySelectorAll('form form').forEach(inner=>{ const outer=inner.closest('form'); while(inner.firstChild){ outer.insertBefore(inner.firstChild, inner);} inner.remove(); });
+  // Lift recurly iframes above any modal overlay
+  const modal = document.getElementById('checkoutModal'); if (modal){ modal.style.zIndex=1000; modal.querySelectorAll('.recurly-hosted-field, .recurly-hosted-field iframe').forEach(x=>x.style.zIndex=1100); }
+  // Disable accidental blockers inside coPayWrap that are not hosted fields
+  Array.from(payWrap.children).forEach(ch => {
+    if (!ch.classList.contains('recurly-hosted-field')) ch.style.pointerEvents = ch.style.pointerEvents || 'auto';
+  });
+})(); 
