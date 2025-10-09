@@ -283,9 +283,19 @@
     <div class="footer-legal">© 2025 SelfHacking. All rights reserved.</div>
   </footer>
 
-  <!-- Scripts (load once) -->
-<script defer src="js/config.js?v=641"></script>
-<script defer src="js/script.js?v=641"></script>
-<script defer src="js/checkout.js?v=9002"></script>
+<script defer src="/js/config.js?v=641"></script>
+<script defer src="/js/script.js?v=641"></script>
+<script defer src="/js/checkout.js?v=9010"></script>
+
+<!-- Belt & suspenders: make every .open-checkout actually open the modal -->
+<script>
+  document.addEventListener('click', function(e){
+    const a = e.target.closest && e.target.closest('.open-checkout');
+    if (!a) return;
+    e.preventDefault();
+    if (window.checkoutOpen) window.checkoutOpen();
+  }, true);
+</script>
+
 </body>
 </html>
