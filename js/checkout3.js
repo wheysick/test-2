@@ -14,9 +14,7 @@
   const toStep3 = document.getElementById('coToStep3');
   const payWrap = document.getElementById('coPayWrap');
   const submit  = document.getElementById('coSubmit');
-  const submitBtn = submit;
-  const closeX  = document.getElementById('checkoutClose');
-  const methodErr = document.getElementById('coMethodError');
+  const submitBtn = submit; // prevents "submitBtn is not defined" errors in your console
 
   // Back link pinned top-left
   let backLink = document.getElementById('coBackLink');
