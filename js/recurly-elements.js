@@ -1,4 +1,4 @@
-/* ===== recurly-elements.js — single-instance Elements with hardening ===== */
+/* ===== recurly-elements.js — single-instance Elements ===== */
 (function () {
   let elements = null;
   let fields = {};
