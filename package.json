@@ -1,0 +1,9 @@
+{
+  "name": "test-2",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "recurly": "^4.54.0"
+  }
+}
