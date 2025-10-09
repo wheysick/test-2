@@ -1,66 +1,85 @@
 
-/* ===== Checkout Modal — v1.1 Fixes ===== */
+// Full checkout controller (3 steps) + Recurly Elements wiring
 (function(){
-  const modal = document.getElementById('checkoutModal');
-  const closeBtn = document.getElementById('checkoutClose');
-  const form = document.getElementById('checkoutForm');
-  const success = document.getElementById('checkoutSuccess');
-  const successClose = document.getElementById('successClose');
+  const modal   = document.getElementById('checkoutModal');
+  const card    = document.getElementById('checkoutCard');
+  const openBtn = document.getElementById('openCheckout');
+  const closeBtn= document.getElementById('checkoutClose');
+  const back    = document.getElementById('coBack');
+  const step1   = document.getElementById('coStep1');
+  const step2   = document.getElementById('coStep2');
+  const step3   = document.getElementById('coStep3');
+  const submit  = document.getElementById('coSubmit');
+  const totalEl = document.getElementById('coTotal');
+  const qtyEl   = document.getElementById('coQty');
 
-  function openModal(ev){
-    if (ev) ev.preventDefault();
-    if (!modal) return;
-    modal.classList.add('show');
-    modal.setAttribute('aria-hidden','false');
-    document.body.style.overflow = 'hidden';
-    const first = form?.querySelector('input, select, button');
-    if (first) first.focus();
+  function show(m){ modal.classList.add('show'); document.documentElement.style.overflow='hidden'; }
+  function hide(){ modal.classList.remove('show'); document.documentElement.style.overflow=''; }
+
+  openBtn?.addEventListener('click', e=>{ e.preventDefault(); show(); setStep(1); });
+  closeBtn?.addEventListener('click', hide);
+  back?.addEventListener('click', ()=>{ if (!step2.hidden) setStep(1); else if (!step3.hidden) setStep(2); });
+
+  document.addEventListener('keydown', e=>{ if (e.key==='Escape' && modal.classList.contains('show')) hide(); });
+  modal.addEventListener('click', e=>{ if (e.target===modal) hide(); });
+
+  let qty=1;
+  function computeTotal(){
+    const SALE=90, TAX=0.0875, SHIP=0;
+    const merch = qty*SALE;
+    const tax = (merch)*TAX;
+    const total = merch+tax+SHIP;
+    totalEl.textContent = `$${total.toFixed(2)}`;
+    return total;
   }
-  function closeModal(){
-    modal?.classList.remove('show');
-    modal?.setAttribute('aria-hidden','true');
-    document.body.style.overflow = '';
+  document.getElementById('qtyPlus')?.addEventListener('click',()=>{ qty=Math.min(99,qty+1); qtyEl.textContent=qty; computeTotal(); });
+  document.getElementById('qtyMinus')?.addEventListener('click',()=>{ qty=Math.max(1,qty-1); qtyEl.textContent=qty; computeTotal(); });
+
+  function setStep(n){
+    [step1,step2,step3].forEach((el,i)=>{ el.hidden = (i!==n-1); });
+    if (n===3){
+      // Remove any legacy inputs (safety)
+      const legacy = document.querySelector('#coPayWrap input[name="card"], #coPayWrap input[name="exp"], #coPayWrap input[name="cvc"], #coPayWrap input[name="zip"]');
+      if (legacy){ const fs=legacy.closest('fieldset'); fs && fs.remove(); }
+      // Ensure Recurly mounts
+      if (window.RecurlyUI) window.RecurlyUI.mount();
+    } else {
+      if (window.RecurlyUI) window.RecurlyUI.unmount();
+    }
   }
 
-  /* Robust binding: delegation covers dynamically shown buttons (e.g., floating CTA) */
-  document.addEventListener('click', (e) => {
-    const t = e.target.closest('[data-cta], a[href="#offer"], #floatingCta');
-    if (t) openModal(e);
-  }, true); // capture to beat other handlers
+  document.getElementById('toStep2')?.addEventListener('click',()=>setStep(2));
+  document.getElementById('toStep3')?.addEventListener('click',()=>setStep(3));
 
-  // Direct binds for redundancy
-  document.querySelectorAll('[data-cta], a[href="#offer"], #floatingCta').forEach(el => {
-    el.addEventListener('click', openModal);
-  });
-
-  // Close behaviors
-  closeBtn?.addEventListener('click', closeModal);
-  modal?.addEventListener('click', (e)=>{ if(e.target === modal) closeModal(); });
-  document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && modal.classList.contains('show')) closeModal(); });
-
-  // Client-side validation demo
-  form?.addEventListener('submit', (e)=>{
+  submit?.addEventListener('click', async (e)=>{
     e.preventDefault();
-    const required = [...form.querySelectorAll('[required]')];
-    let ok = true;
-    required.forEach(inp => {
-      const name = inp.name;
-      const val = (inp.value || '').trim();
-      const invalidZip = (name === 'zip' || name === 'cczip') && !/^\d{5}$/.test(val);
-      if (!val || invalidZip) {
-        ok = false;
-        inp.setAttribute('aria-invalid','true');
-        inp.style.borderColor = '#ff2a6d';
-      } else {
-        inp.removeAttribute('aria-invalid');
-        inp.style.borderColor = '';
-      }
-    });
-    if (!ok) return;
-    if (form) form.hidden = true;
-    if (success) success.hidden = false;
-    success?.querySelector('h4')?.focus?.();
+    submit.disabled=true; submit.textContent='Processing…';
+    try {
+      // 1) Tokenize with Recurly
+      const token = await window.RecurlyUI.tokenize({});
+      // 2) Build order
+      const order = {
+        total: computeTotal(),
+        qty,
+        customer: { email: document.querySelector('#coStep1 [name="email"]')?.value || '' }
+      };
+      // 3) Charge via serverless
+      const resp = await fetch('/api/payments/recurly/charge', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ token, order })
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error((data && data.error) || 'Payment failed.');
+      alert('Payment captured: ' + (data.id || 'OK'));
+      hide();
+    } catch (err) {
+      alert(err.message || 'Payment failed');
+    } finally {
+      submit.disabled=false; submit.textContent='Complete Order';
+    }
   });
 
-  successClose?.addEventListener('click', (e)=>{ e.preventDefault(); closeModal(); });
+  // init
+  qtyEl.textContent=qty;
+  computeTotal();
 })();
