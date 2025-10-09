@@ -1,39 +1,170 @@
-===== index.html (final) =====
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="recurly-public-key" content="ewr1-AxqCz2aZ9UMj5oOBsENPG2">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Free Sample — Weekly Wellness Formula</title>
 
-<!-- 1) Recurly core -->
-<script src="https://js.recurly.com/v4/recurly.js"></script>
+  <!-- Your public key (safe to be public) -->
+  <meta name="recurly-public-key" content="ewr1-AxqCz2aZ9UMj5oOBsENPG2">
 
-<!-- 2) Single-instance Elements helper -->
-<script src="js/recurly-elements.js?v=1"></script>
+  <!-- Recurly core -->
+  <script src="https://js.recurly.com/v4/recurly.js"></script>
 
-<!-- Your styles (unchanged) -->
-<link rel="stylesheet" href="css/style.css?v=640"/>
-<link rel="stylesheet" href="css/checkout3.css?v=640"/>
+  <!-- Single‑instance Recurly Elements helpers (exports window.RecurlyUI) -->
+  <script src="js/recurly-elements.js?v=22"></script>
 
-<!-- Fixes: CTA overlay + modal z-index + hosted-field clickability -->
-<style>
-  html[data-checkout-open="1"] .floating-cta { display: none !important; }
-  #checkoutModal.modal-checkout { z-index: 2147483646; }
-  #checkoutModal.show { display: grid !important; }
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/style.css?v=640">
+  <!-- Use checkout.css (NOT checkout3.css) -->
+  <link rel="stylesheet" href="css/checkout.css?v=641">
 
-  /* Hosted fields must receive clicks */
-  #coStep3 label, #coStep3 .co-row, #coStep3 .co-field { pointer-events: none; }
-  #re-number, #re-month, #re-year, #re-cvv, #re-postal,
-  #re-number *, #re-month *, #re-year *, #re-cvv *, #re-postal * {
-    pointer-events: auto; position: relative; z-index: 100003; min-height: 44px; display: block;
-  }
-</style>
+  <!-- Fixes: CTA overlay + modal z-index + hosted-field clickability -->
+  <style>
+    html[data-checkout-open="1"] .floating-cta { display: none !important; }
+    #checkoutModal.modal-checkout { z-index: 2147483646; }
+    #checkoutModal.show { display: grid !important; }
+    /* Hosted fields must receive clicks */
+    #coStep3 label, #coStep3 .co-row, #coStep3 .co-field { pointer-events: none; }
+    #re-number, #re-month, #re-year, #re-cvv, #re-postal,
+    #re-number *, #re-month *, #re-year *, #re-cvv *, #re-postal * {
+      pointer-events: auto; position: relative; z-index: 100003; min-height: 44px; display: block;
+    }
+  </style>
 </head>
 
 <body>
-  <!-- ===== Masthead / content — your article stays intact ===== -->
-  <!-- (All your existing article, images, FAQ, etc. remain here exactly as in your file) -->
+  <!-- ===== Masthead / content (kept intact) ===== -->
+  <header class="masthead" role="banner">
+    <div class="masthead-inner">
+      <div class="brand">SELFHACKING</div>
+      <div class="masthead-meta">
+        <span>Free sample ends in <strong id="countdown">00:00:00</strong></span>
+        <span class="dot">•</span>
+        <span><strong>Shipping cutoff: midnight</strong></span>
+      </div>
+      <a href="#offer" class="masthead-cta open-checkout" data-cta onclick="checkoutOpen();return false;">Claim Free Sample</a>
+    </div>
+
+    <!-- Mobile brand line + announcement rotator (arrows only) -->
+    <div class="masthead-mobile-brand">SELFHACKING</div>
+    <div class="announcer" aria-live="polite">
+      <button class="ann-prev" aria-label="Previous">‹</button>
+      <div class="announce-msg">Free sample ends in <strong data-countdown>00:00:00</strong></div>
+      <button class="ann-next" aria-label="Next">›</button>
+    </div>
+    <div id="scrollProgress"></div>
+  </header>
+
   <!-- Floating CTA -->
-  <a href="#offer" class="floating-cta open-checkout" id="floatingCta" onclick="checkoutOpen();return false;"><strong>Claim Free Sample</strong></a>
+  <a href="#offer" class="floating-cta open-checkout" id="floatingCta" data-cta="floating" onclick="checkoutOpen();return false;"><strong>Claim Free Sample</strong></a>
+
+  <!-- Share rail -->
+  <nav class="share-rail" aria-label="Share this">
+    <a href="#offer" class="share-icon open-checkout" title="Get offer" data-cta onclick="checkoutOpen();return false;">🔥</a>
+    <a href="#offer" class="share-icon open-checkout" title="Share" data-cta onclick="checkoutOpen();return false;">↗️</a>
+    <a href="#offer" class="share-icon open-checkout" title="Save" data-cta onclick="checkoutOpen();return false;">🔖</a>
+  </nav>
+
+  <!-- ===== Article ===== -->
+  <main class="layout">
+    <article class="article" itemscope itemtype="https://schema.org/AdvertiserContentArticle">
+      <header class="article-hed">
+        <p class="kicker">FEATURE</p>
+        <h1 class="headline" itemprop="headline"><strong>BIG PHARMA PANICS:</strong> Insiders Move to Outlaw Peptide <strong>3X Stronger Than Ozempic!</strong></h1>
+        <div class="byline">
+          <span class="author" itemprop="author">By Staff Reporter</span>
+          <span class="dot">•</span>
+          <span class="date" itemprop="datePublished" content="2025-10-08">October 8, 2025</span>
+          <span class="dot">•</span>
+          <span class="reads">128,000 reads</span>
+        </div>
+      </header>
+
+      <figure class="hero">
+        <img src="assets/hero.png" alt="Weekly injector" loading="lazy" decoding="async" />
+        <figcaption><em>Lobbyist Push For Federal Crackdowns—Thousands Are Stocking Up Before It’s Banned...</em></figcaption>
+      </figure>
+
+      <h2>What is it?</h2>
+      <figure class="inline-img">
+        <img id="productImg" src="assets/tirz.png" alt="TIRZ premium vials" loading="lazy" decoding="async" />
+        <div class="coa-link"><a id="coaLink" href="#">Certificate of Analysis</a></div>
+      </figure>
+      <ul>
+        <li><strong>Each pack</strong> includes <strong>4 weekly servings</strong></li>
+        <li><strong>Active ingredients:</strong> <em>clinically studied wellness compounds</em></li>
+        <li>Formulated to support <strong>natural metabolism</strong> and <strong>balance</strong></li>
+      </ul>
+      <p class="note small"><em>*Inspired by modern GLP‑1/GIP research; for educational purposes only. Not a drug or prescription. Not intended to diagnose, treat, cure, or prevent any disease.</em></p>
+
+      <!-- FAQ (accordion) -->
+      <section class="faq reveal" id="faq">
+        <h2>Frequently Asked Questions</h2>
+
+        <details class="faq-item" open>
+          <summary><span class="faq-q">Is Tirzepatide legal?</span><span class="faq-arrow">›</span></summary>
+          <div class="faq-body">Tirzepatide is an FDA‑approved prescription medicine in the United States and is regulated. Our product is a non‑prescription wellness sample inspired by the science.</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-q">Do I need a prescription?</span><span class="faq-arrow">›</span></summary>
+          <div class="faq-body">No doctor’s prescription is required to receive the free wellness sample.</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-q">Any side effects or interactions?</span><span class="faq-arrow">›</span></summary>
+          <div class="faq-body">Mild, transient effects are possible (nausea in week 1 for some). Check interactions with your clinician.</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-q">Who shouldn’t use this?</span><span class="faq-arrow">›</span></summary>
+          <div class="faq-body">Not for individuals who are pregnant, nursing, or with contraindicated conditions. Consult a clinician.</div>
+        </details>
+      </section>
+
+      <!-- Reviews (trimmed to keep this message within limits; keep your originals if you prefer) -->
+      <section class="reviews">
+        <h2>Real People. Real Stories.</h2>
+
+        <div class="review-card">
+          <div class="review-hdr">
+            <div class="rev-avatar">J</div>
+            <div class="rev-meta">
+              <div class="rev-name">James S.</div>
+              <div class="rev-loc">Phoenix, AZ • <span class="stars">★★★★★</span></div>
+            </div>
+          </div>
+          <div class="badge" style="margin-top:6px;">Verified Purchase</div>
+          <div class="rev-body">Cravings down, steady energy. Meaningful progress in 4 months; mild nausea week 1.</div>
+          <div class="rev-actions"><button>Helpful 42</button><button>Report</button></div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-hdr">
+            <div class="rev-avatar">D</div>
+            <div class="rev-meta">
+              <div class="rev-name">Deborah K.</div>
+              <div class="rev-loc">Tampa, FL • <span class="stars">★★★★★</span></div>
+            </div>
+          </div>
+          <div class="badge" style="margin-top:6px;">Verified Purchase</div>
+          <div class="rev-body">Appetite finally quiet. With protein and walks, inches moved in the right direction.</div>
+          <div class="rev-actions"><button>Helpful 36</button><button>Report</button></div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-hdr">
+            <div class="rev-avatar">S</div>
+            <div class="rev-meta">
+              <div class="rev-name">Steven S.</div>
+              <div class="rev-loc">Boise, ID • <span class="stars">★★★★☆</span></div>
+            </div>
+          </div>
+          <div class="badge" style="margin-top:6px;">Verified Purchase</div>
+          <div class="rev-body">Energy is up and trending is positive. Could be clearer instructions on titration.</div>
+          <div class="rev-actions"><button>Helpful 19</button><button>Report</button></div>
+        </div>
+      </section>
+    </article>
+  </main>
 
   <!-- ===== Checkout Modal ===== -->
   <div id="checkoutModal" class="modal modal-checkout" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle" style="display:none;">
@@ -41,7 +172,7 @@
       <button id="checkoutClose" class="close" aria-label="Close">×</button>
       <a id="coBackLink" class="co-back-link" href="#" onclick="checkoutBack(); return false;">Back</a>
 
-      <!-- Step 1: Shipping (unchanged; I added onsubmit=return false to stop native submit) -->
+      <!-- Step 1: Shipping -->
       <form id="coStep1" class="co-pane" novalidate onsubmit="return false">
         <h3 class="co-h3" id="checkoutTitle">Where Should We Send Your Free Bottles?</h3>
         <div class="co-grid">
@@ -67,14 +198,13 @@
             <input type="text" name="zip" inputmode="numeric" placeholder="ZIP" required />
           </label>
         </div>
-
         <div class="co-actions">
-          <a id="coToStep2" class="btn-main btn-lg" href="#" onclick="return false;">Continue</a>
+          <a id="coToStep2" class="btn-main btn-lg" href="#" onclick="gotoStep2(); return false;">Continue</a>
         </div>
         <p class="tiny muted co-trust">🔒 Encrypted checkout • 🚚 Free shipping today • ↩️ 60‑Day Guarantee</p>
       </form>
 
-      <!-- Step 2: Review & Pay (restored) -->
+      <!-- Step 2: Review & Pay -->
       <section id="coStep2" class="co-pane" hidden aria-hidden="true">
         <h3 class="co-h3">Review &amp; Pay</h3>
 
@@ -83,7 +213,7 @@
             <label>Quantity</label>
             <div class="qty-ctrl">
               <button class="qty-dec" type="button" aria-label="Decrease">−</button>
-              <input id="coQty" value="1" inputmode="numeric" pattern="\d*" aria-label="Quantity" />
+              <input id="coQty" value="1" inputmode="numeric" pattern="\\d*" aria-label="Quantity" />
               <button class="qty-inc" type="button" aria-label="Increase">+</button>
             </div>
           </div>
@@ -111,15 +241,16 @@
         </div>
 
         <div class="co-actions">
-          <a id="coToStep3" class="btn-main btn-lg" href="#" onclick="return false;">Continue</a>
+          <a id="coToStep3" class="btn-main btn-lg" href="#" onclick="gotoStep3(); return false;">Continue</a>
         </div>
       </section>
 
-      <!-- Step 3: Card (kept your Recurly containers) -->
+      <!-- Step 3: Card -->
       <section id="coStep3" class="co-pane" hidden aria-hidden="true">
         <h3 class="co-h3">Complete Order</h3>
         <div class="co-stockline" id="coStockLine3"><span class="qty">44</span> left in stock</div>
 
+        <!-- Show exactly one card form: Recurly Elements containers -->
         <fieldset class="cardset">
           <legend>Card details</legend>
           <label>Card number <div id="re-number"></div></label>
@@ -131,6 +262,7 @@
           <label>ZIP <div id="re-postal"></div></label>
         </fieldset>
 
+        <!-- Keep this empty; we are NOT injecting another form here -->
         <div id="coPayWrap"></div>
 
         <div class="co-actions">
@@ -148,40 +280,50 @@
     </div>
   </div>
 
-  <!-- Your footer and the rest of the article remain unchanged -->
+  <!-- Footer, etc. ... -->
 
-  <!-- Scripts (load once) -->
+  <!-- ====== SCRIPTS (load once, at end) ====== -->
   <script defer src="js/config.js?v=641"></script>
   <script defer src="js/script.js?v=641"></script>
-  <script defer src="js/checkout.js?v=9000"></script>
+  <script defer src="js/checkout.js?v=641"></script>
 
-  <!-- Minimal helpers to manage the CTA state -->
+  <!-- Tiny helpers so inline anchors work even before JS bundles execute -->
   <script>
-    window.checkoutOpen = function(){
-      var modal = document.getElementById('checkoutModal');
-      if (!modal) return;
-      modal.classList.add('show');
-      modal.style.display='grid';
+    function checkoutOpen(){ 
+      var m=document.getElementById('checkoutModal');
+      if(!m) return; m.classList.add('show'); m.style.display='grid';
       document.documentElement.setAttribute('data-checkout-open','1');
       document.body.style.overflow='hidden';
       var s1=document.getElementById('coStep1'), s2=document.getElementById('coStep2'), s3=document.getElementById('coStep3');
-      if (s1){ s1.hidden=false; s1.setAttribute('aria-hidden','false'); }
-      if (s2){ s2.hidden=true;  s2.setAttribute('aria-hidden','true'); }
-      if (s3){ s3.hidden=true;  s3.setAttribute('aria-hidden','true'); }
-    };
-    window.checkoutClose = function(){
-      var modal = document.getElementById('checkoutModal');
-      if (!modal) return;
-      modal.classList.remove('show');
-      modal.style.display='none';
+      if(s1){ s1.hidden=false; s1.setAttribute('aria-hidden','false'); }
+      if(s2){ s2.hidden=true;  s2.setAttribute('aria-hidden','true'); }
+      if(s3){ s3.hidden=true;  s3.setAttribute('aria-hidden','true'); }
+    }
+    function checkoutClose(){ 
+      var m=document.getElementById('checkoutModal');
+      if(!m) return; m.classList.remove('show'); m.style.display='none';
       document.documentElement.removeAttribute('data-checkout-open');
       document.body.style.overflow='';
-    };
-    window.checkoutBack = function(){
+    }
+    function checkoutBack(){
       var s1=document.getElementById('coStep1'), s2=document.getElementById('coStep2'), s3=document.getElementById('coStep3');
-      if (!s3.hidden) { s3.hidden=true; s3.setAttribute('aria-hidden','true'); s2.hidden=false; s2.setAttribute('aria-hidden','false'); return; }
-      if (!s2.hidden) { s2.hidden=true; s2.setAttribute('aria-hidden','true'); s1.hidden=false; s1.setAttribute('aria-hidden','false'); return; }
-    };
+      if(!s3.hidden){ s3.hidden=true; s3.setAttribute('aria-hidden','true'); s2.hidden=false; s2.setAttribute('aria-hidden','false'); return; }
+      if(!s2.hidden){ s2.hidden=true; s2.setAttribute('aria-hidden','true'); s1.hidden=false; s1.setAttribute('aria-hidden','false'); return; }
+    }
+    function gotoStep2(){
+      var s1=document.getElementById('coStep1'), s2=document.getElementById('coStep2'), s3=document.getElementById('coStep3');
+      if(!s1||!s2||!s3) return;
+      s1.hidden=true; s1.setAttribute('aria-hidden','true');
+      s2.hidden=false; s2.setAttribute('aria-hidden','false');
+      s3.hidden=true; s3.setAttribute('aria-hidden','true');
+    }
+    function gotoStep3(){
+      var s1=document.getElementById('coStep1'), s2=document.getElementById('coStep2'), s3=document.getElementById('coStep3');
+      if(!s1||!s2||!s3) return;
+      s1.hidden=true; s1.setAttribute('aria-hidden','true');
+      s2.hidden=true; s2.setAttribute('aria-hidden','true');
+      s3.hidden=false; s3.setAttribute('aria-hidden','false');
+    }
   </script>
 </body>
 </html>
