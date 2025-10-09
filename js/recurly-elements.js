@@ -1,4 +1,5 @@
-/* ===== recurly-elements.js — robust single-instance Elements ===== */
+===== js/recurly-elements.js (final) =====
+/* ===== recurly-elements.js — single-instance Elements with hardening ===== */
 (function () {
   let elements = null;
   let fields = {};
@@ -8,11 +9,7 @@
     if (elements) return elements;
 
     elements = window.recurly.Elements();
-    const style = {
-      fontSize: '16px',
-      color: '#E9ECF2',
-      placeholder: { color: 'rgba(234,236,239,.55)' }
-    };
+    const style = { fontSize: '16px', color: '#E9ECF2', placeholder: { color: 'rgba(234,236,239,.55)' } };
 
     fields.number = elements.CardNumberElement({ style });
     fields.month  = elements.CardMonthElement({ style });
@@ -20,7 +17,6 @@
     fields.cvv    = elements.CardCvvElement({ style });
     fields.postal = elements.CardPostalCodeElement({ style });
 
-    // Attach into your Step 3 containers
     fields.number.attach('#re-number');
     fields.month.attach('#re-month');
     fields.year.attach('#re-year');
@@ -32,25 +28,24 @@
 
   function unmount() {
     if (!elements) return;
-    try { fields.number && fields.number.detach(); } catch(e) {}
-    try { fields.month  && fields.month.detach();  } catch(e) {}
-    try { fields.year   && fields.year.detach();   } catch(e) {}
-    try { fields.cvv    && fields.cvv.detach();    } catch(e) {}
-    try { fields.postal && fields.postal.detach(); } catch(e) {}
+    try { fields.number && fields.number.detach(); } catch (e) {}
+    try { fields.month  && fields.month.detach();  } catch (e) {}
+    try { fields.year   && fields.year.detach();   } catch (e) {}
+    try { fields.cvv    && fields.cvv.detach();    } catch (e) {}
+    try { fields.postal && fields.postal.detach(); } catch (e) {}
     fields = {};
     elements = null;
   }
 
-  function tokenize(orderMeta) {
+  function tokenize(meta) {
     return new Promise((resolve, reject) => {
       if (!elements) return reject(new Error('Payment form not ready'));
-      window.recurly.token(elements, orderMeta || {}, (err, token) => {
+      window.recurly.token(elements, meta || {}, (err, token) => {
         if (err) {
           const details = err.fields
             ? Object.entries(err.fields).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`).join('; ')
             : '';
-          if (details) err.message = `${err.message} — ${details}`;
-          return reject(err);
+          return reject(new Error(details ? `${err.message} — ${details}` : err.message));
         }
         resolve(token);
       });
