@@ -1,119 +1,123 @@
-/* ===== recurly-wire.js — singleton mount, live de-dupe, submits with token ===== */
+/* ===== recurly-wire.js v9 — robust singleton mount, dedupe, submit ===== */
 (function(){
   const $  = (s, ctx=document) => ctx.querySelector(s);
   const $$ = (s, ctx=document) => Array.from(ctx.querySelectorAll(s));
 
-  let mounted = false;
-
-  function haveRecurlyContainers(){
+  function hasContainers(){
     return $('#recurly-number') && $('#recurly-month') && $('#recurly-year') && $('#recurly-cvv') && $('#recurly-postal');
   }
-
-  function nukeLegacyAndDuplicates(){
+  function isMounted(){
+    const n = $('#recurly-number'); return !!(n && n.querySelector('iframe'));
+  }
+  function dedupe(){
     const wrap = $('#coPayWrap'); if (!wrap) return;
-
-    // Remove any plain/legacy inputs (entire block if possible)
-    wrap.querySelectorAll('input[name="card"], input[name="cardnumber"], input[name="exp"], input[name="month"], input[name="year"], input[name="exp-month"], input[name="exp-year"], input[name="cvc"], input[name="cczip"]').forEach(inp => {
-      const blk = inp.closest('fieldset,.co-field,.form-group,.row') || inp;
-      blk.remove();
+    // Remove plain inputs (legacy)
+    wrap.querySelectorAll('input[name="card"], input[name="cardnumber"], input[name="exp"], input[name="month"], input[name="year"], input[name="exp-month"], input[name="exp-year"], input[name="cvc"], input[name="cczip"]').forEach(i=>{
+      (i.closest('fieldset,.co-field,.form-group,.row')||i).remove();
     });
-
-    // If any #re-* containers exist, remove that set to avoid two stacks
-    wrap.querySelectorAll('#re-number, #re-month, #re-year, #re-cvv, #re-postal').forEach(el => {
-      const blk = el.closest('fieldset') || el.parentElement; if (blk) blk.remove(); else el.remove();
+    // Remove any #re-* block
+    wrap.querySelectorAll('#re-number, #re-month, #re-year, #re-cvv, #re-postal').forEach(el=>{
+      const blk = el.closest('fieldset')||el.parentElement; (blk||el).remove();
     });
+    // If there are multiple .cardset fieldsets, keep the one containing .recurly-hosted-field containers
+    const sets = $$('#coPayWrap fieldset'); 
+    if (sets.length > 1){
+      sets.forEach(fs => { if (!fs.querySelector('.recurly-hosted-field')) fs.remove(); });
+    }
+    // If multiple #recurly-number exist, keep the last
+    const nums = $$('#coPayWrap #recurly-number');
+    if (nums.length > 1){
+      for (let i=0; i<nums.length-1; i++){ const fs = nums[i].closest('fieldset'); if (fs) fs.remove(); else nums[i].remove(); }
+    }
+  }
 
-    // If more than one #recurly-number exists, keep the last one (newest)
-    const allNums = $$('#coPayWrap #recurly-number');
-    if (allNums.length > 1){
-      for (let i = 0; i < allNums.length - 1; i++){
-        const fs = allNums[i].closest('fieldset'); if (fs) fs.remove(); else allNums[i].remove();
+  // Minimal singleton helper
+  if (!window.RecurlyUI){
+    window.RecurlyUI = (function(){
+      let elements=null, fields={};
+      function mount(){
+        if (!window.recurly) return null;
+        if (elements && isMounted()) return elements;
+        elements = window.recurly.Elements();
+        const style = { fontSize:'16px', color:'#E9ECF2', placeholder:{ color:'rgba(234,236,239,.55)' } };
+        fields.number = elements.CardNumberElement({ style });
+        fields.month  = elements.CardMonthElement({ style });
+        fields.year   = elements.CardYearElement({ style });
+        fields.cvv    = elements.CardCvvElement({ style });
+        fields.postal = elements.CardPostalCodeElement({ style });
+        fields.number.attach('#recurly-number');
+        fields.month.attach('#recurly-month');
+        fields.year.attach('#recurly-year');
+        fields.cvv.attach('#recurly-cvv');
+        fields.postal.attach('#recurly-postal');
+        return elements;
       }
-    }
-  }
-
-  function ensureMounted(){
-    if (!window.recurly) return;
-    if (!haveRecurlyContainers()) return;
-
-    // Only mount once per lifecycle
-    if (mounted) return;
-    nukeLegacyAndDuplicates();
-
-    if (!window.RecurlyUI){
-      // Minimal singleton helper
-      window.RecurlyUI = (function(){
-        let elements = null; let fields = {};
-        function mount(){
-          if (elements) return elements;
-          elements = window.recurly.Elements();
-          const style = { fontSize:'16px', color:'#E9ECF2', placeholder:{ color:'rgba(234,236,239,.55)' } };
-          fields.number = elements.CardNumberElement({ style });
-          fields.month  = elements.CardMonthElement({ style });
-          fields.year   = elements.CardYearElement({ style });
-          fields.cvv    = elements.CardCvvElement({ style });
-          fields.postal = elements.CardPostalCodeElement({ style });
-
-          fields.number.attach('#recurly-number');
-          fields.month.attach('#recurly-month');
-          fields.year.attach('#recurly-year');
-          fields.cvv.attach('#recurly-cvv');
-          fields.postal.attach('#recurly-postal');
-          return elements;
-        }
-        function tokenize(meta){
-          return new Promise((resolve, reject)=>{
-            if (!elements) mount();
-            window.recurly.token(elements, meta || {}, (err, token)=>{
-              if (err){
-                const details = err.fields ? Object.entries(err.fields).map(([k,v]) => `${k}: ${Array.isArray(v)?v.join(', '):v}`).join('; ') : '';
-                if (details) err.message = `${err.message} — ${details}`;
-                reject(err);
-              } else resolve(token);
-            });
+      function tokenize(meta){
+        return new Promise((resolve, reject)=>{
+          if (!isMounted()) return reject(new Error('Payment form not ready'));
+          window.recurly.token(elements, meta||{}, (err, token)=>{
+            if (err){
+              const details = err.fields ? Object.entries(err.fields).map(([k,v]) => `${k}: ${Array.isArray(v)?v.join(', '):v}`).join('; ') : '';
+              if (details) err.message = `${err.message} — ${details}`;
+              reject(err);
+            } else resolve(token);
           });
-        }
-        return { mount, tokenize };
-      })();
-    }
-
-    window.RecurlyUI.mount();
-    mounted = true;
+        });
+      }
+      return { mount, tokenize };
+    })();
   }
 
-  // Observe changes inside the modal; dedupe+mount when Step 3 injects markup
-  const modal = document.getElementById('checkoutModal') || document.documentElement;
-  const obs = new MutationObserver(() => {
-    mounted = false; // allow re-mount if step rebuilt
-    ensureMounted();
-  });
-  obs.observe(modal, { subtree:true, childList:true });
+  // Mount loop: try until iframes show or we time out
+  let tries = 0, timer = null;
+  function mountLoop(){
+    clearTimeout(timer);
+    tries++;
+    if (!hasContainers()){ timer = setTimeout(mountLoop, 150); return; }
+    dedupe();
+    if (!window.recurly){ timer = setTimeout(mountLoop, 150); return; }
+    window.RecurlyUI.mount();
+    if (!isMounted()){
+      if (tries < 40) { timer = setTimeout(mountLoop, 150); return; }
+      console.warn('[Recurly] mount timeout');
+    }
+  }
 
-  // Run on ready and on load
-  document.addEventListener('DOMContentLoaded', ensureMounted);
-  window.addEventListener('load', ensureMounted);
+  function startWhenVisible(){
+    const s3 = $('#coStep3');
+    if (s3 && (s3.hidden === false || getComputedStyle(s3).display !== 'none')){
+      tries = 0; mountLoop();
+    }
+  }
 
-  // Hook the submit button (id = coSubmit)
-  document.addEventListener('click', async (ev) => {
+  document.addEventListener('DOMContentLoaded', startWhenVisible);
+  window.addEventListener('load', startWhenVisible);
+  new MutationObserver(startWhenVisible).observe(document.getElementById('checkoutModal') || document.documentElement, { subtree:true, childList:true });
+
+  // Submit handler
+  document.addEventListener('click', async (ev)=>{
     const btn = ev.target.closest('#coSubmit');
     if (!btn) return;
     ev.preventDefault();
     const step1 = document.getElementById('coStep1');
     const get = n => step1 ? (step1.querySelector(`[name='${n}']`)?.value || '').trim() : '';
-    const meta = (()=>{ const full=get('name'); const ix=full.lastIndexOf(' '); return { first_name: ix>0? full.slice(0,ix):full, last_name: ix>0? full.slice(ix+1):'', email:get('email'), phone:get('phone') }; })();
-    try {
+    const full = get('name'); const ix = full.lastIndexOf(' ');
+    const meta = { first_name: ix>0? full.slice(0,ix) : full, last_name: ix>0? full.slice(ix+1):'', email:get('email'), phone:get('phone') };
+    try{
       btn.disabled = true;
-      ensureMounted();
+      if (!isMounted()){ tries = 0; mountLoop(); throw new Error('Payment form not ready'); }
       const token = await window.RecurlyUI.tokenize(meta);
       const qty  = Number(document.querySelector('#coQty')?.value || 1) || 1;
       const unit = Number(document.body.dataset.price || 90) || 90;
-      const res = await fetch('/api/payments/recurly/charge', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ token: token?.id, qty, unit_amount: unit }) });
+      const res = await fetch('/api/payments/recurly/charge', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token: token?.id, qty, unit_amount: unit }) });
       const out = await res.json();
       if (!res.ok) throw new Error(out?.error || out?.message || 'Charge failed');
       document.getElementById('checkoutSuccess')?.removeAttribute('hidden');
       document.getElementById('coStep3')?.setAttribute('hidden','hidden');
-    } catch (e) {
+    } catch(e){
       alert(e.message || 'Payment failed');
-    } finally { btn.disabled = false; }
+    } finally {
+      btn.disabled = false;
+    }
   });
 })();
