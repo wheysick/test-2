@@ -1,4 +1,4 @@
-// ===== checkout.js — v10 (reviews sidebar fixed, Step 2 like screenshot, safe mounts) =====
+// ===== checkout.js — v10.1 (CTA open fix, Step 2 totals, field focus) =====
 (function(){
   const $  = (s, r=document) => r.querySelector(s);
   const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
@@ -15,30 +15,52 @@
   const toStep2 = $('#coToStep2');
   const toStep3 = $('#coToStep3');
 
-  // Totals state
-  const PRICE = 90.00;         // price per paid bottle
-  const TAX_RATE = 0.0874;     // ~8.74% like your screenshot
-  let qty = 1;                 // paid bottles (B1G1 => total bottles = qty*2)
+  /* CTA reliability — capture-phase listener beats other handlers */
+  document.addEventListener('click', function(e){
+    const a = e.target.closest && e.target.closest('.open-checkout');
+    if (!a) return;
+    e.preventDefault();
+    checkoutOpen();
+  }, true);
 
-  // Prevent native submits from closing modal
+  /* Prevent native form submits from closing modal */
   modal.addEventListener('submit', (e)=>{ if (modal.contains(e.target)) e.preventDefault(); }, true);
   step1 && step1.addEventListener('submit', (e)=>{ e.preventDefault(); setStep(2); }, true);
 
-  // Qty controls
+  /* Quantity + totals for Step 2 */
+  const PRICE = 90.00;
+  const TAX_RATE = 0.0874;       // ~ matches the screenshot total
   const qtyInput = $('#coQty');
+  const elItems = $('#coItems'), elMerch = $('#coMerch'), elMethod = $('#coMethod');
+  const elTax   = $('#coTax'),   elShip  = $('#coShip'),  elTotal  = $('#coTotal');
+  let qty = 1;
+
+  function fmt(n){ return '$' + n.toFixed(2); }
   function setQty(n){
     qty = Math.min(99, Math.max(1, n|0));
     if (qtyInput) qtyInput.value = String(qty);
     updateTotals();
   }
-  $$('.qty-inc').forEach(b => b.addEventListener('click', ()=> setQty(qty+1)));
-  $$('.qty-dec').forEach(b => b.addEventListener('click', ()=> setQty(qty-1)));
+  function updateTotals(){
+    const merch = qty * PRICE;             // pay for qty bottles
+    const tax   = +(merch * TAX_RATE).toFixed(2);
+    const total = merch + tax;
+    elItems && (elItems.textContent = `${qty*2} bottles (${qty} paid + ${qty} free)`);
+    elMerch && (elMerch.textContent = fmt(merch));
+    elMethod && (elMethod.textContent = fmt(0));
+    elTax   && (elTax.textContent   = fmt(tax));
+    elShip  && (elShip.textContent  = 'FREE');
+    elTotal && (elTotal.textContent = fmt(total));
+  }
   qtyInput && qtyInput.addEventListener('input', ()=> {
     const v = parseInt(qtyInput.value.replace(/[^0-9]/g,''),10);
     setQty(isNaN(v)?1:v);
   });
+  $$('.qty-inc').forEach(b => b.addEventListener('click', ()=> setQty(qty+1)));
+  $$('.qty-dec').forEach(b => b.addEventListener('click', ()=> setQty(qty-1)));
+  updateTotals();
 
-  // Step navigation
+  /* Step navigation */
   function setStep(n){
     [step1, step2, step3].forEach((el,i)=>{
       if (!el) return;
@@ -58,28 +80,7 @@
   back && back.addEventListener('click', (e)=>{ e.preventDefault(); if (!step3.hidden) setStep(2); else setStep(1); });
   close && close.addEventListener('click', (e)=>{ e.preventDefault(); checkoutClose(); });
 
-  // Totals UI elements
-  const elItems = $('#coItems'), elMerch = $('#coMerch'), elMethod = $('#coMethod');
-  const elTax   = $('#coTax'),  elShip  = $('#coShip'),  elTotal  = $('#coTotal');
-
-  function fmt(n){ return '$' + n.toFixed(2); }
-  function updateTotals(){
-    const totalBottles = qty*2; // B1G1
-    const merch = qty * PRICE;
-    const methodDiscount = 0.00;
-    const tax = +(merch * TAX_RATE).toFixed(2);
-    const total = merch - methodDiscount + tax; // shipping FREE
-
-    if (elItems) elItems.textContent = `${totalBottles} bottles (${qty} paid + ${qty} free)`;
-    if (elMerch) elMerch.textContent = fmt(merch);
-    if (elMethod) elMethod.textContent = fmt(methodDiscount);
-    if (elTax)   elTax.textContent = fmt(tax);
-    if (elShip)  elShip.textContent = 'FREE';
-    if (elTotal) elTotal.textContent = fmt(total);
-  }
-  updateTotals();
-
-  // Hosted-field clickability
+  /* Hosted-field clickability hardening */
   function fixClickBlockers(){
     try {
       const wrappers = step3.querySelectorAll('label, .row, .co-row, .co-field');
@@ -91,7 +92,7 @@
     } catch (e) {}
   }
 
-  // Submit payment
+  /* Submit payment */
   submit && submit.addEventListener('click', async (e)=>{
     e.preventDefault();
     try {
@@ -107,37 +108,30 @@
       if (full.includes(' ')){ const i=full.lastIndexOf(' '); first=full.slice(0,i); last=full.slice(i+1); }
 
       const meta = {
-        first_name: first, last_name: last,
-        email: get('email'), phone: get('phone'),
-        address: get('address'), city: get('city'),
-        state: get('state'), zip: get('zip'),
-        items: [{ sku: 'tirz-vial', qty, price: PRICE }]
+        first_name:first,last_name:last,
+        email:get('email'),phone:get('phone'),
+        address:get('address'),city:get('city'),
+        state:get('state'),zip:get('zip'),
+        items:[{sku:'tirz-vial',qty,price:PRICE}]
       };
 
       const token = await window.RecurlyUI.tokenize(meta);
-      const resp = await fetch('/api/payments/recurly/charge', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: token.id || token, customer: meta })
+      const resp = await fetch('/api/payments/recurly/charge',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({token:token.id||token,customer:meta})
       });
-      let data=null; try{ data=await resp.json(); }catch(_){}
-
-      if (!resp.ok){
-        const reasons = Array.isArray(data?.errors) ? `\n• ${data.errors.join('\n• ')}` : '';
-        throw new Error((data?.error || `Payment failed (HTTP ${resp.status})`) + reasons);
+      let data=null; try{data=await resp.json()}catch(_){}
+      if(!resp.ok){
+        const reasons = Array.isArray(data?.errors)?`\n• ${data.errors.join('\n• ')}`:'';
+        throw new Error((data?.error||`Payment failed (HTTP ${resp.status})`)+reasons);
       }
 
-      step3.hidden = true;
-      const ok = $('#checkoutSuccess'); if (ok) ok.hidden = false;
-    } catch (err){
-      alert(err?.message || 'Payment failed');
-    } finally {
-      submit.disabled = false;
-      submit.textContent = 'Complete Order';
-    }
+      step3.hidden=true; const ok=$('#checkoutSuccess'); if(ok) ok.hidden=false;
+    } catch(err){ alert(err?.message||'Payment failed'); }
+    finally{ submit.disabled=false; submit.textContent='Complete Order'; }
   });
 
-  // Public helpers used by header/CTA
+  /* Public helpers */
   window.checkoutOpen = function(){
     modal.classList.add('show');
     modal.style.display='grid';
@@ -151,5 +145,5 @@
     document.documentElement.removeAttribute('data-checkout-open');
     document.body.style.overflow='';
   };
-  window.checkoutBack = function(){ if (!step3.hidden) setStep(2); else setStep(1); };
+  window.checkoutBack = function(){ if(!step3.hidden) setStep(2); else setStep(1); };
 })();
