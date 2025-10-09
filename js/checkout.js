@@ -1,4 +1,4 @@
-// ===== checkout.js — 3-step flow, qty + totals, CTA hide, hosted-fields clickable =====
+// ===== checkout.js — v10 (reviews sidebar fixed, Step 2 like screenshot, safe mounts) =====
 (function(){
   const $  = (s, r=document) => r.querySelector(s);
   const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
@@ -14,49 +14,31 @@
   const back    = $('#coBackLink') || $('#coBack');
   const toStep2 = $('#coToStep2');
   const toStep3 = $('#coToStep3');
-  const qtyEl   = $('#coQty');
-  const subtotal= $('#coSubtotal');
-  const shipping= $('#coShipping');
-  const discount= $('#coDiscount');
-  const totalEl = $('#coTotal');
 
-  // ---- price state
-  const PRICE = 90.00;
-  let qty = Math.max(1, parseInt(qtyEl && qtyEl.value || '1', 10) || 1);
-  let discountVal = 0.00;
-  const shippingVal = 0.00;
+  // Totals state
+  const PRICE = 90.00;         // price per paid bottle
+  const TAX_RATE = 0.0874;     // ~8.74% like your screenshot
+  let qty = 1;                 // paid bottles (B1G1 => total bottles = qty*2)
 
-  function fmt(n){ return '$' + n.toFixed(2); }
-
-  function computeTotals(){
-    const sub = Math.max(0, qty) * PRICE;
-    const tot = Math.max(0, sub - discountVal + shippingVal);
-    if (subtotal) subtotal.textContent = fmt(sub);
-    if (shipping) shipping.textContent = fmt(shippingVal);
-    if (discount) discount.textContent = '-' + fmt(discountVal).slice(1);
-    if (totalEl)  totalEl.textContent = fmt(tot);
-  }
-
-  // ---- guards (prevent native submits closing modal)
-  modal.addEventListener('submit', (e)=>{ if (modal.contains(e.target)) { e.preventDefault(); } }, true);
+  // Prevent native submits from closing modal
+  modal.addEventListener('submit', (e)=>{ if (modal.contains(e.target)) e.preventDefault(); }, true);
   step1 && step1.addEventListener('submit', (e)=>{ e.preventDefault(); setStep(2); }, true);
 
-  // ---- qty controls
+  // Qty controls
+  const qtyInput = $('#coQty');
   function setQty(n){
-    qty = Math.min(99, Math.max(1, n));
-    if (qtyEl) qtyEl.value = String(qty);
-    computeTotals();
-  }
-  if (qtyEl){
-    qtyEl.addEventListener('input', ()=>{
-      const v = parseInt(qtyEl.value.replace(/[^0-9]/g,''), 10);
-      setQty(isNaN(v) ? 1 : v);
-    });
+    qty = Math.min(99, Math.max(1, n|0));
+    if (qtyInput) qtyInput.value = String(qty);
+    updateTotals();
   }
   $$('.qty-inc').forEach(b => b.addEventListener('click', ()=> setQty(qty+1)));
   $$('.qty-dec').forEach(b => b.addEventListener('click', ()=> setQty(qty-1)));
+  qtyInput && qtyInput.addEventListener('input', ()=> {
+    const v = parseInt(qtyInput.value.replace(/[^0-9]/g,''),10);
+    setQty(isNaN(v)?1:v);
+  });
 
-  // ---- step switching
+  // Step navigation
   function setStep(n){
     [step1, step2, step3].forEach((el,i)=>{
       if (!el) return;
@@ -71,23 +53,33 @@
       if (window.RecurlyUI) window.RecurlyUI.unmount();
     }
   }
-
   toStep2 && toStep2.addEventListener('click', (e)=>{ e.preventDefault(); setStep(2); });
-  toStep3 && toStep3.addEventListener('click', (e)=>{
-    e.preventDefault();
-    const method = (document.querySelector('input[name="paymethod"]:checked')||{}).value || 'card';
-    if (method !== 'card') { alert('Only card is enabled right now. Choose Card.'); return; }
-    setStep(3);
-  });
+  toStep3 && toStep3.addEventListener('click', (e)=>{ e.preventDefault(); setStep(3); });
   back && back.addEventListener('click', (e)=>{ e.preventDefault(); if (!step3.hidden) setStep(2); else setStep(1); });
-  close && close.addEventListener('click', (e)=>{
-    e.preventDefault();
-    modal.classList.remove('show'); modal.style.display='none';
-    document.documentElement.removeAttribute('data-checkout-open');
-    document.body.style.overflow='';
-  });
+  close && close.addEventListener('click', (e)=>{ e.preventDefault(); checkoutClose(); });
 
-  // ---- hosted field clickability
+  // Totals UI elements
+  const elItems = $('#coItems'), elMerch = $('#coMerch'), elMethod = $('#coMethod');
+  const elTax   = $('#coTax'),  elShip  = $('#coShip'),  elTotal  = $('#coTotal');
+
+  function fmt(n){ return '$' + n.toFixed(2); }
+  function updateTotals(){
+    const totalBottles = qty*2; // B1G1
+    const merch = qty * PRICE;
+    const methodDiscount = 0.00;
+    const tax = +(merch * TAX_RATE).toFixed(2);
+    const total = merch - methodDiscount + tax; // shipping FREE
+
+    if (elItems) elItems.textContent = `${totalBottles} bottles (${qty} paid + ${qty} free)`;
+    if (elMerch) elMerch.textContent = fmt(merch);
+    if (elMethod) elMethod.textContent = fmt(methodDiscount);
+    if (elTax)   elTax.textContent = fmt(tax);
+    if (elShip)  elShip.textContent = 'FREE';
+    if (elTotal) elTotal.textContent = fmt(total);
+  }
+  updateTotals();
+
+  // Hosted-field clickability
   function fixClickBlockers(){
     try {
       const wrappers = step3.querySelectorAll('label, .row, .co-row, .co-field');
@@ -99,7 +91,7 @@
     } catch (e) {}
   }
 
-  // ---- submit payment
+  // Submit payment
   submit && submit.addEventListener('click', async (e)=>{
     e.preventDefault();
     try {
@@ -109,7 +101,6 @@
       const orig = submit.textContent;
       submit.textContent = 'Processing…';
 
-      // collect Step 1 data
       const get = (n) => step1.querySelector(`[name="${n}"]`)?.value?.trim() || '';
       const full = get('name') || '';
       let first = full, last = '';
@@ -120,7 +111,7 @@
         email: get('email'), phone: get('phone'),
         address: get('address'), city: get('city'),
         state: get('state'), zip: get('zip'),
-        items: [{ sku: 'tirz-vial', qty, price: 90.00 }]
+        items: [{ sku: 'tirz-vial', qty, price: PRICE }]
       };
 
       const token = await window.RecurlyUI.tokenize(meta);
@@ -130,6 +121,7 @@
         body: JSON.stringify({ token: token.id || token, customer: meta })
       });
       let data=null; try{ data=await resp.json(); }catch(_){}
+
       if (!resp.ok){
         const reasons = Array.isArray(data?.errors) ? `\n• ${data.errors.join('\n• ')}` : '';
         throw new Error((data?.error || `Payment failed (HTTP ${resp.status})`) + reasons);
@@ -145,6 +137,19 @@
     }
   });
 
-  // ---- init
-  computeTotals();
+  // Public helpers used by header/CTA
+  window.checkoutOpen = function(){
+    modal.classList.add('show');
+    modal.style.display='grid';
+    document.documentElement.setAttribute('data-checkout-open','1');
+    document.body.style.overflow='hidden';
+    setStep(1);
+  };
+  window.checkoutClose = function(){
+    modal.classList.remove('show');
+    modal.style.display='none';
+    document.documentElement.removeAttribute('data-checkout-open');
+    document.body.style.overflow='';
+  };
+  window.checkoutBack = function(){ if (!step3.hidden) setStep(2); else setStep(1); };
 })();
