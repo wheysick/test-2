@@ -1,10 +1,18 @@
-// /api/payments/recurly/charge.js  (ONE‑TIME PURCHASE, MINIMAL)
+// /api/payments/recurly/charge.js  (ONE‑TIME PURCHASE, PREVIEW + CLEAR ERRORS)
 import { Client } from 'recurly';
+
+function parseRecurlyError(e){
+  let payload = null;
+  try { payload = e?.body && typeof e.body === 'string' ? JSON.parse(e.body) : e?.body; } catch {}
+  const message = payload?.error?.message || e?.message || 'Validation error';
+  const errors  = (payload?.error?.params || []).map(p => (p?.param ? `${p.param}: ${p.message}` : p?.message)).filter(Boolean);
+  return { status: e?.status || 422, message, errors, raw: payload || e };
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
   try {
-    const apiKey = process.env.RECURLY_API_KEY=d408cdc265f54f48bbff859526ec4303;
+    const apiKey = process.env.RECURLY_API_KEY;
     if (!apiKey) return res.status(500).json({ error: 'Missing RECURLY_API_KEY' });
     const client = new Client(apiKey);
 
@@ -13,11 +21,9 @@ export default async function handler(req, res) {
 
     const amount = Number(Number(order?.total || 90).toFixed(2));
     const email  = order?.customer?.email || `guest+${Date.now()}@example.com`;
-
-    // Use a unique account code every time to avoid 'code already taken' validation errors.
     const accountCode = `guest_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
 
-    const purchase = await client.createPurchase({
+    const purchaseReq = {
       currency: 'USD',
       collection_method: 'automatic',
       account: {
@@ -31,20 +37,21 @@ export default async function handler(req, res) {
         quantity: 1,
         description: `One-time checkout qty=${order?.qty || 1}`
       }]
-    });
+    };
 
+    // PREVIEW FIRST for clear validation messages (schema issues, token site mismatch, etc.)
+    try {
+      await client.previewPurchase(purchaseReq);
+    } catch (e) {
+      const pe = parseRecurlyError(e);
+      return res.status(pe.status).json({ error: pe.message, errors: pe.errors, raw: pe.raw });
+    }
+
+    // If preview passes, perform the actual purchase
+    const purchase = await client.createPurchase(purchaseReq);
     return res.status(200).json({ ok: true, id: purchase?.uuid || null });
   } catch (e) {
-    console.error('[Recurly] purchase error', e);
-    // Normalize Recurly API error payload if present
-    let message = e?.message || 'Validation error';
-    if (e?.body && typeof e.body === 'string') {
-      try {
-        const parsed = JSON.parse(e.body);
-        message = parsed?.error?.message || message;
-        return res.status(e?.status || 422).json({ error: message, raw: parsed });
-      } catch {}
-    }
-    return res.status(e?.status || 422).json({ error: message, details: e });
+    const pe = parseRecurlyError(e);
+    return res.status(pe.status).json({ error: pe.message, errors: pe.errors, raw: pe.raw });
   }
 }
