@@ -1,9 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="recurly-public-key" content="ewr1-…your-public-key…">
 <script src="https://js.recurly.com/v4/recurly.js"></script>
-<script src="/js/recurly-elements-patch.js?v=21"></script>
-<script defer src="/js/checkout3.js?v=734"></script>
+
+<link rel="stylesheet" href="/css/recurly-elements.css?v=22">  <!-- optional -->
+<script src="/js/recurly-elements.js?v=22"></script>            <!-- mounts/tokenizes -->
+<!-- your controller after the helpers -->
+<script defer src="/js/checkout3.js?v=735"></script>
   
 <meta name="recurly-public-key" content="ewr1-AxqCz2aZ9UMj5oOBsENPG2" />
 <script src="https://js.recurly.com/v4/recurly.js" defer></script>
@@ -259,7 +263,6 @@
       <section id="coStep3" class="co-pane" hidden aria-hidden="true">
         <h3 class="co-h3">Complete Order</h3>
         <div class="co-stockline" id="coStockLine3"><span class="qty">47</span> left in stock</div>
-
         <div id="coPayWrap"></div>
         <div class="co-actions">
           <button class="btn-main btn-lg co-submit" id="coSubmit">Complete Order</button>
