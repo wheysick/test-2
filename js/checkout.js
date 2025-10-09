@@ -98,22 +98,41 @@
       let first = full, last = '';
       if (full.includes(' ')){ const i=full.lastIndexOf(' '); first=full.slice(0,i); last=full.slice(i+1); }
 
-      const meta = {
-        first_name:first, last_name:last,
-        email:get('email'), phone:get('phone'),
-        address:get('address'), city:get('city'),
-        state:get('state'), zip:get('zip'),
-        country: 'US',
-        items:[{ sku:'tirz-vial', qty, price: PRICE }]
-      };
+// ...inside the coSubmit click handler (right before tokenize):
 
-      const token = await window.RecurlyUI.tokenize(meta);
+// meta is your existing object built from Step 1
+const meta = {
+  first_name: first, last_name: last,
+  email: get('email'), phone: get('phone'),
+  address: get('address'), city: get('city'),
+  state: get('state'), zip: get('zip'),
+  country: 'US',
+  items: [{ sku: 'tirz-vial', qty, price: PRICE }]
+};
 
-      const resp = await fetch('/api/payments/recurly/charge', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ token: token.id || token, customer: meta })
-      });
+// Map to Recurly's expected tokenization keys
+const billingForToken = {
+  first_name:  meta.first_name,
+  last_name:   meta.last_name,
+  email:       meta.email,
+  phone:       meta.phone,
+  address1:    meta.address || 'N/A',   // <- Recurly expects address1
+  city:        meta.city    || 'N/A',
+  state:       meta.state   || 'NA',
+  postal_code: meta.zip     || '00000', // <- Recurly expects postal_code
+  country:     meta.country || 'US'
+};
+
+// 1) Tokenize with proper keys
+const token = await window.RecurlyUI.tokenize(billingForToken);
+
+// 2) Proceed to server purchase with your existing `meta`
+const resp = await fetch('/api/payments/recurly/charge', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ token: token.id || token, customer: meta })
+});
+
       let data=null; try{ data = await resp.json(); } catch(_){}
       if (!resp.ok) {
         const reasons = Array.isArray(data?.errors) ? `\n• ${data.errors.join('\n• ')}` : '';
