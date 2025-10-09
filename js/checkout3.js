@@ -1,19 +1,12 @@
 /* ===== checkout3.js — v7.2 (Recurly Elements + validated purchase) ===== */
 (function(){
-
-  // --- Global helpers (defined early so inline onclick works even if modal lookup hasn't run yet) ---
-  if (!window.checkoutOpen)  window.checkoutOpen  = function(){ try { (window.__co_openModal||function(){ /*noop*/ })(); } catch(e){ console.warn(e); } };
-  if (!window.checkoutClose) window.checkoutClose = function(){ try { (window.__co_closeModal||function(){ /*noop*/ })(); } catch(e){ console.warn(e); } };
-
   'use strict';
 
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
   let modal = document.getElementById('checkoutModal');
-  if (!modal) {
-    document.addEventListener('DOMContentLoaded', () => { modal = document.getElementById('checkoutModal'); });
-  }
+  if (!modal) { document.addEventListener('DOMContentLoaded', () => { modal = document.getElementById('checkoutModal'); }); }
 
   const step1   = document.getElementById('coStep1');
   const step2   = document.getElementById('coStep2');
@@ -93,11 +86,6 @@
     methodErr && hide(methodErr);
     stock.reset(); stock.start();
   }
-  
-  // Global helpers so <a onclick="checkoutOpen()"> works
-  window.checkoutOpen = function(){ try { openModal(); } catch(e){ console.warn(e); } };
-  window.checkoutClose = function(){ try { closeModal(); } catch(e){ console.warn(e); } };
-
   function closeModal(e){
     window.__co_closeModal = () => closeModal();
     e?.preventDefault?.(); e?.stopPropagation?.();
@@ -370,21 +358,3 @@ submitBtn.addEventListener('click', async (e) => {
     submitBtn.disabled = false;
   }
 });
-
-
-// === Clickability fix: remove legacy fields, denest forms, raise z-index ===
-;(function(){
-  const payWrap = document.getElementById('coPayWrap');
-  if (!payWrap) return;
-  // Remove obvious legacy inputs if any still exist
-  ['input[name="card"]','input[name="cardnumber"]','input[name="exp"]','input[name="exp-month"]','input[name="exp-year"]','input[name="cvc"]','input[name="cczip"]']
-    .forEach(sel => payWrap.querySelectorAll(sel).forEach(el => { const blk = el.closest('.co-field,.form-group,fieldset')||el; blk.remove(); }));
-  // De-nest forms
-  document.querySelectorAll('form form').forEach(inner=>{ const outer=inner.closest('form'); while(inner.firstChild){ outer.insertBefore(inner.firstChild, inner);} inner.remove(); });
-  // Lift recurly iframes above any modal overlay
-  const modal = document.getElementById('checkoutModal'); if (modal){ modal.style.zIndex=1000; modal.querySelectorAll('.recurly-hosted-field, .recurly-hosted-field iframe').forEach(x=>x.style.zIndex=1100); }
-  // Disable accidental blockers inside coPayWrap that are not hosted fields
-  Array.from(payWrap.children).forEach(ch => {
-    if (!ch.classList.contains('recurly-hosted-field')) ch.style.pointerEvents = ch.style.pointerEvents || 'auto';
-  });
-})(); 
