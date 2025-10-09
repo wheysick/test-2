@@ -1,32 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="recurly-public-key" content="ewr1-AxqCz2aZ9UMj5oOBsENPG2">
-
-<!-- 1) Recurly core -->
-<script src="https://js.recurly.com/v4/recurly.js"></script>
-
-<!-- 2) Single-instance Elements + tokenize helpers (from v22) -->
-<script src="/js/recurly-elements.js?v=22"></script>
-
-<!-- 3) Wire helper (v23) that removes legacy block, injects Recurly block, mounts/unmounts, handles submit -->
-<script src="/js/recurly-wire.js?v=23"></script>
-
-<!-- 4) Your existing controller -->
-<script defer src="/js/checkout3.js?v=735"></script>
-
-
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Free Sample — Weekly Wellness Formula</title>
-  <meta name="description" content="A magazine‑style feature with a limited free sample offer. Shipping ends at midnight." />
-  <meta name="robots" content="noindex,nofollow" />
-  <meta name="theme-color" content="#0a0c10" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <link rel="stylesheet" href="css/style.css?v=640" />
-  <link rel="stylesheet" href="css/checkout3.css?v=640" />
+
+  <!-- Your public key (safe to be public) -->
+  <meta name="recurly-public-key" content="ewr1-AxqCz2aZ9UMj5oOBsENPG2">
+
+  <!-- Recurly core -->
+  <script src="https://js.recurly.com/v4/recurly.js"></script>
+
+  <!-- Single‑instance Recurly Elements helpers (exports window.RecurlyUI) -->
+  <script src="js/recurly-elements.js?v=22"></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/style.css?v=640">
+  <!-- Use checkout.css (NOT checkout3.css) -->
+  <link rel="stylesheet" href="css/checkout.css?v=641">
 </head>
-<body class="verge-theme">
+
+<body>
   <header class="masthead" role="banner">
     <div class="masthead-inner">
       <div class="brand">SELFHACKING</div>
@@ -164,16 +158,18 @@
       </div>
     </aside>
   </main>
+  <!-- Floating CTA (example trigger) -->
+  <a id="openCheckout" class="floating-cta" href="#offer" onclick="checkoutOpen(); return false;">Claim Free Sample</a>
 
-  <!-- Checkout Modal -->
-  <div id="checkoutModal" class="modal modal-checkout" role="dialog" aria-modal="true" aria-labelledby="coTitle" aria-hidden="true">
-    <div class="modal-content checkout-card" role="document">
-      <button class="modal-close" id="checkoutClose" aria-label="Close">×</button>
-      <a id="coBackLink" href="#" hidden>Back</a>
+  <!-- ====== CHECKOUT MODAL ====== -->
+  <div id="checkoutModal" class="modal modal-checkout" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle" style="display:none;">
+    <div class="modal-content checkout-card" id="checkoutCard">
+      <button id="checkoutClose" class="close" aria-label="Close">×</button>
+      <a id="coBackLink" class="co-back-link" href="#" onclick="checkoutBack(); return false;">Back</a>
 
-      <!-- Step 1 -->
+      <!-- Step 1: Shipping -->
       <form id="coStep1" class="co-pane" novalidate>
-        <h3 class="co-h3">Where Should We Send Your Free Bottles?</h3>
+        <h3 class="co-h3" id="checkoutTitle">Where Should We Send Your Free Bottles?</h3>
         <div class="co-grid">
           <label>Full Name
             <input type="text" name="name" autocomplete="name" placeholder="Full Name" required />
@@ -187,104 +183,50 @@
           <label>Street Address
             <input type="text" name="address" autocomplete="street-address" placeholder="Street Address" required />
           </label>
-          <div class="co-row">
-            <label>City
-              <input type="text" name="city" autocomplete="address-level2" placeholder="City" required />
-            </label>
-            <label>State
-              <input type="text" name="state" maxlength="2" placeholder="State" required />
-            </label>
-            <label>Zip
-              <input type="text" name="zip" inputmode="numeric" maxlength="5" placeholder="Zip Code" required />
-            </label>
-          </div>
-        </div>
-        <button type="submit" class="btn-main btn-lg co-next">Continue</button>
-      </form>
-
-      <!-- Step 2 -->
-      <section id="coStep2" class="co-pane" hidden aria-hidden="true">
-        <h3 class="co-h3">Buy 1 Get 1 Free</h3>
-        <div class="co-stockline" id="coStockLine2"><span class="qty">47</span> left in stock</div>
-
-        <div class="co-qty">
-          <button type="button" class="qty-btn qty-dec" aria-label="Decrease">−</button>
-          <input type="text" id="coQty" value="1" inputmode="numeric" aria-label="Quantity">
-          <button type="button" class="qty-btn qty-inc" aria-label="Increase">+</button>
-        </div>
-        <div class="co-price"><span class="was">$90</span><span class="now">$45</span> <span class="per">/ bottle</span></div>
-
-        <!-- Card primary -->
-        <button class="co-xpay co-xpay-primary" data-method="card" data-discount="0" type="button" aria-label="Pay with card" style="background:#5b5bf7;color:#fff;justify-content:center;min-width:unset;width:100%;">
-          <img src="assets/card.svg" class="pm-icon" alt="" /><span class="label">Credit / Debit Card</span>
-        </button>
-
-        <p class="co-savings-note">save an additional <strong>15% off</strong> your order by using a different payment method</p>
-
-        <!-- Sliding method strip with arrows -->
-        <div class="co-xpay-wrap">
-          <button class="xpay-nav prev" type="button" aria-label="Previous">
-            <svg viewBox="0 0 24 24"><path fill="currentColor" d="M15.4 5.4L14 4l-8 8 8 8 1.4-1.4L8.8 12z"/></svg>
-          </button>
-
-          <div class="co-xpay-strip">
-            <button class="co-xpay paypal" data-method="paypal" data-discount="15" type="button">
-              <img src="assets/paypal.svg" class="pm-icon" alt=""/><span class="label">PayPal</span>
-            </button>
-            <button class="co-xpay venmo" data-method="venmo" data-discount="15" type="button">
-              <img src="assets/venmo.svg" class="pm-icon" alt=""/><span class="label">Venmo</span>
-            </button>
-            <button class="co-xpay cashapp" data-method="cashapp" data-discount="15" type="button">
-              <img src="assets/cashapp.svg" class="pm-icon" alt=""/><span class="label">Cash App</span>
-            </button>
-            <button class="co-xpay crypto" data-method="crypto" data-discount="15" type="button">
-              <img src="assets/crypto.svg" class="pm-icon" alt=""/><span class="label">Crypto</span>
-            </button>
-          </div>
-
-          <button class="xpay-nav next" type="button" aria-label="Next">
-            <svg viewBox="0 0 24 24"><path fill="currentColor" d="M8.6 18.6L10 20l8-8-8-8-1.4 1.4L15.2 12z"/></svg>
-          </button>
-        </div>
-
-        <div id="coMethodError" class="co-error" role="alert" aria-live="polite" hidden></div>
-
-        <div class="co-totals" role="group" aria-label="Order totals">
-          <div><span>Items</span><span id="coItemsLine">2 bottles (1 paid + 1 free)</span></div>
-          <div><span>Merch</span><span id="coMerch">$90.00</span></div>
-          <div><span>Method discount</span><span id="coDisc">-$0.00</span></div>
-          <div><span id="coTaxLabel">Tax</span><span id="coTax">$0.00</span></div>
-          <div><span>Shipping</span><span class="co-free-ship">FREE</span></div>
-          <div class="co-total-row"><span>Total</span><span id="coTotal">$90.00</span></div>
+          <label>City
+            <input type="text" name="city" autocomplete="address-level2" placeholder="City" required />
+          </label>
+          <label>State
+            <input type="text" name="state" maxlength="2" placeholder="CA" required />
+          </label>
+          <label>ZIP
+            <input type="text" name="zip" inputmode="numeric" placeholder="ZIP" required />
+          </label>
         </div>
 
         <div class="co-actions">
-          <button class="btn-main btn-lg co-next" id="coToStep3">Continue</button>
+          <a id="coToStep3" class="btn-main btn-lg" href="#" onclick="gotoStep3(); return false;">Continue</a>
         </div>
-        <p class="co-secure">🔒 100% encrypted checkout • 60-Day Guarantee</p>
-      </section>
+        <p class="tiny muted co-trust">🔒 Encrypted checkout • 🚚 Free shipping today • ↩️ 60‑Day Guarantee</p>
+      </form>
 
-      <!-- Step 3 -->
+      <!-- Step 3: Card -->
       <section id="coStep3" class="co-pane" hidden aria-hidden="true">
         <h3 class="co-h3">Complete Order</h3>
-        <div class="co-stockline" id="coStockLine3"><span class="qty">47</span> left in stock</div>
+        <div class="co-stockline" id="coStockLine3"><span class="qty">44</span> left in stock</div>
+
+        <!-- Show exactly one card form: Recurly Elements containers -->
         <fieldset class="cardset">
-  <legend>Card details</legend>
-  <label>Card number <div id="re-number"></div></label>
-  <div class="co-row">
-    <label>Expiry <div id="re-month"></div></label>
-    <label>Year   <div id="re-year"></div></label>
-    <label>CVC    <div id="re-cvv"></div></label>
-  </div>
-  <label>ZIP <div id="re-postal"></div></label>
-</fieldset>
-<div id="coPayWrap"></div>
+          <legend>Card details</legend>
+          <label>Card number <div id="re-number"></div></label>
+          <div class="co-row">
+            <label>Expiry <div id="re-month"></div></label>
+            <label>Year   <div id="re-year"></div></label>
+            <label>CVC    <div id="re-cvv"></div></label>
+          </div>
+          <label>ZIP <div id="re-postal"></div></label>
+        </fieldset>
+
+        <!-- Keep this empty; we are NOT injecting another form here -->
+        <div id="coPayWrap"></div>
+
         <div class="co-actions">
           <button class="btn-main btn-lg co-submit" id="coSubmit">Complete Order</button>
         </div>
         <p class="tiny muted co-trust">🔒 256‑bit SSL • 🚚 Free shipping today • ↩️ 60‑Day Guarantee</p>
       </section>
 
+      <!-- Success -->
       <div id="checkoutSuccess" class="co-success" hidden>
         <h4>You're in. 🎉</h4>
         <p>We’ve reserved your free bottles. Look for a confirmation email shortly.</p>
@@ -293,23 +235,17 @@
     </div>
   </div>
 
-  <!-- Footer (premium minimal) -->
-  <footer class="footer" role="contentinfo">
-    <div class="footer-cta">
-      <h2>Join the SelfHacking Community</h2>
-      <p>Get special offers, early access, and wellness tips.</p>
-      <form class="footer-form" onsubmit="event.preventDefault(); alert('Thanks!');">
-        <input type="email" placeholder="Enter your email" aria-label="Email">
-        <button type="submit">Subscribe</button>
-      </form>
-    </div>
-    <div class="footer-legal">© 2025 SelfHacking. All rights reserved.</div>
-  </footer>
-  <script src="https://js.recurly.com/v4/recurly.js"></script>
-<script src="https://js.recurly.com/v4/recurly.js"></script>
-<script src="js/recurly-wire.js?v=9"></script>
-<script defer src="js/checkout3.js?v=736"></script>
-<script defer src="js/config.js?v=640"></script>
-<script defer src="js/script.js?v=640"></script>
+  <!-- ====== SCRIPTS (load once, at end) ====== -->
+  <script defer src="js/config.js?v=641"></script>
+  <script defer src="js/script.js?v=641"></script>
+  <script defer src="js/checkout.js?v=641"></script>
+
+  <script>
+    // Tiny helpers so inline anchors work without relying on external code
+    function checkoutOpen(){ document.getElementById('checkoutModal').classList.add('show'); document.getElementById('checkoutModal').style.display='grid'; }
+    function checkoutClose(){ document.getElementById('checkoutModal').classList.remove('show'); document.getElementById('checkoutModal').style.display='none'; }
+    function checkoutBack(){ document.getElementById('coStep3').hidden = true; document.getElementById('coStep1').hidden = false; }
+    function gotoStep3(){ document.getElementById('coStep1').hidden = true; document.getElementById('coStep3').hidden = false; }
+  </script>
 </body>
 </html>
