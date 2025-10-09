@@ -288,13 +288,21 @@
 <script defer src="/js/script.js?v=641"></script>
 <script defer src="/js/checkout.js?v=9010"></script>
 
-<!-- Belt & suspenders: make every .open-checkout actually open the modal -->
 <script>
+  // Belt & suspenders CTA opener (capture phase beats other listeners)
   document.addEventListener('click', function(e){
     const a = e.target.closest && e.target.closest('.open-checkout');
     if (!a) return;
     e.preventDefault();
     if (window.checkoutOpen) window.checkoutOpen();
+    else {
+      // Minimal fallback if checkout.js hasn’t loaded yet
+      const m=document.getElementById('checkoutModal');
+      if(m){ m.classList.add('show'); m.style.display='grid';
+        document.documentElement.setAttribute('data-checkout-open','1');
+        document.body.style.overflow='hidden';
+      }
+    }
   }, true);
 </script>
 
