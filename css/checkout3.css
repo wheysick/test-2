@@ -147,3 +147,38 @@
 .co-xpay-wrap{ padding: 0 26px; }
 .xpay-nav.prev{ left: -12px; }
 .xpay-nav.next{ right: -12px; }
+
+/* ===== checkout3.css — v7.0 =====
+   - Back link pinned top-left of card
+   - Hosted Fields containers (Recurly) focusable/visible
+   - Payment arrows offset (no overlap)
+   - Hide any legacy bottom back buttons
+*/
+:root{
+  --border: rgba(255,255,255,.12);
+  --muted: rgba(255,255,255,.06);
+}
+.modal-content.checkout-card{ position:relative; }
+
+.co-backlink{
+  position:absolute; top:12px; left:12px;
+  padding:6px 10px; border-radius:999px; font-size:13.5px;
+  color:#e3e7f6; background:var(--muted); border:1px solid var(--border);
+  box-shadow:0 6px 16px rgba(0,0,0,.28); z-index:100;
+}
+
+.recurly-hosted-field{
+  position:relative; height:46px; display:block; padding:8px 10px;
+  border:1px solid var(--border); border-radius:12px; background:var(--muted); cursor:text;
+}
+.recurly-hosted-field iframe{
+  position:absolute; inset:0; width:100%; height:100%; border:0; border-radius:12px;
+}
+
+/* Avoid overlapping tiles with arrows */
+.co-xpay-wrap{ padding:0 26px; }
+.xpay-nav.prev{ left:-12px; }
+.xpay-nav.next{ right:-12px; }
+
+/* Safety: hide any legacy bottom "Back" buttons */
+.co-actions .co-back{ display:none !important; }
