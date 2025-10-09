@@ -5,31 +5,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Free Sample — Weekly Wellness Formula</title>
 
-<!-- HEAD: use our sidebar+checkout stylesheet -->
-<link rel="stylesheet" href="/css/checkout.css?v=9001">
+<!-- Force-load correct assets; bump versions to bust cache -->
+<link rel="stylesheet" href="/css/style.css?v=640">
+<link rel="stylesheet" href="/css/checkout.css?v=9013">
 
-<!-- Do NOT include checkout3.css or recurly-wire.js -->
-<!-- <link rel="stylesheet" href="/css/checkout3.css">  <-- remove -->
-<!-- <script src="/js/recurly-wire.js"></script>        <-- remove -->
-<!-- <script src="/js/checkout3.js"></script>          <-- remove -->
+<!-- Critical inline CSS so page isn’t naked if external CSS 404s -->
+<style>
+  /* Layout: article + sticky reviews (desktop) */
+  .layout{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(20px,3vw,32px)}
+  @media(min-width:1100px){.layout{grid-template-columns:minmax(0,1fr) 380px;align-items:start}.reviews-col{position:sticky;top:18px}}
+  /* Footer subscribe centered */
+  .footer{margin-top:2.2rem;padding:1.4rem 0 2.8rem;background:#0e1014;border-top:1px solid #1d2028}
+  .footer-inner{max-width:min(1000px,90vw);margin:0 auto;display:grid;gap:.8rem}
+  .footer-form{display:flex;justify-content:center;gap:.6rem}
+  .footer-form input[type=email]{flex:1 1 640px;max-width:760px;min-width:240px;background:#101219;border:1px solid #242634;color:#e8eaf2;border-radius:12px;padding:.85rem 1rem}
+  .footer-form button{flex:0 0 auto;padding:.85rem 1.05rem;border-radius:12px;border:0;font-weight:900;background:linear-gradient(90deg,#C471F5,#FA71CD);color:#0f1116}
+  @media(max-width:560px){.footer-form{flex-direction:column}.footer-form button{width:100%}}
+  /* Modal guaranteed on top; CTA hidden while open */
+  #checkoutModal.modal-checkout{z-index:2147483646}
+  #checkoutModal.show{display:grid!important}
+  html[data-checkout-open="1"] .floating-cta{display:none!important}
+  /* Hosted fields must receive clicks */
+  #coStep3 label,#coStep3 .co-row,#coStep3 .co-field{pointer-events:none}
+  #re-number,#re-month,#re-year,#re-cvv,#re-postal,
+  #re-number *,#re-month *,#re-year *,#re-cvv *,#re-postal *{pointer-events:auto;position:relative;z-index:100003;min-height:44px;display:block}
+</style>
 
-<!-- Recurly core + our single-instance Elements helper -->
-<script src="https://js.recurly.com/v4/recurly.js"></script>
-<script src="/js/recurly-elements.js?v=23" defer></script>
-
-
-  <!-- Safety: modal on top + hosted-field clickability + hide CTA while open -->
-  <style>
-    html[data-checkout-open="1"] .floating-cta { display: none !important; }
-    #checkoutModal.modal-checkout { z-index: 2147483646; } /* above everything */
-    #checkoutModal.show { display: grid !important; }
-    /* Hosted fields must receive clicks */
-    #coStep3 label, #coStep3 .co-row, #coStep3 .co-field { pointer-events: none; }
-    #re-number, #re-month, #re-year, #re-cvv, #re-postal,
-    #re-number *, #re-month *, #re-year *, #re-cvv *, #re-postal * {
-      pointer-events: auto; position: relative; z-index: 100003; min-height: 44px; display: block;
-    }
-  </style>
 </head>
 
 <body>
