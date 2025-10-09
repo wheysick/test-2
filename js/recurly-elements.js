@@ -1,4 +1,3 @@
-===== js/recurly-elements.js (final) =====
 /* ===== recurly-elements.js — single-instance Elements with hardening ===== */
 (function () {
   let elements = null;
