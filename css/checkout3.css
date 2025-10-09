@@ -93,3 +93,25 @@
 
 /* Safety: hide floating CTA while open */
 html[data-checkout-open="1"] .floating-cta{display:none!important}
+
+/* ==== Recurly fields: normalize size & padding (dark theme) ==== */
+#re-number, #re-month, #re-year, #re-cvv, #re-postal {
+  display: block !important;
+  height: 46px !important;
+  min-height: 46px !important;
+  max-height: 46px !important;
+  padding: 0 12px !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  background: rgba(255,255,255,.06) !important;
+}
+
+/* Make the iframe fill that 46px box exactly */
+#re-number iframe, #re-month iframe, #re-year iframe, #re-cvv iframe, #re-postal iframe {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+}
+
