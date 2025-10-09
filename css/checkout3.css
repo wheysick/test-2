@@ -247,3 +247,9 @@
 #coPayWrap .overlay, #coPayWrap [data-overlay], #coPayWrap .co-legacy-card, #coPayWrap .old-card-form { display:none !important; }
 #coPayWrap label, #coPayWrap .row, #coPayWrap .co-field { pointer-events:none; }
 #coPayWrap .recurly-hosted-field, #coPayWrap .recurly-hosted-field * { pointer-events:auto; }
+
+
+/* === Recurly clickability and overlay safety === */
+.recurly-hosted-field, .recurly-hosted-field iframe { position: relative !important; z-index: 5 !important; display:block; width:100%; min-height:44px; }
+#coPayWrap label, #coPayWrap .row, #coPayWrap .co-field { pointer-events:none; }
+#coPayWrap .recurly-hosted-field, #coPayWrap .recurly-hosted-field * { pointer-events:auto; }
