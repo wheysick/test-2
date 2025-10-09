@@ -98,12 +98,7 @@
 #checkoutModal [data-sticky="price"], #checkoutModal #coStickyPrice{display:none!important;}
 
 /* v6.5 adjustments */
-.co-backlink{
-  position:sticky; top:10px; left:0; display:inline-flex; align-items:center; gap:8px;
-  padding:6px 10px; border-radius:999px; font-size:13.5px;
-  color:#e3e7f6; background:rgba(255,255,255,.06); border:1px solid var(--border);
-  box-shadow:0 6px 16px rgba(0,0,0,.28); cursor:pointer; margin-bottom:8px;
-}
+.co-backlink{ position:absolute; top:12px; left:12px; padding:6px 10px; border-radius:999px; font-size:13.5px; color:#e3e7f6; background:rgba(255,255,255,.06); border:1px solid var(--border); box-shadow:0 6px 16px rgba(0,0,0,.28); cursor:pointer; z-index:100; }
 .co-backlink:hover{ filter:brightness(1.08); text-decoration:none }
 
 /* Hide any legacy bottom back buttons that might still exist in markup */
@@ -122,19 +117,7 @@
 */
 .modal-content.checkout-card { position: relative; }
 
-.co-backlink{
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 13.5px;
-  color: #e3e7f6;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.12);
-  box-shadow: 0 6px 16px rgba(0,0,0,.28);
-  z-index: 100;
-}
+.co-backlink{ position:absolute; top:12px; left:12px; padding:6px 10px; border-radius:999px; font-size:13.5px; color:#e3e7f6; background:rgba(255,255,255,.06); border:1px solid var(--border); box-shadow:0 6px 16px rgba(0,0,0,.28); cursor:pointer; z-index:100; }
 .co-backlink:focus{ outline: 2px solid rgba(196,113,245,.45); }
 
 /* Recurly hosted field containers */
