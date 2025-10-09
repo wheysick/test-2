@@ -1,4 +1,4 @@
-// ===== checkout.js — v10.1 (CTA open fix, Step 2 totals, field focus) =====
+// ===== checkout.js — v10.2 (add gotoStep2/gotoStep3 globals) =====
 (function(){
   const $  = (s, r=document) => r.querySelector(s);
   const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
@@ -15,7 +15,7 @@
   const toStep2 = $('#coToStep2');
   const toStep3 = $('#coToStep3');
 
-  /* CTA reliability — capture-phase listener beats other handlers */
+  // Force all .open-checkout clicks to open the modal (capture beats others)
   document.addEventListener('click', function(e){
     const a = e.target.closest && e.target.closest('.open-checkout');
     if (!a) return;
@@ -23,26 +23,20 @@
     checkoutOpen();
   }, true);
 
-  /* Prevent native form submits from closing modal */
+  // Prevent native submits (Enter) from closing modal
   modal.addEventListener('submit', (e)=>{ if (modal.contains(e.target)) e.preventDefault(); }, true);
   step1 && step1.addEventListener('submit', (e)=>{ e.preventDefault(); setStep(2); }, true);
 
-  /* Quantity + totals for Step 2 */
-  const PRICE = 90.00;
-  const TAX_RATE = 0.0874;       // ~ matches the screenshot total
+  // Step-2 totals (B1G1 math + tax)
+  const PRICE = 90.00, TAX_RATE = 0.0874;
   const qtyInput = $('#coQty');
   const elItems = $('#coItems'), elMerch = $('#coMerch'), elMethod = $('#coMethod');
   const elTax   = $('#coTax'),   elShip  = $('#coShip'),  elTotal  = $('#coTotal');
   let qty = 1;
-
-  function fmt(n){ return '$' + n.toFixed(2); }
-  function setQty(n){
-    qty = Math.min(99, Math.max(1, n|0));
-    if (qtyInput) qtyInput.value = String(qty);
-    updateTotals();
-  }
+  const fmt = n => '$' + n.toFixed(2);
+  function setQty(n){ qty = Math.min(99, Math.max(1, n|0)); if(qtyInput) qtyInput.value = String(qty); updateTotals(); }
   function updateTotals(){
-    const merch = qty * PRICE;             // pay for qty bottles
+    const merch = qty * PRICE;
     const tax   = +(merch * TAX_RATE).toFixed(2);
     const total = merch + tax;
     elItems && (elItems.textContent = `${qty*2} bottles (${qty} paid + ${qty} free)`);
@@ -52,15 +46,12 @@
     elShip  && (elShip.textContent  = 'FREE');
     elTotal && (elTotal.textContent = fmt(total));
   }
-  qtyInput && qtyInput.addEventListener('input', ()=> {
-    const v = parseInt(qtyInput.value.replace(/[^0-9]/g,''),10);
-    setQty(isNaN(v)?1:v);
-  });
+  qtyInput && qtyInput.addEventListener('input', ()=>{ const v=parseInt(qtyInput.value.replace(/[^0-9]/g,''),10); setQty(isNaN(v)?1:v); });
   $$('.qty-inc').forEach(b => b.addEventListener('click', ()=> setQty(qty+1)));
   $$('.qty-dec').forEach(b => b.addEventListener('click', ()=> setQty(qty-1)));
   updateTotals();
 
-  /* Step navigation */
+  // Step switching
   function setStep(n){
     [step1, step2, step3].forEach((el,i)=>{
       if (!el) return;
@@ -77,10 +68,10 @@
   }
   toStep2 && toStep2.addEventListener('click', (e)=>{ e.preventDefault(); setStep(2); });
   toStep3 && toStep3.addEventListener('click', (e)=>{ e.preventDefault(); setStep(3); });
-  back && back.addEventListener('click', (e)=>{ e.preventDefault(); if (!step3.hidden) setStep(2); else setStep(1); });
-  close && close.addEventListener('click', (e)=>{ e.preventDefault(); checkoutClose(); });
+  back   && back  .addEventListener('click', (e)=>{ e.preventDefault(); if (!step3.hidden) setStep(2); else setStep(1); });
+  close  && close .addEventListener('click', (e)=>{ e.preventDefault(); checkoutClose(); });
 
-  /* Hosted-field clickability hardening */
+  // Hosted-field clickability
   function fixClickBlockers(){
     try {
       const wrappers = step3.querySelectorAll('label, .row, .co-row, .co-field');
@@ -92,7 +83,7 @@
     } catch (e) {}
   }
 
-  /* Submit payment */
+  // Submit payment
   submit && submit.addEventListener('click', async (e)=>{
     e.preventDefault();
     try {
@@ -108,42 +99,39 @@
       if (full.includes(' ')){ const i=full.lastIndexOf(' '); first=full.slice(0,i); last=full.slice(i+1); }
 
       const meta = {
-        first_name:first,last_name:last,
-        email:get('email'),phone:get('phone'),
-        address:get('address'),city:get('city'),
-        state:get('state'),zip:get('zip'),
-        items:[{sku:'tirz-vial',qty,price:PRICE}]
+        first_name:first, last_name:last,
+        email:get('email'), phone:get('phone'),
+        address:get('address'), city:get('city'),
+        state:get('state'), zip:get('zip'),
+        items:[{ sku:'tirz-vial', qty, price: PRICE }]
       };
 
       const token = await window.RecurlyUI.tokenize(meta);
-      const resp = await fetch('/api/payments/recurly/charge',{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({token:token.id||token,customer:meta})
+
+      const resp = await fetch('/api/payments/recurly/charge', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ token: token.id || token, customer: meta })
       });
-      let data=null; try{data=await resp.json()}catch(_){}
-      if(!resp.ok){
-        const reasons = Array.isArray(data?.errors)?`\n• ${data.errors.join('\n• ')}`:'';
-        throw new Error((data?.error||`Payment failed (HTTP ${resp.status})`)+reasons);
+      let data=null; try{ data = await resp.json(); } catch(_){}
+      if (!resp.ok) {
+        const reasons = Array.isArray(data?.errors) ? `\n• ${data.errors.join('\n• ')}` : '';
+        throw new Error((data?.error || `Payment failed (HTTP ${resp.status})`) + reasons);
       }
 
-      step3.hidden=true; const ok=$('#checkoutSuccess'); if(ok) ok.hidden=false;
-    } catch(err){ alert(err?.message||'Payment failed'); }
-    finally{ submit.disabled=false; submit.textContent='Complete Order'; }
+      step3.hidden = true; const ok = $('#checkoutSuccess'); if (ok) ok.hidden = false;
+    } catch (err) {
+      alert(err?.message || 'Payment failed');
+    } finally {
+      submit.disabled = false;
+      submit.textContent = 'Complete Order';
+    }
   });
 
-  /* Public helpers */
-  window.checkoutOpen = function(){
-    modal.classList.add('show');
-    modal.style.display='grid';
-    document.documentElement.setAttribute('data-checkout-open','1');
-    document.body.style.overflow='hidden';
-    setStep(1);
-  };
-  window.checkoutClose = function(){
-    modal.classList.remove('show');
-    modal.style.display='none';
-    document.documentElement.removeAttribute('data-checkout-open');
-    document.body.style.overflow='';
-  };
-  window.checkoutBack = function(){ if(!step3.hidden) setStep(2); else setStep(1); };
+  // Public helpers used by inline onclick in your HTML
+  window.checkoutOpen  = function(){ modal.classList.add('show'); modal.style.display='grid'; document.documentElement.setAttribute('data-checkout-open','1'); document.body.style.overflow='hidden'; setStep(1); };
+  window.checkoutClose = function(){ modal.classList.remove('show'); modal.style.display='none'; document.documentElement.removeAttribute('data-checkout-open'); document.body.style.overflow=''; };
+  window.checkoutBack  = function(){ if (!step3.hidden) setStep(2); else setStep(1); };
+  window.gotoStep2     = function(){ setStep(2); };
+  window.gotoStep3     = function(){ setStep(3); };
 })();
