@@ -2,11 +2,19 @@
 <html lang="en">
 <head>
 <meta name="recurly-public-key" content="ewr1-AxqCz2aZ9UMj5oOBsENPG2">
+
+<!-- 1) Recurly core -->
 <script src="https://js.recurly.com/v4/recurly.js"></script>
-<link rel="stylesheet" href="/css/recurly-elements.css?v=22">
+
+<!-- 2) Single-instance Elements + tokenize helpers (from v22) -->
 <script src="/js/recurly-elements.js?v=22"></script>
-<script src="/js/recurly-wire.js?v=23"></script> <!-- optional helper -->
+
+<!-- 3) Wire helper (v23) that removes legacy block, injects Recurly block, mounts/unmounts, handles submit -->
+<script src="/js/recurly-wire.js?v=23"></script>
+
+<!-- 4) Your existing controller -->
 <script defer src="/js/checkout3.js?v=735"></script>
+
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
