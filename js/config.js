@@ -2,12 +2,12 @@
   - Recurly (card):     recurlyPublicKey
   - PayPal/Venmo:       paypalClientId  (we enable Venmo in the SDK)
   - Coinbase Commerce:  coinbaseCheckoutId (hosted checkout ID)
-  - Cash App (Square):  squareAppId, squareLocationId  (needs server endpoint)
+  - Cash App (Square):  squareAppId, squareLocationId
 */
 window.CO_CONFIG = {
-  recurlyPublicKey: "ewr1-AxqCz2aZ9UMj5oOBsENPG2",            // e.g. "ewr1-xxxxxx"
-  paypalClientId:   "",            // e.g. "Abc123..."
-  coinbaseCheckoutId: "",          // e.g. "a1b2c3d4e5f6..."
-  squareAppId: "",                 // e.g. "sandbox-sq0idb-..."
-  squareLocationId: ""             // e.g. "L8890ABCD1234"
+  recurlyPublicKey: "ewr1-AxqCz2aZ9UMj5oOBsENPG2",  // replace with your key if different
+  paypalClientId:   "",
+  coinbaseCheckoutId: "",
+  squareAppId: "",
+  squareLocationId: ""
 };
