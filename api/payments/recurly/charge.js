@@ -1,11 +1,10 @@
-// /api/payments/recurly/charge.js  — CommonJS — one‑time purchase with preview + purchase
+
+// /api/payments/recurly/charge.js — CommonJS — one‑time purchase with preview + purchase
 const { Client } = require('recurly');
 
 function parseRecurlyError(e){
   let payload = null;
-  try {
-    payload = e && e.body && typeof e.body === 'string' ? JSON.parse(e.body) : e && e.body;
-  } catch {}
+  try { payload = e && e.body && typeof e.body === 'string' ? JSON.parse(e.body) : e && e.body; } catch {}
   const message = (payload && payload.error && payload.error.message) || (e && e.message) || 'Validation error';
   const params  = (payload && payload.error && payload.error.params) || [];
   const errors  = params.map(p => (p && (p.param ? `${p.param}: ${p.message}` : p.message))).filter(Boolean);
@@ -29,18 +28,17 @@ module.exports = async (req, res) => {
       return;
     }
 
-    const client = new Client(apiKey);
-
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
     const token = body.token;
     const order = body.order || {};
-
     if (!token) {
       res.statusCode = 400;
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ error: 'Missing token' }));
       return;
     }
+
+    const client = new Client(apiKey);
 
     const amount = Number(Number(order.total || 90).toFixed(2));
     const email  = (order.customer && order.customer.email) || `guest+${Date.now()}@example.com`;
@@ -62,6 +60,7 @@ module.exports = async (req, res) => {
       }]
     };
 
+    // Validate request before capture for clearer errors
     try {
       await client.previewPurchase(purchaseReq);
     } catch (e) {
@@ -72,6 +71,7 @@ module.exports = async (req, res) => {
       return;
     }
 
+    // Perform capture
     const purchase = await client.createPurchase(purchaseReq);
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
