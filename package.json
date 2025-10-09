@@ -1,7 +1,6 @@
 {
   "name": "test-2",
   "private": true,
-  "type": "module",
   "dependencies": {
     "recurly": "^4.54.0"
   }
