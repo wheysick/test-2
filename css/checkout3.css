@@ -238,3 +238,11 @@
 .xpay-nav.next{ right:-12px; }
 
 .co-actions .co-back{ display:none !important; }
+
+.recurly-hosted-field, .recurly-hosted-field iframe {
+  position: relative !important; z-index: 5 !important;
+  display: block; width: 100%; min-height: 44px;
+}
+#coPayWrap label, #coPayWrap .row, #coPayWrap .co-field { pointer-events: none; }
+#coPayWrap .recurly-hosted-field, #coPayWrap .recurly-hosted-field * { pointer-events: auto; }
+
