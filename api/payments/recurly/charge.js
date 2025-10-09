@@ -1,85 +1,56 @@
-
-// /api/payments/recurly/charge.js — CommonJS — one‑time purchase with preview + purchase
+// /api/payments/recurly/charge.js — One-time purchase using token_id
 const { Client } = require('recurly');
 
-function parseRecurlyError(e){
-  let payload = null;
-  try { payload = e && e.body && typeof e.body === 'string' ? JSON.parse(e.body) : e && e.body; } catch {}
-  const message = (payload && payload.error && payload.error.message) || (e && e.message) || 'Validation error';
-  const params  = (payload && payload.error && payload.error.params) || [];
-  const errors  = params.map(p => (p && (p.param ? `${p.param}: ${p.message}` : p.message))).filter(Boolean);
-  return { status: (e && e.status) || 422, message, errors, raw: payload || e };
+function bad(res, status, message){
+  res.statusCode = status; res.setHeader('Content-Type','application/json');
+  res.end(JSON.stringify({ error: message }));
 }
 
 module.exports = async (req, res) => {
   try {
-    if (req.method !== 'POST') {
-      res.statusCode = 405;
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: 'Method Not Allowed' }));
-      return;
-    }
+    if (req.method !== 'POST') return bad(res, 405, 'Method not allowed');
 
     const apiKey = process.env.RECURLY_API_KEY;
-    if (!apiKey) {
-      res.statusCode = 500;
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: 'Missing RECURLY_API_KEY' }));
-      return;
-    }
+    const siteId = process.env.RECURLY_SITE_ID;
+    if (!apiKey || !siteId) return bad(res, 500, 'Missing Recurly credentials');
 
-    const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
     const token = body.token;
-    const order = body.order || {};
-    if (!token) {
-      res.statusCode = 400;
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: 'Missing token' }));
-      return;
-    }
+    const qty = Number(body.qty || 1);
+    const unit = Number(body.unit_amount || 90);
+    const currency = body.currency || 'USD';
 
-    const client = new Client(apiKey);
+    if (!token) return bad(res, 400, 'Missing token');
+    if (!(qty > 0)) return bad(res, 400, 'Invalid quantity');
 
-    const amount = Number(Number(order.total || 90).toFixed(2));
-    const email  = (order.customer && order.customer.email) || `guest+${Date.now()}@example.com`;
-    const accountCode = `guest_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+    const client = new Client(apiKey, { siteId });
+
+    const accountCode = `acct-${Date.now()}-${Math.floor(Math.random()*1e5)}`;
 
     const purchaseReq = {
-      currency: 'USD',
-      collection_method: 'automatic',
+      currency,
       account: {
         code: accountCode,
-        email,
-        billing_info: { token_id: (token.id || token) }
+        billing_info: { token_id: token }
       },
       line_items: [{
         type: 'charge',
-        unit_amount: amount,
-        quantity: 1,
-        description: `One-time checkout qty=${order.qty || 1}`
+        currency,
+        unit_amount: unit,
+        quantity: qty,
+        description: 'One-time purchase'
       }]
     };
 
-    // Validate request before capture for clearer errors
-    try {
-      await client.previewPurchase(purchaseReq);
-    } catch (e) {
-      const pe = parseRecurlyError(e);
-      res.statusCode = pe.status;
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: pe.message, errors: pe.errors, raw: pe.raw }));
-      return;
-    }
-
-    // Perform capture
     const purchase = await client.createPurchase(purchaseReq);
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ ok: true, id: (purchase && purchase.uuid) || null }));
+    res.end(JSON.stringify({ ok: true, id: purchase && purchase.uuid }));
   } catch (e) {
-    const pe = parseRecurlyError(e);
-    res.statusCode = pe.status || 500;
+    const status = e && e.status || 500;
+    const message = (e && e.message) || 'Server error';
+    res.statusCode = status;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ error: pe.message, errors: pe.errors, raw: pe.raw }));
+    res.end(JSON.stringify({ error: message }));
   }
 };
