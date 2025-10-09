@@ -1,10 +1,4 @@
-// ===== /api/payments/recurly/charge.js — v2.1 (address1 + nested shipping_addresses) =====
-// Environment variable required in Vercel:
-//   RECURLY_API_KEY = <your private API key>
-// Expects JSON: { token, customer }
-//   token: Recurly token object or token.id
-//   customer: { first_name, last_name, email, phone, address, city, state, zip, items:[{sku, qty, price}] }
-
+// ===== /api/payments/recurly/charge.js — v2.2 FINAL (shippingAddress fix) =====
 const { Client } = require('recurly');
 
 function json(res, status, body) {
@@ -66,11 +60,8 @@ module.exports = async (req, res) => {
     if (!token) return json(res, 400, { error: 'Missing card token' });
 
     const client = new Client(apiKey);
-
-    // Unique account code per purchase
     const accountCode = `acct_${Date.now()}`;
 
-    // Line items from client
     const items =
       Array.isArray(customer.items) && customer.items.length
         ? customer.items
@@ -84,41 +75,35 @@ module.exports = async (req, res) => {
       description: it.sku || 'Item',
     }));
 
-    // Build purchase request (with proper nested shipping address)
+    // ✅ FIXED: singular "shippingAddress" inside "account"
     const purchaseReq = {
       currency: 'USD',
       account: {
         code: accountCode,
         firstName: customer.first_name || 'Customer',
-        lastName: customer.last_name || 'Customer',
-        email: customer.email,
+        lastName:  customer.last_name  || 'Customer',
+        email:     customer.email,
         billingInfo: { tokenId: token },
-
-        // ✅ Correctly nested shipping address with valid field names
-        shippingAddresses: [
-          {
-            firstName: customer.first_name || 'Customer',
-            lastName: customer.last_name || 'Customer',
-            address1: customer.address || '',
-            city: customer.city || '',
-            region: customer.state || '',
-            postalCode: customer.zip || '',
-            country: 'US',
-            phone: customer.phone || '',
-          },
-        ],
+        shippingAddress: {             // ✅ singular, not plural
+          firstName:  customer.first_name || 'Customer',
+          lastName:   customer.last_name  || 'Customer',
+          address1:   customer.address || '',
+          city:       customer.city || '',
+          region:     customer.state || '',
+          postalCode: customer.zip || '',
+          country:    'US',
+          phone:      customer.phone || '',
+        }
       },
       lineItems,
-      collectionMethod: 'automatic', // immediate capture
+      collectionMethod: 'automatic',
     };
 
-    // Validate before charge
+    // Optional: preview (validates before charge)
     await client.previewPurchase(purchaseReq);
 
-    // Charge card
     const purchase = await client.createPurchase(purchaseReq);
 
-    // Success
     return json(res, 200, {
       ok: true,
       id: purchase?.uuid || null,
