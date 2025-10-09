@@ -103,6 +103,7 @@
         email:get('email'), phone:get('phone'),
         address:get('address'), city:get('city'),
         state:get('state'), zip:get('zip'),
+        country: 'US',
         items:[{ sku:'tirz-vial', qty, price: PRICE }]
       };
 
