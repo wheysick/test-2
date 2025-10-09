@@ -99,3 +99,10 @@
     }
   });
 })();
+
+// Before injecting any card markup:
+const legacy = document.querySelector('#coPayWrap input[name="card"], #coPayWrap input[name="exp"], #coPayWrap input[name="cvc"], #coPayWrap input[name="cczip"]');
+if (legacy) {
+  const fs = legacy.closest('fieldset');
+  if (fs) fs.remove();
+}
