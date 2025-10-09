@@ -1,12 +1,19 @@
 /* ===== checkout3.js — v7.2 (Recurly Elements + validated purchase) ===== */
 (function(){
+
+  // --- Global helpers (defined early so inline onclick works even if modal lookup hasn't run yet) ---
+  if (!window.checkoutOpen)  window.checkoutOpen  = function(){ try { (window.__co_openModal||function(){ /*noop*/ })(); } catch(e){ console.warn(e); } };
+  if (!window.checkoutClose) window.checkoutClose = function(){ try { (window.__co_closeModal||function(){ /*noop*/ })(); } catch(e){ console.warn(e); } };
+
   'use strict';
 
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
-  const modal   = document.getElementById('checkoutModal');
-  if (!modal) return;
+  let modal = document.getElementById('checkoutModal');
+  if (!modal) {
+    document.addEventListener('DOMContentLoaded', () => { modal = document.getElementById('checkoutModal'); });
+  }
 
   const step1   = document.getElementById('coStep1');
   const step2   = document.getElementById('coStep2');
@@ -76,6 +83,7 @@
   const CTA_SEL = ".floating-cta,[data-cta],[data-open-checkout],.open-checkout,.cta,a[href='#offer'],a[href*='#offer'],a[href*='#checkout'],.masthead-cta";
   let openGuard=0;
   function openModal(e){
+    window.__co_openModal = () => openModal();
     const now=Date.now(); if (now-openGuard<250) return; openGuard=now;
     e?.preventDefault?.(); e?.stopPropagation?.();
     modal.classList.add('show','co-fullscreen');
@@ -91,6 +99,7 @@
   window.checkoutClose = function(){ try { closeModal(); } catch(e){ console.warn(e); } };
 
   function closeModal(e){
+    window.__co_closeModal = () => closeModal();
     e?.preventDefault?.(); e?.stopPropagation?.();
     modal.classList.remove('show','co-fullscreen');
     document.documentElement.removeAttribute('data-checkout-open');
