@@ -5,18 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Free Sample — Weekly Wellness Formula</title>
 
-  <!-- Recurly public key (safe to be public) -->
-  <meta name="recurly-public-key" content="ewr1-AxqCz2aZ9UMj5oOBsENPG2">
+<!-- HEAD: use our sidebar+checkout stylesheet -->
+<link rel="stylesheet" href="/css/checkout.css?v=9001">
 
-  <!-- Recurly core -->
-  <script src="https://js.recurly.com/v4/recurly.js"></script>
+<!-- Do NOT include checkout3.css or recurly-wire.js -->
+<!-- <link rel="stylesheet" href="/css/checkout3.css">  <-- remove -->
+<!-- <script src="/js/recurly-wire.js"></script>        <-- remove -->
+<!-- <script src="/js/checkout3.js"></script>          <-- remove -->
 
-  <!-- Single‑instance Recurly Elements helper -->
-  <script src="js/recurly-elements.js?v=23" defer></script>
+<!-- Recurly core + our single-instance Elements helper -->
+<script src="https://js.recurly.com/v4/recurly.js"></script>
+<script src="/js/recurly-elements.js?v=23" defer></script>
 
-  <!-- Site styles (keep yours), then checkout overrides -->
-  <link rel="stylesheet" href="css/style.css?v=640">
-  <link rel="stylesheet" href="css/checkout.css?v=9001">
 
   <!-- Safety: modal on top + hosted-field clickability + hide CTA while open -->
   <style>
