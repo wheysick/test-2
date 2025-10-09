@@ -1,13 +1,8 @@
-/* ===== checkout3.js — v7.0 =====
-   Final patch: ensureHostedReady defined + robust Hosted Fields gating,
-   back link placed top-left, single render per method, stock counter deterministic.
-*/
+/* ===== checkout3.js — v7.1 (switch to Recurly Elements) ===== */
 (function(){
   'use strict';
 
   const $ = (sel, root=document) => root.querySelector(sel);
-  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
-
   const modal   = document.getElementById('checkoutModal');
   if (!modal) return;
 
@@ -20,7 +15,7 @@
   const closeX  = document.getElementById('checkoutClose');
   const methodErr = document.getElementById('coMethodError');
 
-  // Insert a Back link pinned to the card top-left
+  // Back link pinned top-left
   let backLink = document.getElementById('coBackLink');
   if (!backLink){
     backLink = document.createElement('button');
@@ -62,7 +57,7 @@
   const CTA_SEL = ".floating-cta,[data-cta],[data-open-checkout],.open-checkout,.cta,a[href='#offer'],a[href*='#offer'],a[href*='#checkout'],.masthead-cta";
   let openGuard=0;
   function openModal(e){
-    const now=Date.now(); if(now-openGuard<250) return; openGuard=now;
+    const now=Date.now(); if (now-openGuard<250) return; openGuard=now;
     e?.preventDefault?.(); e?.stopPropagation?.();
     modal.classList.add('show','co-fullscreen');
     document.documentElement.setAttribute('data-checkout-open','1');
@@ -97,8 +92,8 @@
     if (!step3.hidden) { setStep(2); return; }
   });
   closeX?.addEventListener('click', closeModal);
-  modal.addEventListener('click', (e)=>{ if (e.target===modal) closeModal(e); });
-  document.addEventListener('keydown', (e)=>{ if (e.key==='Escape'&&modal.classList.contains('show')) closeModal(e); });
+  modal.addEventListener('click',(e)=>{ if(e.target===modal) closeModal(e); });
+  document.addEventListener('keydown',(e)=>{ if(e.key==='Escape'&&modal.classList.contains('show')) closeModal(e); });
 
   // Step 1
   step1?.addEventListener('submit',(e)=>{
@@ -140,8 +135,12 @@
     renderPay(method); setStep(3);
   });
 
-  // Step 3 renderer
+  /* ---------- Step 3 renderer (Recurly Elements) ---------- */
   let currentPayRendered=null;
+  let recurlyConfigured=false;
+  let elements=null;                    // recurly.Elements()
+  let cardEls={};                       // { number, month, year, cvv }
+
   function renderPay(m){
     m=m||'card';
     if (currentPayRendered===m && payWrap.children.length) return;
@@ -159,12 +158,12 @@
         <fieldset class="cardset">
           <legend>Card details</legend>
           <label>Card number
-            <div class="recurly-hosted-field" data-recurly="number"></div>
+            <div class="recurly-hosted-field" id="recurly-number"></div>
           </label>
           <div class="co-row" style="margin-top:10px">
-            <label>Expiry <div class="recurly-hosted-field" data-recurly="month"></div></label>
-            <label>Year   <div class="recurly-hosted-field" data-recurly="year"></div></label>
-            <label>CVC    <div class="recurly-hosted-field" data-recurly="cvv"></div></label>
+            <label>Expiry <div class="recurly-hosted-field" id="recurly-month"></div></label>
+            <label>Year   <div class="recurly-hosted-field" id="recurly-year"></div></label>
+            <label>CVC    <div class="recurly-hosted-field" id="recurly-cvv"></div></label>
           </div>
           <label style="margin-top:10px">ZIP
             <input id="coPostal" inputmode="numeric" maxlength="10" placeholder="Zip / Postal">
@@ -174,12 +173,12 @@
 
     while (payWrap.firstChild) payWrap.removeChild(payWrap.firstChild);
 
-    if (m==='card'){ payWrap.insertAdjacentHTML('beforeend', recurlyCard + wallets); whenRecurlyReady(initRecurlyHostedFields); }
+    if (m==='card'){ payWrap.insertAdjacentHTML('beforeend', recurlyCard + wallets); whenRecurlyReady(initRecurlyElements); }
     else if (m==='venmo'){ payWrap.insertAdjacentHTML('beforeend', `<div class="altpay" style="text-align:center"><h4>Venmo</h4><p>Send to @YourHandle — 15% off applied</p></div>`); }
     else if (m==='cashapp'){ payWrap.insertAdjacentHTML('beforeend', `<div class="altpay" style="text-align:center"><h4>Cash App</h4><p>Send to $YourCashtag — 15% off applied</p></div>`); }
     else if (m==='paypal'){ payWrap.insertAdjacentHTML('beforeend', `<div class="altpay" style="text-align:center"><h4>PayPal</h4><p>Redirect to PayPal — 15% off applied</p></div>`); }
     else if (m==='crypto'){ payWrap.insertAdjacentHTML('beforeend', `<div class="altpay" style="text-align:center"><h4>Crypto</h4><p>BTC/ETH/USDC — 15% off applied; address next</p></div>`); }
-    else { payWrap.insertAdjacentHTML('beforeend', recurlyCard + wallets); whenRecurlyReady(initRecurlyHostedFields); }
+    else { payWrap.insertAdjacentHTML('beforeend', recurlyCard + wallets); whenRecurlyReady(initRecurlyElements); }
   }
 
   function whenRecurlyReady(cb){
@@ -190,9 +189,7 @@
     },250);
   }
 
-  // Hosted Fields
-  let recurlyConfigured=false, hostedFields=null;
-  function initRecurlyHostedFields(){
+  function initRecurlyElements(){
     if (!window.recurly) return;
     try{
       if (!recurlyConfigured){
@@ -202,26 +199,29 @@
         window.recurly.configure(pk);
         recurlyConfigured=true;
       }
-      const form = document.getElementById('recurlyForm'); if (!form) return;
-      hostedFields?.destroy?.();
-      hostedFields = window.recurly.HostedFields({
-        fields:{
-          number:{ selector: form.querySelector('[data-recurly="number"]') },
-          month: { selector: form.querySelector('[data-recurly="month"]')  },
-          year:  { selector: form.querySelector('[data-recurly="year"]')   },
-          cvv:   { selector: form.querySelector('[data-recurly="cvv"]')    }
-        },
-        style:{ all:{ fontFamily:'Inter, system-ui, -apple-system, Segoe UI, Arial', fontSize:'16px', color:'#E9ECF2' } }
-      });
+      // Destroy old elements if any
+      if (elements && elements.destroy) try { elements.destroy(); } catch(e){}
+      elements = window.recurly.Elements();
+
+      // Create and attach each field
+      cardEls.number = elements.CardNumberElement({ style: { all: { fontSize:'16px', color:'#E9ECF2' }}});
+      cardEls.month  = elements.CardMonthElement({  style: { all: { fontSize:'16px', color:'#E9ECF2' }}});
+      cardEls.year   = elements.CardYearElement({   style: { all: { fontSize:'16px', color:'#E9ECF2' }}});
+      cardEls.cvv    = elements.CardCvvElement({    style: { all: { fontSize:'16px', color:'#E9ECF2' }}});
+
+      cardEls.number.attach('#recurly-number');
+      cardEls.month.attach('#recurly-month');
+      cardEls.year.attach('#recurly-year');
+      cardEls.cvv.attach('#recurly-cvv');
     }catch(e){ console.warn('Recurly init error', e); }
   }
 
-  // NEW: ensureHostedReady — waits until iframes are mounted
+  // ensureHostedReady — wait until Recurly Elements injected their iframes
   async function ensureHostedReady(timeout=7000){
     const start=Date.now();
-    if (!hostedFields) initRecurlyHostedFields();
+    if (!elements) initRecurlyElements();
     const hasIframes = () => payWrap.querySelectorAll('.recurly-hosted-field iframe').length >= 3;
-    while (!hostedFields || !hasIframes()){
+    while (!elements || !hasIframes()){
       if (Date.now()-start > timeout) throw new Error('Payment form is still loading — please try again.');
       await new Promise(r=>setTimeout(r,150));
     }
@@ -230,9 +230,9 @@
   function getRecurlyToken(){
     return new Promise((resolve,reject)=>{
       try{
-        if (!hostedFields) return reject(new Error('Payment form not ready'));
+        if (!elements) return reject(new Error('Payment form not ready'));
         const postal = document.getElementById('coPostal')?.value || '';
-        hostedFields.token({ postal_code: postal }, (err, token)=>{
+        window.recurly.token(elements, { billing_info: { postal_code: postal }}, (err, token)=>{
           if (err) return reject(err);
           resolve(token);
         });
@@ -247,7 +247,7 @@
     try{
       if (method === 'card'){
         submit.disabled = true; submit.textContent = 'Processing…';
-        await ensureHostedReady(); // <-- defined above
+        await ensureHostedReady();
         const token = await getRecurlyToken();
         await fetch('/api/payments/recurly/charge', {
           method:'POST', headers:{'Content-Type':'application/json'},
