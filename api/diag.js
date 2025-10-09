@@ -1,13 +1,8 @@
-// /api/diag.js  (CommonJS) — quick diagnostics
+
+// /api/diag.js — diagnostics: confirms env + module install
 module.exports = (req, res) => {
-  let hasRecurly = false;
-  let recurlyErr = null;
-  try {
-    require.resolve('recurly');
-    hasRecurly = true;
-  } catch (e) {
-    recurlyErr = e && e.message;
-  }
+  let hasRecurly = false; let recurlyErr = null;
+  try { require.resolve('recurly'); hasRecurly = true; } catch(e){ recurlyErr = e && e.message; }
   const out = {
     node: process.versions && process.versions.node,
     hasRecurly,
