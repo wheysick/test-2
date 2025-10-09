@@ -1,4 +1,4 @@
-// ===== /api/payments/recurly/charge.js — v2.2 FINAL (shippingAddress fix) =====
+// ===== /api/payments/recurly/charge.js — v2.3 FINAL (token-only billingInfo) =====
 const { Client } = require('recurly');
 
 function json(res, status, body) {
@@ -75,31 +75,22 @@ module.exports = async (req, res) => {
       description: it.sku || 'Item',
     }));
 
-    // ✅ FIXED: singular "shippingAddress" inside "account"
-const purchaseReq = {
-  currency: 'USD',
-  account: {
-    code: accountCode,
-    firstName: customer.first_name || 'Customer',
-    lastName:  customer.last_name  || 'Customer',
-    email:     customer.email,
-    billingInfo: {
-      tokenId: token,
-      address1:   customer.address || '',
-      city:       customer.city || '',
-      region:     customer.state || '',
-      postalCode: customer.zip || '',
-      country:    'US',
-      phone:      customer.phone || ''
-    }
-  },
-  lineItems,
-  collectionMethod: 'automatic'
-};
+    // ✅ Minimal, token-only billing info (no extra address fields)
+    const purchaseReq = {
+      currency: 'USD',
+      account: {
+        code: accountCode,
+        firstName: customer.first_name || 'Customer',
+        lastName:  customer.last_name  || 'Customer',
+        email:     customer.email,
+        billingInfo: { tokenId: token }
+      },
+      lineItems,
+      collectionMethod: 'automatic'
+    };
 
-    // Optional: preview (validates before charge)
+    // Validate then charge
     await client.previewPurchase(purchaseReq);
-
     const purchase = await client.createPurchase(purchaseReq);
 
     return json(res, 200, {
