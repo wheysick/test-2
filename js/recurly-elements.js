@@ -1,4 +1,4 @@
-/* ===== recurly-elements.js — mounts to #recurly-* containers ===== */
+/* ===== recurly-elements.js — robust single-instance Elements ===== */
 (function () {
   let elements = null;
   let fields = {};
@@ -6,8 +6,13 @@
   function mount() {
     if (!window.recurly) { console.warn('[Recurly] library missing'); return null; }
     if (elements) return elements;
+
     elements = window.recurly.Elements();
-    const style = { fontSize: '16px', color: '#E9ECF2', placeholder: { color: 'rgba(234,236,239,.55)' } };
+    const style = {
+      fontSize: '16px',
+      color: '#E9ECF2',
+      placeholder: { color: 'rgba(234,236,239,.55)' }
+    };
 
     fields.number = elements.CardNumberElement({ style });
     fields.month  = elements.CardMonthElement({ style });
@@ -15,27 +20,35 @@
     fields.cvv    = elements.CardCvvElement({ style });
     fields.postal = elements.CardPostalCodeElement({ style });
 
-    try { fields.number.attach('#recurly-number'); } catch(e){ console.warn(e); }
-    try { fields.month.attach('#recurly-month'); }   catch(e){ console.warn(e); }
-    try { fields.year.attach('#recurly-year'); }     catch(e){ console.warn(e); }
-    try { fields.cvv.attach('#recurly-cvv'); }       catch(e){ console.warn(e); }
-    try { fields.postal.attach('#recurly-postal'); } catch(e){ console.warn(e); }
+    // Attach into your Step 3 containers
+    fields.number.attach('#re-number');
+    fields.month.attach('#re-month');
+    fields.year.attach('#re-year');
+    fields.cvv.attach('#re-cvv');
+    fields.postal.attach('#re-postal');
 
     return elements;
   }
 
-  function unmount(){
+  function unmount() {
     if (!elements) return;
-    try { Object.values(fields||{}).forEach(f => f && f.destroy && f.destroy()); } catch(e){}
-    elements = null; fields = {};
+    try { fields.number && fields.number.detach(); } catch(e) {}
+    try { fields.month  && fields.month.detach();  } catch(e) {}
+    try { fields.year   && fields.year.detach();   } catch(e) {}
+    try { fields.cvv    && fields.cvv.detach();    } catch(e) {}
+    try { fields.postal && fields.postal.detach(); } catch(e) {}
+    fields = {};
+    elements = null;
   }
 
-  function tokenize(meta={}){
-    return new Promise((resolve, reject)=>{
+  function tokenize(orderMeta) {
+    return new Promise((resolve, reject) => {
       if (!elements) return reject(new Error('Payment form not ready'));
-      window.recurly.token(elements, meta, (err, token)=>{
-        if (err){
-          const details = err.fields ? Object.entries(err.fields).map(([k,v]) => `${k}: ${Array.isArray(v)?v.join(', '):v}`).join('; ') : '';
+      window.recurly.token(elements, orderMeta || {}, (err, token) => {
+        if (err) {
+          const details = err.fields
+            ? Object.entries(err.fields).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`).join('; ')
+            : '';
           if (details) err.message = `${err.message} — ${details}`;
           return reject(err);
         }
