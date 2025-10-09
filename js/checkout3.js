@@ -324,3 +324,35 @@
 
   totals();
 })();
+
+submitBtn.addEventListener('click', async (e) => {
+  e.preventDefault();
+  submitBtn.disabled = true;
+  try {
+    // 1) tokenize client-side
+    const token = await window.__recurlyTokenize({}); // will raise detailed field errors if invalid
+
+    // 2) send to server to charge
+    const order = {
+      total: Number(window.__orderTotal || 90),   // your computed total
+      qty:   Number(window.__orderQty   || 1),    // your qty
+      customer: { email: document.querySelector('#coStep1 [name="email"]')?.value || '' }
+    };
+    const res  = await fetch('/api/payments/recurly/charge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, order })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.error || 'Charge failed');
+
+    // 3) success UI
+    console.log('[Recurly OK]', data);
+    // show success state here
+  } catch (err) {
+    console.error('[Payment error]', err);
+    alert(err.message || 'Payment failed');  // replace with inline error if you like
+  } finally {
+    submitBtn.disabled = false;
+  }
+});
