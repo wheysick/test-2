@@ -85,6 +85,11 @@
     methodErr && hide(methodErr);
     stock.reset(); stock.start();
   }
+  
+  // Global helpers so <a onclick="checkoutOpen()"> works
+  window.checkoutOpen = function(){ try { openModal(); } catch(e){ console.warn(e); } };
+  window.checkoutClose = function(){ try { closeModal(); } catch(e){ console.warn(e); } };
+
   function closeModal(e){
     e?.preventDefault?.(); e?.stopPropagation?.();
     modal.classList.remove('show','co-fullscreen');
