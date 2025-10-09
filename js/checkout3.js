@@ -1,8 +1,10 @@
-/* ===== checkout3.js — v7.1 (switch to Recurly Elements) ===== */
+/* ===== checkout3.js — v7.2 (Recurly Elements + validated purchase) ===== */
 (function(){
   'use strict';
 
   const $ = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
   const modal   = document.getElementById('checkoutModal');
   if (!modal) return;
 
@@ -33,6 +35,23 @@
   // Pricing
   const MSRP=90, SALE=90, TAX=0.0875, SHIPPING=0;
   let qty=1, method=null, discount=0;
+
+  // Persist step1 values for server purchase
+  let customer = {};
+  function getStep1Values(){
+    if (!step1) return {};
+    const get = (n) => step1.querySelector(`[name='${n}']`)?.value?.trim() || '';
+    const full = get('name');
+    let first = full, last = '';
+    if (full.includes(' ')){ const ix=full.lastIndexOf(' '); first=full.slice(0,ix); last=full.slice(ix+1); }
+    return {
+      first_name: first, last_name: last,
+      email: get('email'),
+      phone: get('phone'),
+      address: get('address'),
+      city: get('city'), state: get('state'), zip: get('zip')
+    };
+  }
 
   function totals(){
     const free=qty, merch=qty*SALE, disc=merch*(discount/100);
@@ -101,7 +120,9 @@
     const req=['name','email','address'].map(n=>step1.querySelector(`[name='${n}']`));
     const ok=req.every(i=>i && i.value.trim());
     req.forEach(i=>i&&(i.style.borderColor=i.value.trim()?'':'#ff5a6e'));
-    if(!ok) return; setStep(2); totals();
+    if(!ok) return;
+    customer = getStep1Values();
+    setStep(2); totals();
   });
 
   // Step 2
@@ -166,7 +187,7 @@
             <label>CVC    <div class="recurly-hosted-field" id="recurly-cvv"></div></label>
           </div>
           <label style="margin-top:10px">ZIP
-            <input id="coPostal" inputmode="numeric" maxlength="10" placeholder="Zip / Postal">
+            <input id="coPostal" inputmode="numeric" maxlength="10" placeholder="Zip / Postal" value="${customer?.zip||''}">
           </label>
         </fieldset>
       </form>`;
@@ -216,7 +237,7 @@
     }catch(e){ console.warn('Recurly init error', e); }
   }
 
-  // ensureHostedReady — wait until Recurly Elements injected their iframes
+  // ensureHostedReady — wait until Elements injected iframes
   async function ensureHostedReady(timeout=7000){
     const start=Date.now();
     if (!elements) initRecurlyElements();
@@ -233,7 +254,10 @@
         if (!elements) return reject(new Error('Payment form not ready'));
         const postal = document.getElementById('coPostal')?.value || '';
         window.recurly.token(elements, { billing_info: { postal_code: postal }}, (err, token)=>{
-          if (err) return reject(err);
+          if (err){
+            const msg = err?.message || 'Card info invalid';
+            return reject(new Error(msg));
+          }
           resolve(token);
         });
       }catch(e){ reject(e); }
@@ -244,16 +268,20 @@
   submit?.addEventListener('click', async (e)=>{
     e.preventDefault();
     const order = buildOrder();
+    order.customer = customer; // include customer details for server
     try{
       if (method === 'card'){
         submit.disabled = true; submit.textContent = 'Processing…';
         await ensureHostedReady();
         const token = await getRecurlyToken();
-        await fetch('/api/payments/recurly/charge', {
+        const resp = await fetch('/api/payments/recurly/charge', {
           method:'POST', headers:{'Content-Type':'application/json'},
           body: JSON.stringify({ token: token.id || token, order })
         });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data?.error || 'Payment failed.');
         submit.disabled = false; submit.textContent = 'Complete Order';
+        alert('Payment authorized. (Sandbox response)');
         return;
       }
       if (method === 'crypto'){
@@ -262,6 +290,7 @@
           body: JSON.stringify({ order })
         });
         const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || 'Crypto init failed');
         if (data?.hosted_url) { window.location.href = data.hosted_url; return; }
         throw new Error('Coinbase charge not created');
       }
