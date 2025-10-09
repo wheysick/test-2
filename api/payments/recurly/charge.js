@@ -1,4 +1,4 @@
-// /api/payments/recurly/charge.js  (ONE‑TIME PURCHASE, PREVIEW + CLEAR ERRORS)
+// /api/payments/recurly/charge.js
 import { Client } from 'recurly';
 
 function parseRecurlyError(e){
@@ -14,6 +14,7 @@ export default async function handler(req, res) {
   try {
     const apiKey = process.env.RECURLY_API_KEY;
     if (!apiKey) return res.status(500).json({ error: 'Missing RECURLY_API_KEY' });
+
     const client = new Client(apiKey);
 
     const { token, order } = req.body || {};
@@ -39,7 +40,6 @@ export default async function handler(req, res) {
       }]
     };
 
-    // PREVIEW FIRST for clear validation messages (schema issues, token site mismatch, etc.)
     try {
       await client.previewPurchase(purchaseReq);
     } catch (e) {
@@ -47,7 +47,6 @@ export default async function handler(req, res) {
       return res.status(pe.status).json({ error: pe.message, errors: pe.errors, raw: pe.raw });
     }
 
-    // If preview passes, perform the actual purchase
     const purchase = await client.createPurchase(purchaseReq);
     return res.status(200).json({ ok: true, id: purchase?.uuid || null });
   } catch (e) {
