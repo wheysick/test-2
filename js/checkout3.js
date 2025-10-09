@@ -5,8 +5,12 @@
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
-  let modal   = document.getElementById('checkoutModal');
-  if (!modal) { document.addEventListener('DOMContentLoaded', () => { modal = document.getElementById('checkoutModal'); }); }
+let modal = document.getElementById('checkoutModal');
+if (!modal) {
+  document.addEventListener('DOMContentLoaded', () => {
+    modal = document.getElementById('checkoutModal');
+  });
+}
 
   const step1   = document.getElementById('coStep1');
   const step2   = document.getElementById('coStep2');
