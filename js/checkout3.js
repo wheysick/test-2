@@ -235,6 +235,18 @@
           resolve(token);
         });
       }catch(e){ reject(e); }
+
+  async function ensureHostedReady(timeout=7000){
+    const start = Date.now();
+    // If hostedFields isn't ready, try to initialize again gracefully
+    if (!hostedFields) initRecurlyHostedFields();
+    const hasIframes = ()=> payWrap.querySelectorAll('.recurly-hosted-field iframe').length >= 3;
+    while (!hostedFields || !hasIframes()){
+      if (Date.now() - start > timeout) throw new Error('Payment form is still loading — please try again.');
+      await new Promise(r=>setTimeout(r,150));
+    }
+  }
+
     });
   }
 
@@ -244,12 +256,11 @@
     const order = buildOrder();
     try{
       if (method === 'card'){
+        submit.disabled = true; submit.textContent = 'Processing…';
+        await ensureHostedReady();
         const token = await getRecurlyToken();
-        await fetch('/api/payments/recurly/charge', {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ token: token.id || token, order })
-        });
-        // TODO: handle response; show success
+        await fetch('/api/payments/recurly/charge', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token: token.id || token, order }) });
+        submit.disabled=false; submit.textContent='Complete Order';
         return;
       }
       if (method === 'crypto'){
@@ -262,9 +273,7 @@
         throw new Error('Coinbase charge not created');
       }
       alert('This payment method requires server-side connector setup.');
-    }catch(err){
-      console.error(err);
-      alert(err.message || 'Payment failed.');
+    }catch(err){ console.error(err); submit.disabled=false; submit.textContent='Complete Order'; alert(err.message || 'Payment failed.');
     }
   });
 
