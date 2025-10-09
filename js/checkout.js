@@ -1,5 +1,4 @@
-===== js/checkout.js (final) =====
-// ===== checkout.js — v9.0 (3-step flow, qty + totals, CTA hide, hosted-fields clickable) =====
+// ===== checkout.js — 3-step flow, qty + totals, CTA hide, hosted-fields clickable =====
 (function(){
   const $  = (s, r=document) => r.querySelector(s);
   const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
@@ -121,7 +120,7 @@
         email: get('email'), phone: get('phone'),
         address: get('address'), city: get('city'),
         state: get('state'), zip: get('zip'),
-        items: [{ sku: 'tirz-vial', qty, price: PRICE }]
+        items: [{ sku: 'tirz-vial', qty, price: 90.00 }]
       };
 
       const token = await window.RecurlyUI.tokenize(meta);
