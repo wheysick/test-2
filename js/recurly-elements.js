@@ -80,3 +80,13 @@
 
   window.RecurlyUI = { mount, unmount, tokenize };
 })();
+
+const elements = recurly.Elements({
+  style: {
+    fontFamily: 'Inter, system-ui, -apple-system, Segoe UI, Arial, sans-serif',
+    fontSize: '16px',
+    color: '#e9ecf2',                          // typed text color
+    placeholder: { color: 'rgba(255,255,255,.55)' },
+    invalid:     { color: '#ff9ab3' }
+  }
+});
