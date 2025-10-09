@@ -76,28 +76,26 @@ module.exports = async (req, res) => {
     }));
 
     // ✅ FIXED: singular "shippingAddress" inside "account"
-    const purchaseReq = {
-      currency: 'USD',
-      account: {
-        code: accountCode,
-        firstName: customer.first_name || 'Customer',
-        lastName:  customer.last_name  || 'Customer',
-        email:     customer.email,
-        billingInfo: { tokenId: token },
-        shippingAddress: {             // ✅ singular, not plural
-          firstName:  customer.first_name || 'Customer',
-          lastName:   customer.last_name  || 'Customer',
-          address1:   customer.address || '',
-          city:       customer.city || '',
-          region:     customer.state || '',
-          postalCode: customer.zip || '',
-          country:    'US',
-          phone:      customer.phone || '',
-        }
-      },
-      lineItems,
-      collectionMethod: 'automatic',
-    };
+const purchaseReq = {
+  currency: 'USD',
+  account: {
+    code: accountCode,
+    firstName: customer.first_name || 'Customer',
+    lastName:  customer.last_name  || 'Customer',
+    email:     customer.email,
+    billingInfo: {
+      tokenId: token,
+      address1:   customer.address || '',
+      city:       customer.city || '',
+      region:     customer.state || '',
+      postalCode: customer.zip || '',
+      country:    'US',
+      phone:      customer.phone || ''
+    }
+  },
+  lineItems,
+  collectionMethod: 'automatic'
+};
 
     // Optional: preview (validates before charge)
     await client.previewPurchase(purchaseReq);
