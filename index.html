@@ -1,19 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- in <head> -->
-  <!-- Meta Pixel -->
+<!-- /js/pixel.js -->
 <script>
-if (!window.fbq) {
-  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-  n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
-  n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
-  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
-  (window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
-  fbq('init','1051611783243364');
-  fbq('track','PageView');
-}
+/* ===== pixel.js — v1.3 (single-init, safe wrappers, CAPI helper) ===== */
+(function () {
+  const PIXEL_ID = '1051611783243364';
+
+  // --- Load & init exactly once (prevents "pixel activated 2 times") ---
+  if (!window.__META_PIXEL_BOOTSTRAPPED__) {
+    window.__META_PIXEL_BOOTSTRAPPED__ = true;
+
+    if (!window.fbq) {
+      !function(f,b,e,v,n,t,s){
+        if(f.fbq) return;
+        n=f.fbq=function(){ n.callMethod ? n.callMethod.apply(n,arguments) : n.queue.push(arguments) };
+        if(!f._fbq) f._fbq=n;
+        n.push=n; n.loaded=!0; n.version='2.0'; n.queue=[];
+        t=b.createElement(e); t.async=!0; t.src=v;
+        s=b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t,s);
+      }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+    }
+
+    if (!window.__META_PIXEL_INITED__) {
+      window.__META_PIXEL_INITED__ = true;
+      window.fbq('init', PIXEL_ID);
+      if (!window.__PAGEVIEW_FIRED__) {
+        window.__PAGEVIEW_FIRED__ = true;
+        window.fbq('track', 'PageView');
+      }
+    }
+  }
+
+  // --- Safe wrappers (no-ops if fbq missing) ---
+  window.fbqSafe = function(eventName, params) {
+    try {
+      if (!window.fbq || !eventName) return;
+      const standard = { AddToCart:1, InitiateCheckout:1, AddPaymentInfo:1, Purchase:1 };
+      const name = standard[eventName] ? eventName : String(eventName).replace(/\s+/g,'');
+      const payload = Object.assign({ currency:'USD', content_type:'product' }, params || {});
+      window.fbq('track', name, payload);
+    } catch (e) { console.warn('[pixel] fbqSafe', e); }
+  };
+
+  window.pixelCartData = function(extras){
+    return Object.assign({ currency:'USD', content_type:'product' }, extras || {});
+  };
+
+  // --- Conversions API (server) sender + Purchase dual-fire with dedupe ---
+  window.sendCapi = async function(eventName, payload){
+    const event_id = payload?.event_id || (crypto?.randomUUID ? crypto.randomUUID() : String(Date.now()));
+    try{
+      const res = await fetch('/api/meta/capi', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify(Object.assign({}, payload, { event: eventName, event_id }))
+      });
+      if (!res.ok) console.warn('[CAPI] non-200', res.status, await res.text().catch(()=>'')); 
+      return { ok: res.ok, event_id };
+    }catch(err){
+      console.warn('[CAPI] failed', err);
+      return { ok:false, event_id, error: String(err?.message||err) };
+    }
+  };
+
+  window.firePurchase = async function({ value, currency='USD', contents=[], order_id } = {}){
+    const event_id = (crypto?.randomUUID ? crypto.randomUUID() : 'EVT-'+Date.now());
+    const params   = { value:Number(value||0), currency, contents, content_type:'product', event_id, order_id };
+    window.fbqSafe('Purchase', params);
+    try { await window.sendCapi('Purchase', { value:Number(value||0), currency, contents, order_id, event_id }); } catch(_){}
+    return event_id;
+  };
+})();
 </script>
+
 <link rel="stylesheet" href="/css/payments.css?v=1">
 <script src="/js/pixel.js"></script>
   <meta charset="utf-8" />
