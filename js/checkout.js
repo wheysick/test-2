@@ -1,4 +1,4 @@
-// v10.5 (dblclick -> step 3, alt panes, back fix, stock persist)
+// ===== checkout.js — v10.6 (step nav hardening, alt-method panes, back fix) =====
 (function(){
   const $  = (s, r=document) => r.querySelector(s);
   const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
@@ -17,6 +17,7 @@
   const cardset = $('#coCardPane');
   const altPane = $('#coAltPane');
 
+  // Always open checkout on any .open-checkout (capture beats others)
   document.addEventListener('click', function(e){
     const a = e.target.closest && e.target.closest('.open-checkout');
     if (!a) return;
@@ -24,15 +25,27 @@
     checkoutOpen();
   }, true);
 
+  // DEFENSIVE: delegated step navigation (capture) so we never get stuck on step 1
+  modal.addEventListener('click', function(e){
+    const g2 = e.target.closest && e.target.closest('#coToStep2, [data-goto-step="2"]');
+    if (g2){ e.preventDefault(); setStep(2); return; }
+    const g3 = e.target.closest && e.target.closest('#coToStep3, [data-goto-step="3"]');
+    if (g3){ e.preventDefault(); setStep(3); return; }
+  }, true);
+
+  // Prevent native submits (Enter) from navigating away
   modal.addEventListener('submit', (e)=>{ if (modal.contains(e.target)) e.preventDefault(); }, true);
+
+  // Pressing Enter on Step 1 should advance to Step 2
   step1 && step1.addEventListener('submit', (e)=>{ e.preventDefault(); setStep(2); }, true);
 
+  // Step-2 pricing + totals
   const PRICE = 90.00, TAX_RATE = 0.0874, ALT_DISC_RATE = 0.15;
   const qtyInput = $('#coQty');
   const elItems = $('#coItems'), elMerch = $('#coMerch'), elMethod = $('#coMethod');
   const elTax   = $('#coTax'),   elShip  = $('#coShip'),  elTotal  = $('#coTotal');
   let qty = 1;
-  let payMethod = 'card';
+  let payMethod = 'card'; // card | paypal | venmo | cashapp | crypto
 
   const fmt = n => '$' + n.toFixed(2);
   function setQty(n){ qty = Math.min(99, Math.max(1, n|0)); if(qtyInput) qtyInput.value = String(qty); updateTotals(); }
@@ -55,6 +68,7 @@
   $$('.qty-inc').forEach(b => b.addEventListener('click', ()=> setQty(qty+1)));
   $$('.qty-dec').forEach(b => b.addEventListener('click', ()=> setQty(qty-1)));
 
+  // Payment method selection (Step 2)
   const payButtons = {
     card:   $('#pmCard'),
     paypal: $('#pmPayPal'),
@@ -75,7 +89,7 @@
     });
     updateTotals();
   }
-
+  // Click + Double-click to jump to Step 3
   if (payButtons.card){ 
     payButtons.card.addEventListener('click', ()=> selectMethod('card'));
     payButtons.card.addEventListener('dblclick', ()=>{ selectMethod('card'); setStep(3); });
@@ -99,6 +113,7 @@
 
   updateTotals();
 
+  // Step switching
   function currentStep(){
     if (step3 && !step3.hidden) return 3;
     if (step2 && !step2.hidden) return 2;
@@ -123,9 +138,12 @@
       if (window.RecurlyUI) window.RecurlyUI.unmount();
     }
   }
-  if (toStep2) toStep2.addEventListener('click', (e)=>{ e.preventDefault(); setStep(2); });
-  if (toStep3) toStep3.addEventListener('click', (e)=>{ e.preventDefault(); setStep(3); });
 
+  // Keep the inline onclick working too
+  window.gotoStep2 = function(){ setStep(2); };
+  window.gotoStep3 = function(){ setStep(3); };
+
+  // Step 3 UI per method
   function renderStep3UI(){
     if (!step3) return;
     const total = elTotal ? elTotal.textContent : '';
@@ -143,31 +161,23 @@
       case 'paypal':
         title = 'Pay with PayPal';
         body  = 'You will be redirected to PayPal to complete your payment. Your total reflects a 15% method discount.';
-        primary = 'Continue to PayPal';
-        url = '/pay/paypal/start';
-        help = 'After paying, you'll be returned here automatically.';
-        break;
+        primary = 'Continue to PayPal'; url = '/pay/paypal/start';
+        help = 'After paying, you\'ll be returned here automatically.'; break;
       case 'venmo':
         title = 'Pay with Venmo';
-        body  = 'We'll open Venmo to complete your payment. Your total reflects a 15% method discount.';
-        primary = 'Open Venmo';
-        url = '/pay/venmo/start';
-        help = 'If Venmo does not open automatically, open the Venmo app and check your requests.';
-        break;
+        body  = 'We\'ll open Venmo to complete your payment. Your total reflects a 15% method discount.';
+        primary = 'Open Venmo'; url = '/pay/venmo/start';
+        help = 'If Venmo does not open automatically, open the Venmo app and check your requests.'; break;
       case 'cashapp':
         title = 'Pay with Cash App';
         body  = 'Use Cash App to complete your payment. Your total reflects a 15% method discount.';
-        primary = 'Open Cash App';
-        url = '/pay/cashapp/start';
-        help = 'If Cash App does not open, visit cash.app and search for our cashtag.';
-        break;
+        primary = 'Open Cash App'; url = '/pay/cashapp/start';
+        help = 'If Cash App does not open, visit cash.app and search for our cashtag.'; break;
       case 'crypto':
         title = 'Pay with Crypto';
         body  = 'Send the exact total to the address shown. Your order ships once the transaction confirms.';
-        primary = 'Copy Address';
-        url = '#';
-        help = 'Tip: Copy the address and send the exact amount from your wallet.';
-        break;
+        primary = 'Copy Address'; url = '#';
+        help = 'Tip: Copy the address and send the exact amount from your wallet.'; break;
     }
 
     const altHTML = `
@@ -203,6 +213,7 @@
     }
   }
 
+  // Hosted-field clickability (defensive)
   function fixClickBlockers(){
     try {
       const wrappers = step3.querySelectorAll('label, .row, .co-row, .co-field');
@@ -214,7 +225,8 @@
     } catch (e) {}
   }
 
-  if (submit) submit.addEventListener('click', async (e)=>{
+  // Submit (card only)
+  submit && submit.addEventListener('click', async (e)=>{
     e.preventDefault();
     try {
       if (payMethod !== 'card') { return; }
@@ -261,6 +273,7 @@
     }
   });
 
+  // Stock countdown: 47 -> 1 over 5 minutes, persists across re-open
   const STOCK_START = 47, STOCK_END = 1, STOCK_MS = 5*60*1000;
   let stockTimer = null, stockT0 = null;
   const STOCK_KEY = 'coStockT0_v1';
@@ -270,7 +283,7 @@
     const now = Date.now();
     const t1 = stockT0 + STOCK_MS;
     const clamped = Math.max(0, Math.min(STOCK_MS, t1 - now));
-    const ratio = clamped / STOCK_MS;
+    const ratio = clamped / STOCK_MS; // 1 -> 0
     const span = STOCK_START - STOCK_END;
     const value = STOCK_END + Math.round(span * ratio);
     return Math.max(STOCK_END, Math.min(STOCK_START, value));
@@ -294,14 +307,19 @@
   }
   function stopStock(){ if (stockTimer){ clearInterval(stockTimer); stockTimer=null; } }
 
+  // Public helpers (also used by inline onclick)
   window.checkoutOpen  = function(){
     modal.classList.add('show'); modal.style.display='grid';
-    document.documentElement.setAttribute('data-checkout-open','1'); document.body.style.overflow='hidden'; setStep(1);
-    startStock();
+    document.documentElement.setAttribute('data-checkout-open','1'); document.body.style.overflow='hidden';
+    setStep(1); startStock();
   };
-  window.checkoutClose = function(){ modal.classList.remove('show'); modal.style.display='none';
-    document.documentElement.removeAttribute('data-checkout-open'); document.body.style.overflow=''; stopStock(); };
+  window.checkoutClose = function(){
+    modal.classList.remove('show'); modal.style.display='none';
+    document.documentElement.removeAttribute('data-checkout-open'); document.body.style.overflow='';
+    stopStock();
+  };
   window.checkoutBack  = function(){ const s=currentStep(); setStep(s===3?2:1); };
-  window.gotoStep2     = function(){ setStep(2); };
-  window.gotoStep3     = function(){ setStep(3); };
+
+  // For quick console checks if needed
+  window._debugSetStep = setStep;
 })();
