@@ -248,3 +248,13 @@ html[data-checkout-open="1"] body{
   background:transparent !important;
   box-shadow:none !important;
 }
+
+/* Remove the outer card border when an alt pane exists in Step 3 */
+#coStep3:has(#coAltPane .alt-pane) .co-card,
+#coStep3:has(#coAltPane .alt-pane) .card,
+#coStep3:has(#coAltPane .alt-pane) #coCardPane{
+  border:0 !important;
+  box-shadow:none !important;
+  background:transparent !important;
+  padding:0 !important;
+}
