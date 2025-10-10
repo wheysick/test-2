@@ -133,3 +133,17 @@
   }
 }
 
+/* ===== Reading progress bar (fixed at top, above header) ===== */
+#scrollProgress{
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;                             /* bar thickness */
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transform: scaleX(0);                    /* JS updates this */
+  transform-origin: left center;
+  z-index: 2147483647;                     /* above sticky header */
+  pointer-events: none;
+}
+
