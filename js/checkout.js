@@ -344,3 +344,17 @@ modal.addEventListener('click', (e) => {
   // For quick console checks if needed
   window._debugSetStep = setStep;
 })();
+
+// in checkout.js — save on change
+(function(){
+  const fields = ['name','email','phone','address','city','state','zip'];
+  function save(){ if(!step1) return;
+    const data={}; fields.forEach(n=> data[n] = step1.querySelector(`[name="${n}"]`)?.value?.trim()||'');
+    localStorage.setItem('coStep1', JSON.stringify(data));
+  }
+  function load(){ try{
+    const d = JSON.parse(localStorage.getItem('coStep1')||'{}');
+    Object.entries(d).forEach(([n,v])=>{ const el=step1?.querySelector(`[name="${n}"]`); if(el && !el.value) el.value=v||''; });
+  }catch{} }
+  load(); step1?.addEventListener('input', save);
+})();
