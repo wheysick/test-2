@@ -1,4 +1,4 @@
-// ===== checkout.js — v10.3 (method select, stock countdown, back fix) =====
+// ===== checkout.js — v10.4 (alt-method panes, spacing, back fix, stock persist) =====
 (function(){
   const $  = (s, r=document) => r.querySelector(s);
   const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
@@ -10,10 +10,13 @@
   const step2   = $('#coStep2');
   const step3   = $('#coStep3');
   const submit  = $('#coSubmit');
+  const submitWrap = $('#coSubmitWrap');
   const close   = $('#checkoutClose');
   const back    = $('#coBackLink') || $('#coBack');
   const toStep2 = $('#coToStep2');
   const toStep3 = $('#coToStep3');
+  const cardset = $('#coCardPane');
+  const altPane = $('#coAltPane');
 
   // Force all .open-checkout clicks to open the modal (capture beats others)
   document.addEventListener('click', function(e){
@@ -102,7 +105,12 @@
       el.setAttribute('aria-hidden', String(!on));
     });
     if (n===3){
-      if (window.RecurlyUI) window.RecurlyUI.mount();
+      renderStep3UI();
+      if (payMethod === 'card'){
+        if (window.RecurlyUI) window.RecurlyUI.mount();
+      } else {
+        if (window.RecurlyUI) window.RecurlyUI.unmount();
+      }
       fixClickBlockers();
     } else {
       if (window.RecurlyUI) window.RecurlyUI.unmount();
@@ -112,6 +120,86 @@
   toStep3 && toStep3.addEventListener('click', (e)=>{ e.preventDefault(); setStep(3); });
   back   && back  .addEventListener('click', (e)=>{ e.preventDefault(); const s=currentStep(); setStep(s===3?2:1); });
   close  && close .addEventListener('click', (e)=>{ e.preventDefault(); checkoutClose(); });
+
+  // Step 3 UI per method
+  function renderStep3UI(){
+    if (!step3) return;
+    const total = elTotal ? elTotal.textContent : '';
+    if (payMethod === 'card'){
+      cardset && (cardset.hidden = false);
+      altPane && (altPane.hidden = true, altPane.innerHTML = '');
+      if (submitWrap) submitWrap.style.display = '';
+      return;
+    }
+    // Alt method
+    cardset && (cardset.hidden = true);
+    if (submitWrap) submitWrap.style.display = 'none';
+
+    let title = '', body = '', primary = '', url = '#', help = '';
+    switch (payMethod){
+      case 'paypal':
+        title = 'Pay with PayPal';
+        body  = 'You will be redirected to PayPal to complete your payment. Your total reflects a 15% method discount.';
+        primary = 'Continue to PayPal';
+        url = '/pay/paypal/start'; // TODO: implement server route
+        help = 'After paying, you\'ll be returned here automatically.';
+        break;
+      case 'venmo':
+        title = 'Pay with Venmo';
+        body  = 'We\'ll open Venmo to complete your payment. Your total reflects a 15% method discount.';
+        primary = 'Open Venmo';
+        url = '/pay/venmo/start'; // TODO
+        help = 'If Venmo does not open automatically, open the Venmo app and check your requests.';
+        break;
+      case 'cashapp':
+        title = 'Pay with Cash App';
+        body  = 'Use Cash App to complete your payment. Your total reflects a 15% method discount.';
+        primary = 'Open Cash App';
+        url = '/pay/cashapp/start'; // TODO
+        help = 'If Cash App does not open, visit cash.app and search for our cashtag.';
+        break;
+      case 'crypto':
+        title = 'Pay with Crypto';
+        body  = 'Send the exact total to the address shown. Your order ships once the transaction confirms.';
+        primary = 'Copy Address';
+        url = '#'; // will copy to clipboard
+        help = 'Tip: Copy the address and send the exact amount from your wallet.';
+        break;
+    }
+
+    const altHTML = `
+      <div class="alt-pane">
+        <h4>${title}</h4>
+        <div class="alt-row"><strong>Total:</strong> ${total}</div>
+        <div class="alt-row">${body}</div>
+        <div class="alt-actions">
+          <button type="button" class="alt-btn" id="altPrimary">${primary}</button>
+          <button type="button" class="alt-btn secondary" id="altBack">Choose another method</button>
+        </div>
+        <div class="alt-row" style="opacity:.85;font-size:13px;margin-top:8px;">${help}</div>
+      </div>`;
+
+    if (altPane){
+      altPane.innerHTML = altHTML;
+      altPane.hidden = false;
+      const altPrimary = $('#altPrimary');
+      const altBack = $('#altBack');
+      if (altPrimary){
+        altPrimary.addEventListener('click', ()=>{
+          if (payMethod === 'crypto'){
+            // Example address placeholder
+            const addr = 'bc1q-example-crypto-address-1234';
+            navigator.clipboard && navigator.clipboard.writeText(addr);
+            altPrimary.textContent = 'Address Copied';
+            setTimeout(()=> altPrimary.textContent = primary, 1600);
+          } else {
+            window.location.href = url;
+          }
+        });
+      }
+      if (altBack){ altBack.addEventListener('click', ()=>{ setStep(2); }); }
+    }
+  }
 
   // Hosted-field clickability (defensive)
   function fixClickBlockers(){
@@ -125,10 +213,11 @@
     } catch (e) {}
   }
 
-  // Submit payment
+  // Submit payment (only for card)
   submit && submit.addEventListener('click', async (e)=>{
     e.preventDefault();
     try {
+      if (payMethod !== 'card') { return; } // prevent accidental submission on alt flows
       if (!window.RecurlyUI) throw new Error('Payment form not ready');
 
       submit.disabled = true;
@@ -151,9 +240,7 @@
       };
 
       // Tokenize
-      const token = await window.RecurlyUI.tokenize({
-        // optional billing address in meta if needed later
-      });
+      const token = await window.RecurlyUI.tokenize({});
 
       // Charge
       const resp = await fetch('/api/payments/recurly/charge', {
@@ -164,7 +251,7 @@
 
       let data=null; try{ data = await resp.json(); } catch(_){}
       if (!resp.ok) {
-        const reasons = Array.isArray(data?.errors) ? `\\n• ${data.errors.join('\\n• ')}` : '';
+        const reasons = Array.isArray(data?.errors) ? `\n• ${data.errors.join('\n• ')}` : '';
         throw new Error((data?.error || `Payment failed (HTTP ${resp.status})`) + reasons);
       }
 
@@ -177,7 +264,7 @@
     }
   });
 
-  // Stock countdown: 47 -> 1 over 5 minutes, persists while modal open
+  // Stock countdown: 47 -> 1 over 5 minutes, persists across re-open
   const STOCK_START = 47, STOCK_END = 1, STOCK_MS = 5*60*1000;
   let stockTimer = null, stockT0 = null;
   const STOCK_KEY = 'coStockT0_v1';
