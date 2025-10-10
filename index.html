@@ -1,91 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- /js/pixel.js -->
-<!-- /js/pixel.js -->
-<script>
-/* ===== pixel.js — v1.4 (single init + duplicate event guard + CAPI helper) ===== */
-(function () {
-  const GOOD_ID = '1051611783243364';
-
-  // ---- Load fbq (once) & init (once) ----
-  if (!window.__META_PIXEL_BOOTSTRAPPED__) {
-    window.__META_PIXEL_BOOTSTRAPPED__ = true;
-
-    if (!window.fbq) {
-      !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-      n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
-      n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
-      t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
-      (window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
-    }
-  }
-
-  if (!window.__META_PIXEL_INITED__) {
-    window.__META_PIXEL_INITED__ = true;
-    window.fbq('init', GOOD_ID);
-    if (!window.__PAGEVIEW_FIRED__) {
-      window.__PAGEVIEW_FIRED__ = true;
-      window.fbq('track','PageView');
-    }
-  }
-
-  // ---- Safe track wrapper ----
-  window.fbqSafe = function(eventName, params) {
-    try {
-      if (!window.fbq) return;
-      const payload = Object.assign({ currency:'USD', content_type:'product' }, params||{});
-      window.fbq('track', String(eventName).replace(/\s+/g,''), payload);
-    } catch(e){}
-  };
-
-  // ---- Soft dedupe: drop identical track calls within 1.2s (guards double bindings) ----
-  (function(){
-    const orig = window.fbq;
-    const recent = new Map(); // key -> timestamp
-    window.fbq = function(){
-      const args = Array.prototype.slice.call(arguments);
-      if (args[0] === 'track') {
-        const key = args[1] + '|' + JSON.stringify(args[2]||{});
-        const now = Date.now();
-        // prune
-        for (const [k,t] of recent) if (now - t > 1500) recent.delete(k);
-        if (recent.has(key)) return;    // drop duplicate
-        recent.set(key, now);
-      }
-      return orig.apply(this, args);
-    };
-    // copy props
-    for (const k in orig) try { window.fbq[k] = orig[k]; } catch(_){}
-  })();
-
-  // ---- Helpers for value calc / CAPI ----
-  window.pixelCartData = (x)=>Object.assign({ currency:'USD', content_type:'product' }, x||{});
-
-  window.sendCapi = async function(eventName, payload){
-    const event_id = payload?.event_id || (crypto?.randomUUID ? crypto.randomUUID() : String(Date.now()));
-    try{
-      const r = await fetch('/api/meta/capi', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(Object.assign({}, payload, { event: eventName, event_id }))
-      });
-      return { ok: r.ok, event_id, status: r.status, text: await r.text().catch(()=> '') };
-    }catch(err){
-      return { ok:false, event_id, error: String(err?.message||err) };
-    }
-  };
-
-  window.firePurchase = async function({ value, currency='USD', contents=[], order_id } = {}){
-    const event_id = (crypto?.randomUUID ? crypto.randomUUID() : 'EVT-'+Date.now());
-    const params   = { value:Number(value||0), currency, contents, content_type:'product', order_id, event_id };
-    window.fbqSafe('Purchase', params);
-    try { await window.sendCapi('Purchase', params); } catch(_){}
-    return event_id;
-  };
-})();
-</script>
-
-
+<!-- META PIXEL (single source) -->
+<script defer src="/js/pixel.js"></script>
+<script defer src="/js/pixel-events.js"></script>
+<!-- /META PIXEL -->
 <link rel="stylesheet" href="/css/payments.css?v=1">
 <script src="/js/pixel.js"></script>
   <meta charset="utf-8" />
