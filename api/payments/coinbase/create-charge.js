@@ -1,63 +1,74 @@
-// /api/webhooks/coinbase.js
-const crypto = require('crypto');
+// /api/payments/coinbase/create-charge.js
+const COINBASE_API = 'https://api.commerce.coinbase.com/charges';
 
-function text(res, status, body) {
+function json(res, status, body) {
   res.statusCode = status;
-  res.setHeader('Content-Type', 'text/plain');
-  res.end(body);
-}
-
-// Helper: get raw body (works in Vercel Node functions)
-// If you're on Next.js API routes, set: export const config = { api: { bodyParser: false } }
-function getRawBody(req) {
-  return new Promise((resolve, reject) => {
-    try {
-      let data = [];
-      req.on('data', c => data.push(c));
-      req.on('end', () => resolve(Buffer.concat(data)));
-      req.on('error', reject);
-    } catch (e) { reject(e); }
-  });
+  res.setHeader('Content-Type', 'application/json');
+  res.end(JSON.stringify(body));
 }
 
 module.exports = async (req, res) => {
   try {
     if (req.method !== 'POST') {
       res.setHeader('Allow', 'POST');
-      return text(res, 405, 'Method Not Allowed');
+      return json(res, 405, { error: 'Method Not Allowed' });
     }
-    const secret = process.env.COINBASE_WEBHOOK_SECRET;
-    if (!secret) return text(res, 500, 'Missing COINBASE_WEBHOOK_SECRET');
+    const apiKey = process.env.COINBASE_API_KEY;
+    if (!apiKey) return json(res, 500, { error: 'Missing COINBASE_API_KEY' });
 
-    const signature = req.headers['x-cc-webhook-signature'];
-    const raw = await getRawBody(req);
+    let body = {};
+    try { body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {}); }
+    catch { return json(res, 400, { error: 'Invalid JSON body' }); }
 
-    const digest = crypto.createHmac('sha256', secret).update(raw).digest('hex');
-    if (digest !== signature) return text(res, 400, 'Invalid signature');
+    // Inputs from client
+    const qty = Math.max(1, Math.min(99, parseInt(body.qty || 1, 10)));
+    const email = (body.email || '').trim();
 
-    const evt = JSON.parse(raw.toString('utf8'));
-    const type = evt?.type || '';
-    const data = evt?.data || {};
+    // Recompute total on the server (must match UI logic)
+    const MSRP = 90.00, TAX_RATE = 0.0874, ALT_DISC_RATE = 0.15;
+    const merch = qty * MSRP;
+    const disc  = +(merch * ALT_DISC_RATE).toFixed(2);        // Crypto qualifies for 15% off
+    const taxable = Math.max(0, merch - disc);
+    const tax   = +(taxable * TAX_RATE).toFixed(2);
+    const total = +(taxable + tax).toFixed(2);
 
-    // TODO: look up your order by data.id or data.metadata
-    // const order = await db.findByChargeId(data.id)
+    const origin = req.headers?.origin || '';
+    const redirectUrl = origin ? `${origin}/thank-you?method=crypto` : undefined;
+    const cancelUrl   = origin ? `${origin}/?checkout=1` : undefined;
 
-    if (type === 'charge:pending') {
-      // Payment detected but not confirmed
-      // await db.update(orderId, { status: 'pending' });
-    } else if (type === 'charge:confirmed' || type === 'charge:resolved') {
-      // Funds confirmed — fulfill!
-      // await db.update(orderId, { status: 'paid' });
-      // queue email + shipping
-    } else if (type === 'charge:failed') {
-      // await db.update(orderId, { status: 'failed' });
+    // Build Coinbase charge
+    const chargeReq = {
+      name: `TIRZ – ${qty} paid + ${qty} free`,
+      description: `Crypto checkout • ${qty}× @ $${MSRP} • 15% method discount + tax`,
+      pricing_type: 'fixed_price',
+      local_price: { amount: total.toFixed(2), currency: 'USD' },
+      metadata: { email, qty, total },
+      redirect_url: redirectUrl,
+      cancel_url: cancelUrl
+    };
+
+    const resp = await fetch(COINBASE_API, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CC-Api-Key': apiKey,
+        'X-CC-Version': '2018-03-22'
+      },
+      body: JSON.stringify(chargeReq)
+    });
+    const data = await resp.json();
+
+    if (!resp.ok || !data?.data?.hosted_url) {
+      return json(res, resp.status || 500, { error: 'Coinbase charge failed', raw: data });
     }
 
-    return text(res, 200, 'ok');
+    return json(res, 200, {
+      hosted_url: data.data.hosted_url,
+      charge_id: data.data.id,
+      code: data.data.code,
+      addresses: data.data.addresses || null
+    });
   } catch (e) {
-    return text(res, 500, e?.message || 'error');
+    return json(res, 500, { error: e?.message || 'Server error' });
   }
 };
-
-// If using Next.js API routes, also export:
-// export const config = { api: { bodyParser: false } };
