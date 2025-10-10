@@ -1,14 +1,13 @@
-export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).end();
+// /api/payments/coinbase/create-charge.js (Express)
+import express from 'express';
+import fetch from 'node-fetch';
+
+const router = express.Router();
+
+router.post('/api/payments/coinbase/create-charge', async (req, res) => {
   try {
-    const { qty = 1, meta = {} } = req.body || {};
-    // Recompute total server-side
-    const PRICE = 90, TAX_RATE = 0.0874, ALT_DISC = 0.15;
-    const merch = qty * PRICE;
-    const disc = merch * ALT_DISC;
-    const taxable = Math.max(0, merch - disc);
-    const tax = Math.round(taxable * TAX_RATE * 100) / 100;
-    const total = (taxable + tax).toFixed(2);
+    const { qty = 1, email = '', total = 0, meta = {} } = req.body || {};
+    const amount = Number(total).toFixed(2);
 
     const r = await fetch('https://api.commerce.coinbase.com/charges', {
       method: 'POST',
@@ -21,12 +20,13 @@ export default async function handler(req, res) {
         name: 'Tirzepatide Bundle',
         description: `${qty} paid + ${qty} free`,
         pricing_type: 'fixed_price',
-        local_price: { amount: total, currency: 'USD' },
-        metadata: { ...meta, qty },
+        local_price: { amount, currency: 'USD' },
+        metadata: { ...meta, email, qty },
         redirect_url: `${process.env.PUBLIC_BASE_URL}/thank-you?m=crypto`,
         cancel_url: `${process.env.PUBLIC_BASE_URL}/checkout?m=crypto`
       })
     });
+
     const d = await r.json();
     if (!r.ok || !d?.data?.hosted_url) {
       return res.status(r.status || 500).json({ error: d?.error?.message || 'Failed to create charge' });
@@ -35,4 +35,6 @@ export default async function handler(req, res) {
   } catch (e) {
     res.status(500).json({ error: e.message || 'Server error' });
   }
-}
+});
+
+export default router;
