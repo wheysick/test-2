@@ -315,20 +315,151 @@
         >Back</a
       >
 
-    <!-- … (UNCHANGED CONTENT BELOW) … -->
+      <form id="coStep1" class="co-pane" novalidate onsubmit="return false">
+        <h3 class="co-h3" id="checkoutTitle">Where Should We Send Your Free Bottles?</h3>
+
+        <div class="co-grid">
+          <label>Full Name <input type="text" name="name" autocomplete="name" placeholder="Full Name" required /></label>
+          <label>Email <input type="email" name="email" autocomplete="email" placeholder="Email" required /></label>
+          <label>Phone <input type="tel" name="phone" inputmode="tel" autocomplete="tel" placeholder="Phone" required /></label>
+          <label>Street Address <input type="text" name="address" autocomplete="street-address" placeholder="Street Address" required /></label>
+
+          <div class="co-row">
+            <label>City <input type="text" name="city" autocomplete="address-level2" placeholder="City" required /></label>
+            <label>State <input type="text" name="state" maxlength="2" placeholder="CA" required /></label>
+            <label>ZIP <input type="text" name="zip" inputmode="numeric" placeholder="ZIP" required /></label>
+          </div>
+        </div>
+
+        <div class="co-actions">
+          <a id="coToStep2" class="btn-main btn-lg" href="#" onclick="gotoStep2(); return false;">Continue</a>
+        </div>
+      </form>
+
+      <section id="coStep2" class="co-pane step2-pane" hidden aria-hidden="true">
+        <h3 class="co-h3 center">How Many Bottles Do You Want?</h3>
+        <div class="co-stockline center">
+          <span class="qty" id="coStock">47</span> left in stock
+        </div>
+
+        <div class="qtybar">
+          <button class="qty-dec" type="button" aria-label="Decrease">−</button>
+          <input id="coQty" value="1" inputmode="numeric" pattern="\d*" aria-label="Quantity" />
+          <button class="qty-inc" type="button" aria-label="Increase">+</button>
+        </div>
+
+        <div class="price-line center"><s>$90</s> <strong id="pricePer">$45</strong> / bottle</div>
+
+        <button type="button" class="pm-card is-selected" id="pmCard" aria-selected="true">
+          <span class="pm-icon">💳</span> Credit / Debit Card
+        </button>
+
+        <p class="co-savings-note">
+          Use a tax-less, fee-less payment method to save <strong>15%</strong> more!
+        </p>
+
+        <div class="pm-alt">
+          <button type="button" class="pill" id="pmPayPal" aria-selected="false">PayPal</button>
+          <button type="button" class="pill" id="pmVenmo" aria-selected="false">Venmo</button>
+          <button type="button" class="pill" id="pmCashApp" aria-selected="false">Cash App</button>
+          <button type="button" class="pill" id="pmCrypto" aria-selected="false">₿ Crypto</button>
+        </div>
+
+        <div class="order-box">
+          <div class="line"><span>Items</span><span id="coItems">2 bottles (1 paid + 1 free)</span></div>
+          <div class="line"><span>Merch</span><span id="coMerch">$90.00</span></div>
+          <div class="line"><span>Method discount</span><span id="coMethod">$0.00</span></div>
+          <div class="line"><span>Tax</span><span id="coTax">$0.00</span></div>
+          <div class="line"><span>Shipping</span><span id="coShip">FREE</span></div>
+          <div class="line total"><span>Total</span><strong id="coTotal">$90.00</strong></div>
+        </div>
+
+        <div class="co-actions center">
+          <a id="coToStep3" class="btn-main btn-lg" href="#" onclick="gotoStep3(); return false;">Continue</a>
+        </div>
+      </section>
+
+      <section id="coStep3" class="co-pane" hidden aria-hidden="true">
+        <h3 class="co-h3">Complete Order</h3>
+        <div class="co-stockline" id="coStockLine3">
+          <span class="qty">47</span> left in stock
+        </div>
+
+        <fieldset class="cardset" id="coCardPane">
+          <legend>Card details</legend>
+          <label>Card number <div id="re-number"></div></label>
+          <div class="co-row">
+            <label>Expiry <div id="re-month"></div></label>
+            <label>Year   <div id="re-year"></div></label>
+            <label>CVC    <div id="re-cvv"></div></label>
+          </div>
+          <label id="zipRow" style="display:none">ZIP <div id="re-postal"></div></label>
+        </fieldset>
+
+        <div id="coAltPane" class="alt-pane" hidden></div>
+
+        <div class="co-actions" id="coSubmitWrap">
+          <button class="btn-main btn-lg co-submit" id="coSubmit">Complete Order</button>
+        </div>
+      </section>
+
+      <div id="checkoutSuccess" class="co-success" hidden>
+        <h4>You're in. 🎉</h4>
+        <p>We’ve reserved your free bottles. Look for a confirmation email shortly.</p>
+        <a href="#" class="btn-main btn-lg" onclick="checkoutClose();return false;">Back to article</a>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <h4>Stay in the loop</h4>
+      <p>Get special offers, early access, and wellness tips.</p>
+      <form class="footer-form" onsubmit="event.preventDefault(); alert('Thanks!');">
+        <input type="email" placeholder="Enter your email" aria-label="Email" />
+        <button type="submit">Subscribe</button>
+      </form>
+    </div>
+    <div class="footer-legal" style="text-align:center">
+      © 2025 SelfHacking. All rights reserved.
+    </div>
+  </footer>
 
   <!-- Site scripts -->
   <script src="/js/config.js?v=641" defer></script>
   <script src="/js/script.js?v=641" defer></script>
   <script src="/js/checkout.js?v=10112" defer></script>
 
+  <!-- Belt & suspenders CTA opener (works even if checkout.js hasn't loaded yet) -->
+  <script>
+    document.addEventListener(
+      "click",
+      function (e) {
+        const a = e.target.closest && e.target.closest(".open-checkout");
+        if (!a) return;
+        e.preventDefault();
+        if (window.checkoutOpen) {
+          window.checkoutOpen();
+        } else {
+          const m = document.getElementById("checkoutModal");
+          if (m) {
+            m.classList.add("show");
+            m.style.display = "grid";
+            document.documentElement.setAttribute("data-checkout-open", "1");
+            document.body.style.overflow = "hidden";
+          }
+        }
+      },
+      true
+    );
+  </script>
+
   <!-- ===== META PIXEL HOTFIX — FINAL v4.2 (unchanged behavior) ===== -->
   <script>
     (function () {
       "use strict";
 
-      // FIXED: correct pixel ID
-      var PIXEL_ID = "105161178243364";
+      var PIXEL_ID = "1051611783243364";
 
       // Load Meta base if missing
       if (!window.fbq) {
@@ -393,13 +524,11 @@
         if (!window.__META_PIXEL_INITED__) {
           window.__META_PIXEL_INITED__ = true;
           fbq("init", PIXEL_ID);
-          // FIXED: expose for other scripts / TY page
-          window.__FB_PIXEL_ID__ = PIXEL_ID;
           fbq("trackSingle", PIXEL_ID, "PageView");
         }
       })();
 
-      // Helpers (unchanged) …
+      // Helpers
       function $(s, r) { return (r || document).querySelector(s); }
       function ready(fn) {
         document.readyState === "loading"
@@ -431,8 +560,9 @@
         } catch (_) {}
       }
 
-      // Observers + event fires (unchanged) …
+      // Fire on real state changes (modal + steps)
       var fired = { ATC: false, IC: false, API: false };
+
       function fireATC() { if (!fired.ATC) { fired.ATC = true; track("AddToCart", { value: 90 }); } }
       function fireIC()  { if (!fired.IC)  { fired.IC  = true; track("InitiateCheckout"); } }
       function fireAPI() {
