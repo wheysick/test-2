@@ -1,4 +1,4 @@
-// ===== checkout.js — v10.10.1 (Cash App UX polish: centered copy buttons + clear labels) =====
+// ===== checkout.js — v10.11 (hide PayPal/Venmo, colorful Cash App/Crypto, thank-you redirects) =====
 (function(){
   const $  = (s, r=document) => r.querySelector(s);
   const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
@@ -86,6 +86,14 @@
     cashapp:$('#pmCashApp'),
     crypto: $('#pmCrypto')
   };
+
+  // Add styling hooks for colors
+  Object.entries(payButtons).forEach(([k, el])=>{ if (el) el.classList.add('pm', `pm--${k}`); });
+
+  // Hide Venmo/PayPal (both JS and CSS safety)
+  if (payButtons.paypal) payButtons.paypal.style.display = 'none';
+  if (payButtons.venmo)  payButtons.venmo.style.display  = 'none';
+
   function selectMethod(kind){
     payMethod = kind;
     Object.entries(payButtons).forEach(([k, el])=>{
@@ -102,14 +110,6 @@
   if (payButtons.card){ 
     payButtons.card.addEventListener('click', ()=> selectMethod('card'));
     payButtons.card.addEventListener('dblclick', ()=>{ selectMethod('card'); setStep(3); });
-  }
-  if (payButtons.paypal){
-    payButtons.paypal.addEventListener('click', ()=> selectMethod('paypal'));
-    payButtons.paypal.addEventListener('dblclick', ()=>{ selectMethod('paypal'); setStep(3); });
-  }
-  if (payButtons.venmo){
-    payButtons.venmo.addEventListener('click', ()=> selectMethod('venmo'));
-    payButtons.venmo.addEventListener('dblclick', ()=>{ selectMethod('venmo'); setStep(3); });
   }
   if (payButtons.cashapp){
     payButtons.cashapp.addEventListener('click', ()=> selectMethod('cashapp'));
@@ -169,7 +169,7 @@
     };
   }
 
-  // ==== Utilities: order id + clipboard ====
+  // ==== Utility: persistent order number ====
   function userKey(){
     const email = getStep1Val('email') || '';
     let s = 0; const src = email || (navigator.userAgent||'guest');
@@ -188,12 +188,6 @@
   async function copyToClipboard(s){
     try { await navigator.clipboard?.writeText(s); }
     catch(_) { window.prompt('Copy to clipboard:', s); }
-  }
-  function flashCopied(btn, label='✓ Copied'){
-    const orig = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = label;
-    setTimeout(()=>{ btn.disabled=false; btn.textContent = orig; }, 1200);
   }
 
   // ===== Step 3 UI per method =====
@@ -219,18 +213,6 @@
     const isDesktop = window.matchMedia && window.matchMedia('(pointer:fine)').matches && !/android|iphone|ipad|ipod/i.test(navigator.userAgent || '');
 
     switch (payMethod){
-      case 'paypal':
-        title = 'Pay with PayPal';
-        body  = 'You will be redirected to PayPal to complete your payment. Your total reflects a 15% method discount.';
-        primary = 'Continue to PayPal'; url = '/pay/paypal/start';
-        help = 'After paying, you\'ll be returned here automatically.'; break;
-
-      case 'venmo':
-        title = 'Pay with Venmo';
-        body  = 'We\'ll open Venmo to complete your payment. Your total reflects a 15% method discount.';
-        primary = 'Open Venmo'; url = '/pay/venmo/start';
-        help = 'If Venmo does not open automatically, open the Venmo app and check your requests.'; break;
-
       case 'cashapp': {
         title = 'Pay with Cash App';
         const cashtag = 'selfhacking';
@@ -249,7 +231,6 @@
              <img id="cashQr" src="${qrUrl}" width="240" height="240" alt="Cash App QR for $${cashtag}">
            </div>` : '';
 
-        // Centered, clearly labeled copy buttons
         const copyRow = `
           <div class="alt-row" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;justify-content:center;align-items:center;text-align:center;">
             <button type="button" class="alt-btn secondary copy-btn" data-copy="$${cashtag}" aria-label="Copy cashtag">$ Copy Cashtag</button>
@@ -274,7 +255,7 @@
         help = 'After the network confirms, we\'ll email your receipt and ship your order.'; break;
     }
 
-    // Center both Crypto and Cash App headings
+    // Center both Cash App and Crypto headings
     const h4Style = (payMethod === 'crypto' || payMethod === 'cashapp')
       ? ' style="display:flex;justify-content:center;align-items:center;text-align:center;width:100%;margin:0 auto;"'
       : '';
@@ -315,7 +296,7 @@
 
               const customer = getCustomerMeta();
               const body = { qty, email: customer.email || '', total: computeTotals().total,
-                meta: { ...customer, sku: 'tirz-vial', free_qty: qty, paid_qty: qty } };
+                meta: { ...customer, sku: 'tirz-vial', free_qty: qty, paid_qty: qty, order_id: getOrderId() } };
 
               const resp = await fetch('/api/payments/coinbase/create-charge', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
@@ -331,15 +312,6 @@
             }
             return;
           }
-          if (payMethod === 'cashapp'){
-            if (typeof track === 'function') track('co_submit', { method:'cashapp', qty, total: computeTotals().total });
-            const cashtag = 'selfhacking';
-            const orderId = getOrderId();
-            const amount = computeTotals().total.toFixed(2);
-            const cashUrl = `https://cash.app/$${cashtag}?amount=${encodeURIComponent(amount)}&note=${encodeURIComponent(orderId)}`;
-            window.open(cashUrl, '_blank', 'noopener');
-            return;
-          }
           if (url && url !== '#') {
             if (typeof track === 'function') track('co_submit',{ method: payMethod, qty, total: computeTotals().total });
             window.location.href = url;
@@ -348,16 +320,16 @@
       }
       if (altBack){ altBack.addEventListener('click', ()=>{ setStep(2); }); }
 
-      // Copy helpers — centered row with clear labels
+      // Cash App extras
       if (payMethod === 'cashapp'){
         $$('.copy-btn', altPane).forEach(btn => {
           btn.addEventListener('click', async ()=>{
             const val = btn.getAttribute('data-copy') || '';
             await copyToClipboard(val);
-            flashCopied(btn);
+            const orig = btn.textContent; btn.textContent = '✓ Copied'; btn.disabled = true;
+            setTimeout(()=>{ btn.textContent = orig; btn.disabled = false; }, 1200);
           });
         });
-        // Mark-as-paid handler
         const markBtn = $('#markPaidBtn');
         if (markBtn){
           markBtn.addEventListener('click', async ()=>{
@@ -375,16 +347,15 @@
                 ts: Date.now()
               };
               const r = await fetch('/api/payments/cashapp/mark-paid', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
               });
               if (!r.ok){
                 const err = await r.json().catch(()=>({}));
                 throw new Error(err?.error || `HTTP ${r.status}`);
               }
               if (typeof track === 'function') track('co_mark_paid', { method:'cashapp', order_id: payload.order_id, amount: payload.amount });
-              markBtn.textContent = 'Marked — we’ll verify';
+              // Redirect to thank-you (pending)
+              window.location.href = `/thank-you?m=cashapp&status=pending&order=${encodeURIComponent(payload.order_id)}`;
             } catch (e) {
               alert(e?.message || 'Could not mark as paid');
               markBtn.disabled = false;
@@ -407,7 +378,7 @@
     } catch (e) {}
   }
 
-  // ===== Submit (card only) =====
+  // ===== Submit (card only) — redirect to thank-you =====
   submit && submit.addEventListener('click', async (e)=>{
     e.preventDefault();
     try {
@@ -432,7 +403,9 @@
         throw new Error((data?.error || `Payment failed (HTTP ${resp.status})`) + reasons);
       }
 
-      step3.hidden = true; const ok = $('#checkoutSuccess'); if (ok) ok.hidden = false;
+      const oid = getOrderId();
+      if (typeof track === 'function') track('co_submit', { method:'card', order_id: oid, total: computeTotals().total });
+      window.location.href = `/thank-you?m=card&order=${encodeURIComponent(oid)}`;
     } catch (err) {
       alert(err?.message || 'Payment failed');
     } finally {
@@ -490,38 +463,3 @@
 
   window._debugSetStep = setStep;
 })();
-
-// ===== save-on-change (scoped step1 fix) =====
-(function(){
-  const step1 = document.getElementById('coStep1');
-  const fields = ['name','email','phone','address','city','state','zip'];
-  function save(){ if(!step1) return;
-    const data={}; fields.forEach(n=> data[n] = step1.querySelector(`[name="${n}"]`)?.value?.trim()||'');
-    localStorage.setItem('coStep1', JSON.stringify(data));
-  }
-  function load(){ try{
-    const d = JSON.parse(localStorage.getItem('coStep1')||'{}');
-    Object.entries(d).forEach(([n,v])=>{ const el=step1?.querySelector(`[name="${n}"]`); if(el && !el.value) el.value=v||''; });
-  }catch{} }
-  load(); step1?.addEventListener('input', save);
-})();
-
-// ===== lightweight tracking hooks (parity with v10.6) =====
-function track(name, data){ try{
-  navigator.sendBeacon?.('/_track', new Blob([JSON.stringify({name, ts:Date.now(), ...data})], {type:'application/json'}));
-} catch{} }
-document.getElementById('coToStep2')?.addEventListener('click', ()=>track('co_step2',{}));
-document.getElementById('coToStep3')?.addEventListener('click', ()=>track('co_step3',{ method: document.querySelector('[aria-selected="true"]')?.id||'card'}));
-document.getElementById('coSubmit')?.addEventListener('click', ()=>track('co_submit',{ method:'card' }));
-
-// ===== exit guard (scoped step1 fix) =====
-function isDirtyStep1(){
-  const scope = document.getElementById('coStep1');
-  const names=['name','email','phone','address','city','state','zip'];
-  return names.some(n => (scope?.querySelector(`[name="${n}"]`)?.value||'').trim().length>0);
-}
-const origClose = window.checkoutClose;
-window.checkoutClose = function(){
-  if (isDirtyStep1() && !confirm('Leave checkout? Your info will be saved.')) return;
-  origClose();
-};
