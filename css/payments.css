@@ -105,3 +105,17 @@
   width: 100%;
   margin: 0 auto !important;
 }
+
+/* ===== payments_colors.css — hide venmo/paypal; colorful Cash App + Crypto ===== */
+#pmPayPal, #pmVenmo { display:none !important; }
+
+.pm { border-radius: 14px; padding:12px 14px; display:flex; align-items:center; gap:10px; cursor:pointer; user-select:none; transition: transform .18s ease, box-shadow .18s ease; }
+.pm:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0,0,0,.14); }
+.pm.is-selected { outline: 2px solid rgba(255,255,255,.18); box-shadow: 0 8px 20px rgba(0,0,0,.25); }
+
+.pm--cashapp { background: #00C244; color:#0b1b0f; font-weight:800; }
+.pm--crypto  { background: #F7931A; color:#111111; font-weight:800; }
+
+/* Step 3 headers tint (optional) */
+#coAltPane .alt-pane[data-method="cashapp"] h4 { color:#00C244; }
+#coAltPane .alt-pane[data-method="crypto"]  h4 { color:#F7931A; }
