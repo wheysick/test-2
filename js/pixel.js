@@ -1,13 +1,11 @@
-/* pixel.js — v3.0 FINAL
+/* pixel.js — v4.0 FINAL
    - Loads Meta Pixel (1051611783243364) and routes ALL tracks to it
    - Ignores any other fbq('init', ...) calls
-   - Fires ecommerce events on REAL state changes:
-       • AddToCart          => Step 1 becomes visible (checkout opened)
-       • InitiateCheckout   => Step 2 becomes visible
-       • AddPaymentInfo     => Step 3 becomes visible
-   - Hooks window.checkoutOpen/gotoStep2/gotoStep3 if present (belt & suspenders)
-   - Soft-dedup: drops identical events inside 1.5s window
-   - Safe: never mutates your checkout logic; only observes
+   - Fires ecommerce events on REAL state changes (no brittle selectors):
+       • AddToCart        => checkout modal opens
+       • InitiateCheckout => Step 2 becomes visible
+       • AddPaymentInfo   => Step 3 becomes visible
+   - Idempotent & duplicate-safe
 */
 (function () {
   'use strict';
@@ -16,18 +14,18 @@
 
   // -------- load Meta base if missing --------
   if (!window.fbq) {
-    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
-    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
-    (window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+    !function(f,b,e,v,n,t,s){ if(f.fbq) return;
+      n=f.fbq=function(){ n.callMethod ? n.callMethod.apply(n,arguments) : n.queue.push(arguments) };
+      if(!f._fbq) f._fbq=n; n.push=n; n.loaded=!0; n.version='2.0'; n.queue=[];
+      t=b.createElement(e); t.async=!0; t.src=v; s=b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t,s);
+    }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
   }
 
-  // -------- patch fbq so everything tracks to our pixel + dedupe --------
+  // -------- patch fbq so all tracks go ONLY to our pixel + soft dedupe --------
   (function patchFbq(){
     if (!window.fbq) return setTimeout(patchFbq, 20);
     var orig = window.fbq;
-    if (orig.__singlePatched) return;
+    if (orig.__px_singlePatched) return;
 
     var recent = Object.create(null);
     function isDup(name, params){
@@ -55,7 +53,7 @@
       return orig.apply(this, args);
     }
     for (var k in orig) try { fbqPatched[k] = orig[k]; } catch(_){}
-    fbqPatched.__singlePatched = true;
+    fbqPatched.__px_singlePatched = true;
     window.fbq = fbqPatched;
   })();
 
@@ -69,77 +67,72 @@
     }
   })();
 
-  // -------- safe helpers --------
-  window.fbqSafe = function(eventName, params){
-    try {
-      if (!window.fbq) return;
-      var name = String(eventName||'').replace(/\s+/g,'');
-      var payload = Object.assign({ currency:'USD', content_type:'product' }, params||{});
-      fbq('trackSingle', PIXEL_ID, name, payload);
-    } catch(e){}
-  };
-
-  // -------- event “once” gates --------
-  var gates = Object.create(null);
-  function once(key, ms){
-    var now = Date.now(), win = ms || 3000;
-    if (gates[key] && (now - gates[key] < win)) return false;
-    gates[key] = now; return true;
+  // -------- helpers --------
+  function ready(fn){
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fn, { once:true });
+    } else { fn(); }
   }
-
-  // read total if present
-  function readTotal(){
-    var el = document.getElementById('coTotal');
+  function isShown(el){
+    if (!el) return false;
+    if (el.hidden) return false;
+    var cs = window.getComputedStyle ? getComputedStyle(el) : null;
+    if (cs && (cs.display === 'none' || cs.visibility === 'hidden' || cs.opacity === '0')) return false;
+    if (el.offsetParent === null && (!cs || cs.position !== 'fixed')) return false;
+    var r = el.getBoundingClientRect();
+    return (r.width > 0 && r.height > 0);
+  }
+  function numFromElText(sel){
+    var el = document.querySelector(sel);
     if (!el) return undefined;
     var m = (el.textContent||'').match(/[\d.,]+/);
     if (!m) return undefined;
     var n = Number(m[0].replace(/,/g,''));
     return isFinite(n) ? n : undefined;
   }
-
-  // visibility checks
-  function isVisible(el){
-    if (!el) return false;
-    if (el.hidden) return false;
-    var ah = el.getAttribute && el.getAttribute('aria-hidden');
-    if (ah === 'true') return false;
-    var r = el.getBoundingClientRect();
-    return (r.width > 0 && r.height > 0);
+  function fbqSafe(eventName, params){
+    try {
+      if (!window.fbq) return;
+      var name = String(eventName||'').replace(/\s+/g,'');
+      var payload = Object.assign({ currency:'USD', content_type:'product' }, params||{});
+      fbq('trackSingle', PIXEL_ID, name, payload);
+    } catch(e){}
   }
 
-  // fire helpers bound to step visibility
-  function fireATC(){ if (once('ATC',1500)) fbqSafe('AddToCart', { value: 90 }); }
-  function fireIC(){  if (once('IC',2000))  fbqSafe('InitiateCheckout'); }
+  // -------- state-based firing with strict once-gates --------
+  var fired = { ATC:false, IC:false, API:false };
+  function fireATC(){  if (!fired.ATC) { fired.ATC = true; fbqSafe('AddToCart', { value: 90 }); } }
+  function fireIC(){   if (!fired.IC)  { fired.IC  = true; fbqSafe('InitiateCheckout'); } }
   function fireAPI(){
-    if (once('API',2000)) {
-      var total = readTotal();
+    if (!fired.API) {
+      fired.API = true;
+      var total = numFromElText('#coTotal');
       total != null ? fbqSafe('AddPaymentInfo', { value: total }) : fbqSafe('AddPaymentInfo');
     }
   }
 
-  // observe step panes & modal
   function bindObservers(){
-    var step1 = document.getElementById('coStep1');
-    var step2 = document.getElementById('coStep2');
-    var step3 = document.getElementById('coStep3');
     var modal = document.getElementById('checkoutModal');
-
-    // initial check (in case a step is already shown)
-    setTimeout(check, 60);
+    var s1 = document.getElementById('coStep1');
+    var s2 = document.getElementById('coStep2');
+    var s3 = document.getElementById('coStep3');
 
     function check(){
-      if (isVisible(step1)) fireATC();
-      if (isVisible(step2)) fireIC();
-      if (isVisible(step3)) fireAPI();
-      // modal open also implies AddToCart
-      if (modal) {
-        var r = modal.getBoundingClientRect();
-        if (r.width > 0 && r.height > 0) fireATC();
-      }
+      // Modal open => AddToCart
+      if (modal && isShown(modal)) fireATC();
+      // Step 2 shown => InitiateCheckout
+      if (s2 && isShown(s2)) fireIC();
+      // Step 3 shown => AddPaymentInfo
+      if (s3 && isShown(s3)) fireAPI();
     }
 
+    // initial and delayed checks
+    setTimeout(check, 60);
+    setTimeout(check, 200);
+
+    // observe any attribute/class/style changes that reveal steps/modal
     try {
-      var mo = new MutationObserver(function(){ check(); });
+      var mo = new MutationObserver(check);
       mo.observe(document.documentElement, {
         subtree: true,
         childList: true,
@@ -147,9 +140,17 @@
         attributeFilter: ['hidden','aria-hidden','class','style']
       });
     } catch(_){}
+
+    // ultra-robust: detect modal open caused by *any* click
+    document.addEventListener('click', function(){
+      var wasATC = fired.ATC;
+      setTimeout(function(){
+        if (!wasATC && modal && isShown(modal)) fireATC();
+      }, 60);
+    }, true);
   }
 
-  // hook core functions if they exist
+  // also hook your globals if present (no behavior change, just signal)
   function wrapWhenAvailable(name, onCall){
     var tries = 0;
     (function tryWrap(){
@@ -160,33 +161,22 @@
           try { onCall(); } catch(_){}
           return orig.apply(this, arguments);
         };
-        Object.defineProperty(wrapped, 'name', { value: name });
         wrapped.__px_wrapped__ = true;
-        window[name] = wrapped;
-        return;
+        try { Object.defineProperty(wrapped, 'name', { value: name }); } catch(_){}
+        window[name] = wrapped; return;
       }
-      if (tries++ < 60) setTimeout(tryWrap, 100);
+      if (tries++ < 80) setTimeout(tryWrap, 100);
     })();
   }
-
-  // run when DOM is ready
-  function ready(fn){ document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', fn, { once:true }) : fn(); }
 
   ready(function(){
     bindObservers();
     wrapWhenAvailable('checkoutOpen', fireATC);
     wrapWhenAvailable('gotoStep2',    fireIC);
     wrapWhenAvailable('gotoStep3',    fireAPI);
-
-    // fallback: clicks that obviously open checkout
-    document.addEventListener('click', function(e){
-      var t = e.target && e.target.closest &&
-              e.target.closest('.open-checkout,[data-open-checkout],.masthead-cta,.floating-cta,a[href*="#checkout"]');
-      if (t) fireATC();
-    }, true);
   });
 
-  // -------- optional: Purchase browser+server helper (unchanged) --------
+  // -------- optional: Purchase browser+server helper (unchanged for you) --------
   window.firePurchase = async function(opts){
     opts = opts || {};
     var value    = Number(opts.value || 0);
