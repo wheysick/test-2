@@ -31,6 +31,35 @@
       <figure class="hero"><img src="assets/hero.png" alt="Weekly injector" /></figure>
       <h2>What is it?</h2>
       <figure class="inline-img"><img src="assets/tirz.png" alt="TIRZ premium vials" /></figure>
+
+      <ul>
+        <li><strong>Each pack</strong> includes <strong>4 weekly servings</strong></li>
+        <li><strong>Active ingredients:</strong> <em>clinically studied wellness compounds</em></li>
+        <li>Formulated to support <strong>natural metabolism</strong> and <strong>balance</strong></li>
+      </ul>
+      <p class="note small"><em>*Inspired by modern GLP‑1/GIP research; for educational purposes only. Not a drug or prescription. Not intended to diagnose, treat, cure, or prevent any disease.</em></p>
+        
+      <!-- FAQ -->
+      <section class="faq reveal" id="faq">
+        <h2>Frequently Asked Questions</h2>
+        <details class="faq-item" open>
+          <summary><span class="faq-q">Is Tirzepatide legal?</span><span class="faq-arrow">›</span></summary>
+          <div class="faq-body">Tirzepatide is an FDA‑approved prescription medicine in the U.S. Our product is a non‑prescription wellness sample inspired by the science.</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-q">Do I need a prescription?</span><span class="faq-arrow">›</span></summary>
+          <div class="faq-body">No doctor’s prescription is required to receive the free wellness sample.</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-q">Any side effects or interactions?</span><span class="faq-arrow">›</span></summary>
+          <div class="faq-body">Mild, transient effects are possible (nausea in week 1 for some). Check interactions with your clinician.</div>
+        </details>
+        <details class="faq-item">
+          <summary><span class="faq-q">Who shouldn’t use this?</span><span class="faq-arrow">›</span></summary>
+          <div class="faq-body">Not for individuals who are pregnant, nursing, or with contraindicated conditions. Consult a clinician.</div>
+        </details>
+      </section>
+    
     </article>
 
     <aside class="reviews-col" aria-label="Reviews">
@@ -149,5 +178,24 @@
   <script defer src="/js/config.js?v=641"></script>
   <script defer src="/js/script.js?v=641"></script>
   <script defer src="/js/checkout.js?v=9021"></script>
+
+  <script>
+    // Belt & suspenders CTA opener (capture beats other listeners and works even if checkout.js hasn't loaded yet)
+    document.addEventListener('click', function(e){
+      const a = e.target.closest && e.target.closest('.open-checkout');
+      if (!a) return;
+      e.preventDefault();
+      if (window.checkoutOpen) {
+        window.checkoutOpen();
+      } else {
+        const m=document.getElementById('checkoutModal');
+        if(m){ m.classList.add('show'); m.style.display='grid';
+          document.documentElement.setAttribute('data-checkout-open','1');
+          document.body.style.overflow='hidden';
+        }
+      }
+    }, true);
+  </script>
+
 </body>
 </html>
