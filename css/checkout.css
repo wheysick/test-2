@@ -187,3 +187,28 @@ html[data-checkout-open="1"] .floating-cta{display:none!important}
   .pm-alt .pill, #altPayRow .alt-pay { flex:0 0 280px !important; }
 }
 
+/* === Alt-pay robust fix — v2 final === */
+.pm-alt, #altPayRow, #coStep2 .pm-alt, #coStep2 #altPayRow {
+  display:flex !important;
+  gap:12px !important;
+  flex-wrap:wrap !important;
+  align-items:stretch !important;
+  justify-content:center !important;
+}
+.pm-alt .pill, #altPayRow .alt-pay, #pmCashApp, #pmCrypto {
+  position:relative !important;
+  left:auto !important; right:auto !important; top:auto !important; bottom:auto !important;
+  transform:none !important;
+  z-index:0 !important;
+  display:inline-flex !important;
+  justify-content:center !important;
+  align-items:center !important;
+  vertical-align:top !important;
+  min-width:200px !important;
+  max-width:340px !important;
+  margin:0 !important;
+}
+@media (min-width: 900px){
+  .pm-alt, #altPayRow, #coStep2 .pm-alt, #coStep2 #altPayRow { flex-wrap:nowrap !important; }
+  .pm-alt .pill, #altPayRow .alt-pay, #pmCashApp, #pmCrypto { flex:0 0 280px !important; }
+}
