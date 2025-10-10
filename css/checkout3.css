@@ -90,3 +90,17 @@
 
 /* Footer alignment */
 .footer-inner,.footer-legal{text-align:center}
+
+/* v7.5 adjustments (spacing, desktop 4-up, alt-pane center, footer spacing) */
+.modal-content.checkout-card{ padding:72px clamp(18px,3.2vw,28px) 64px; }
+@media (min-width:600px){ .modal-content.checkout-card{ padding-top:56px } }
+#coStep3 .co-row{ gap:16px; margin-bottom:10px }
+#re-number{ margin-bottom:12px }
+.pm-alt .pill{ cursor:pointer; opacity:1 }
+.pm-alt .pill[aria-selected="true"]{ outline:3px solid rgba(196,113,245,.36) }
+@media (min-width:900px){ .pm-alt{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:.6rem } .pm-alt .pill{ min-width:0 } }
+.alt-pane{ border:1px solid rgba(255,255,255,.14); text-align:center }
+.alt-pane .alt-row, .alt-pane h4{ text-align:center }
+.footer-inner{ padding-bottom:16px } .footer-form{ margin-bottom:12px } .footer-legal{ padding-top:14px }
+.review-card .rev-img{ width:100%; max-height:160px; object-fit:cover; border-radius:10px; display:block; margin:8px 0 6px }
+
