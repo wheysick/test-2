@@ -57,3 +57,40 @@
   display: flex;            /* just in case it isn't already */
   justify-content: center;
 }
+
+/* Center ONLY the crypto H4 on Step 3 */
+#coAltPane .alt-pane.crypto h4{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  width:100%;
+  margin:0 auto;
+}
+
+/* Make Step-3 alt-pane buttons centered too (optional) */
+#coAltPane .alt-actions{
+  display:flex;          /* safe guard */
+  justify-content:center;
+}
+
+/* Remove the “double border” when an alt method is shown (single, clean border) */
+/* If your browser support is modern (Chrome 140 on your screenshot), use :has() */
+#coStep3:has(#coAltPane:not([hidden]) .alt-pane) .co-card,
+#coStep3:has(#coAltPane:not([hidden]) .alt-pane) #coCardPane{
+  border:0 !important;
+  box-shadow:none !important;
+  background:transparent !important;
+  padding:0 !important;
+}
+#coStep3:has(#coAltPane:not([hidden]) .alt-pane) #coAltPane{
+  border:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+
+/* Keep a single border on the inner alt pane */
+#coAltPane .alt-pane{
+  border:1.5px solid #243042;   /* adjust to your theme */
+  border-radius:16px;
+}
