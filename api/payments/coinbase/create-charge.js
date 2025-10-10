@@ -1,34 +1,63 @@
-// /api/payments/coinbase/create-charge.js
-export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).end();
-  try {
-    const apiKey = process.env.COINBASE_COMMERCE_API_KEY;
-    if (!apiKey) return res.status(500).json({ error: 'Missing COINBASE_COMMERCE_API_KEY' });
+// /api/webhooks/coinbase.js
+const crypto = require('crypto');
 
-    const { order } = req.body || {};
-    const body = {
-      name: 'SelfHacking Sample',
-      description: 'Buy 1 Get 1 Free',
-      pricing_type: 'fixed_price',
-      local_price: { amount: String(order?.total || 90.00), currency: 'USD' },
-      metadata: { qty: order?.qty || 1, method: 'crypto' },
-      redirect_url: process.env.COINBASE_SUCCESS_URL || 'https://example.com/success',
-      cancel_url: process.env.COINBASE_CANCEL_URL || 'https://example.com/cancel'
-    };
-
-    const resp = await fetch('https://api.commerce.coinbase.com/charges', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CC-Api-Key': apiKey,
-        'X-CC-Version': '2018-03-22'
-      },
-      body: JSON.stringify(body)
-    });
-    const data = await resp.json();
-    res.status(200).json({ hosted_url: data?.data?.hosted_url || null, raw: data });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: e?.message || 'Coinbase error' });
-  }
+function text(res, status, body) {
+  res.statusCode = status;
+  res.setHeader('Content-Type', 'text/plain');
+  res.end(body);
 }
+
+// Helper: get raw body (works in Vercel Node functions)
+// If you're on Next.js API routes, set: export const config = { api: { bodyParser: false } }
+function getRawBody(req) {
+  return new Promise((resolve, reject) => {
+    try {
+      let data = [];
+      req.on('data', c => data.push(c));
+      req.on('end', () => resolve(Buffer.concat(data)));
+      req.on('error', reject);
+    } catch (e) { reject(e); }
+  });
+}
+
+module.exports = async (req, res) => {
+  try {
+    if (req.method !== 'POST') {
+      res.setHeader('Allow', 'POST');
+      return text(res, 405, 'Method Not Allowed');
+    }
+    const secret = process.env.COINBASE_WEBHOOK_SECRET;
+    if (!secret) return text(res, 500, 'Missing COINBASE_WEBHOOK_SECRET');
+
+    const signature = req.headers['x-cc-webhook-signature'];
+    const raw = await getRawBody(req);
+
+    const digest = crypto.createHmac('sha256', secret).update(raw).digest('hex');
+    if (digest !== signature) return text(res, 400, 'Invalid signature');
+
+    const evt = JSON.parse(raw.toString('utf8'));
+    const type = evt?.type || '';
+    const data = evt?.data || {};
+
+    // TODO: look up your order by data.id or data.metadata
+    // const order = await db.findByChargeId(data.id)
+
+    if (type === 'charge:pending') {
+      // Payment detected but not confirmed
+      // await db.update(orderId, { status: 'pending' });
+    } else if (type === 'charge:confirmed' || type === 'charge:resolved') {
+      // Funds confirmed — fulfill!
+      // await db.update(orderId, { status: 'paid' });
+      // queue email + shipping
+    } else if (type === 'charge:failed') {
+      // await db.update(orderId, { status: 'failed' });
+    }
+
+    return text(res, 200, 'ok');
+  } catch (e) {
+    return text(res, 500, e?.message || 'error');
+  }
+};
+
+// If using Next.js API routes, also export:
+// export const config = { api: { bodyParser: false } };
