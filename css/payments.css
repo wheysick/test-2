@@ -41,3 +41,19 @@
 .alt-btn.secondary { background:#1a2230; color:#c5d3ea; }
 
 .tab-toggle { display:flex; align-items:center; gap:6px; font-size:12px; margin-top:8px; color:#b8c6df; }
+
+/* Center only the Crypto heading in Step 3 */
+#coAltPane .alt-pane.crypto h4 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* (Optional) Center the action buttons in Step 3 for all alt methods */
+#coAltPane .alt-actions {
+  display: flex;            /* just in case it isn't already */
+  justify-content: center;
+}
