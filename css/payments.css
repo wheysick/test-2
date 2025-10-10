@@ -160,3 +160,43 @@
 /* (Optional) Hide PayPal/Venmo in Step 2 explicitly */
 #coStep2 #pmPayPal,
 #coStep2 #pmVenmo { display: none !important; }
+
+/* Desktop: center the payment tiles in Step 2 */
+@media (min-width: 992px) {
+  /* Use your actual container id/class; #coPayWrap is common in your code */
+  #coPayWrap,
+  #coStep2 .co-pay-wrap,
+  #coStep2 .pay-methods {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+    justify-content: center;         /* centers the grid itself */
+    gap: 16px 20px;
+    max-width: 620px;                /* keeps them as a tight block */
+    margin: 0 auto;                  /* centers the block in the page */
+  }
+
+  /* Make each tile self-centered */
+  #coPayWrap .pm,
+  #coStep2 .co-pay-wrap .pm,
+  #coStep2 .pay-methods .pm {
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+/* If your container isn’t any of those, force-center the tiles as a fallback */
+@media (min-width: 992px) {
+  #coStep2 #pmCard,
+  #coStep2 #pmCashApp,
+  #coStep2 #pmCrypto,
+  #coStep2 #pmPayPal,
+  #coStep2 #pmVenmo {
+    display: inline-flex;
+    justify-content: center;
+    text-align: center;
+    min-width: 240px;
+    margin: 0 10px 12px;
+  }
+  #coStep2 .pm:first-of-type { margin-left: auto; }
+  #coStep2 .pm:last-of-type  { margin-right: auto; }
+}
