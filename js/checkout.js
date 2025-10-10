@@ -358,3 +358,10 @@ modal.addEventListener('click', (e) => {
   }catch{} }
   load(); step1?.addEventListener('input', save);
 })();
+
+function track(name, data){ try{
+  navigator.sendBeacon?.('/_track', new Blob([JSON.stringify({name, ts:Date.now(), ...data})], {type:'application/json'}));
+} catch{} }
+document.getElementById('coToStep2')?.addEventListener('click', ()=>track('co_step2',{}));
+document.getElementById('coToStep3')?.addEventListener('click', ()=>track('co_step3',{ method: document.querySelector('[aria-selected="true"]')?.id||'card'}));
+document.getElementById('coSubmit')?.addEventListener('click', ()=>track('co_submit',{ method:'card' }));
