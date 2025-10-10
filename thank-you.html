@@ -40,5 +40,45 @@
       }
     })();
   </script>
+
+  <script>
+  (function(){
+    if (!window.fbq || !window.__FB_PIXEL_ID__) return;
+
+    function qp(name){
+      const m = new RegExp('[?&]'+name+'=([^&#]*)').exec(location.search);
+      return m ? decodeURIComponent(m[1].replace(/\+/g,' ')) : '';
+    }
+
+    // Prefer server/redirect params if you pass them
+    let value    = parseFloat(qp('amount')) || parseFloat(qp('value'));
+    let currency = qp('currency') || 'USD';
+    let orderId  = qp('order_id') || qp('order') || qp('txn_id') || '';
+
+    // Fallback to localStorage (set on the main page)
+    if (!Number.isFinite(value) || value <= 0) {
+      const v = parseFloat(localStorage.getItem('last_value'));
+      if (Number.isFinite(v)) value = v;
+    }
+    if (!currency)  currency = localStorage.getItem('last_currency') || 'USD';
+
+    const qty = parseInt(localStorage.getItem('last_qty') || '1', 10);
+    const sku = localStorage.getItem('last_sku') || 'BOTTLE';
+
+    // Guard so we never double-fire if customer reloads the TY page
+    const guardKey = 'fb_purchase_fired_' + (orderId || (value + '_' + Date.now()));
+    if (sessionStorage.getItem(guardKey)) return;
+    sessionStorage.setItem(guardKey, '1');
+
+    fbq('track', 'Purchase', {
+      value: value || (qty * 45),
+      currency: currency,
+      contents: [{ id: sku, quantity: qty }],
+      content_type: 'product',
+      order_id: orderId
+    });
+  })();
+</script>
+
 </body>
 </html>
