@@ -4,137 +4,69 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Free Sample — Weekly Wellness Formula</title>
-
-  <!-- Recurly public key (required) -->
   <meta name="recurly-public-key" content="ewr1-AxqCz2aZ9UMj5oOBsENPG2">
-
-  <!-- Recurly core (required) -->
   <script src="https://js.recurly.com/v4/recurly.js"></script>
-
-  <!-- Your single-instance Elements helper (required) -->
-  <script src="/js/recurly-elements.js?v=5" defer></script>
-
-  <!-- CSS -->
+  <script src="/js/recurly-elements.js?v=6" defer></script>
   <link rel="stylesheet" href="/css/style.css?v=640">
   <link rel="stylesheet" href="/css/checkout.css?v=9013">
-  <link rel="stylesheet" href="/css/checkout3.css?v=7020">
-
-  <style>
-    /* Footer subscribe centered */
-    .footer-inner{max-width:min(1000px,90vw);margin:0 auto;display:grid;gap:.8rem;text-align:center}
-    .footer-form{display:flex;justify-content:center;gap:.6rem}
-    @media(max-width:560px){.footer-form{flex-direction:column}.footer-form button{width:100%}}
-  </style>
+  <link rel="stylesheet" href="/css/checkout3.css?v=7021">
 </head>
-
 <body>
-  <!-- ======== Masthead ======== -->
-  <header class="masthead">
-    <div class="masthead-inner">
-      <div class="brand">SELFHACKING</div>
-      <div class="masthead-meta">
-        <span>Free sample ends in <strong id="countdown">00:00:00</strong></span>
-        <span class="dot">•</span>
-        <span><strong>Shipping cutoff: midnight</strong></span>
-      </div>
-      <a href="#offer" class="masthead-cta open-checkout" data-cta onclick="checkoutOpen();return false;">Claim Free Sample</a>
-    </div>
-    <div class="masthead-mobile-brand">SELFHACKING</div>
-    <div class="announcer" aria-live="polite">
-      <button class="ann-prev" aria-label="Previous">‹</button>
-      <div class="announce-msg">Free sample ends in <strong data-countdown>00:00:00</strong></div>
-      <button class="ann-next" aria-label="Next">›</button>
-    </div>
-    <div id="scrollProgress"></div>
-  </header>
-
-  <!-- Floating CTA -->
+  <header class="masthead"><div class="masthead-inner"><div class="brand">SELFHACKING</div>
+    <div class="masthead-meta"><span>Free sample ends in <strong id="countdown">00:00:00</strong></span>
+    <span class="dot">•</span><span><strong>Shipping cutoff: midnight</strong></span></div>
+    <a href="#offer" class="masthead-cta open-checkout" onclick="checkoutOpen();return false;">Claim Free Sample</a></div>
+    <div class="masthead-mobile-brand">SELFHACKING</div><div class="announcer" aria-live="polite">
+    <button class="ann-prev" aria-label="Previous">‹</button>
+    <div class="announce-msg">Free sample ends in <strong data-countdown>00:00:00</strong></div>
+    <button class="ann-next" aria-label="Next">›</button></div><div id="scrollProgress"></div></header>
   <a href="#offer" class="floating-cta open-checkout" id="floatingCta" onclick="checkoutOpen();return false;"><strong>Claim Free Sample</strong></a>
 
-  <!-- ======== Layout: article + reviews sidebar ======== -->
   <main class="layout">
-    <!-- Article -->
-    <article class="article" itemscope itemtype="https://schema.org/AdvertiserContentArticle">
-      <header class="article-hed">
-        <p class="kicker">FEATURE</p>
-        <h1 class="headline" itemprop="headline"><strong>BIG PHARMA PANICS:</strong> Insiders Move to Outlaw Peptide <strong>3X Stronger Than Ozempic!</strong></h1>
-        <div class="byline">
-          <span class="author" itemprop="author">By Staff Reporter</span>
-          <span class="dot">•</span>
-          <span class="date" itemprop="datePublished" content="2025-10-08">October 8, 2025</span>
-          <span class="dot">•</span>
-          <span class="reads">128,000 reads</span>
-        </div>
-      </header>
-
-      <figure class="hero">
-        <img src="assets/hero.png" alt="Weekly injector" loading="lazy" decoding="async" />
-        <figcaption><em>Lobbyist Push For Federal Crackdowns—Thousands Are Stocking Up Before It’s Banned...</em></figcaption>
-      </figure>
-
+    <article class="article"><header class="article-hed">
+      <p class="kicker">FEATURE</p>
+      <h1 class="headline"><strong>BIG PHARMA PANICS:</strong> Insiders Move to Outlaw Peptide <strong>3X Stronger Than Ozempic!</strong></h1>
+      <div class="byline"><span class="author">By Staff Reporter</span><span class="dot">•</span>
+      <span class="date">October 8, 2025</span><span class="dot">•</span><span class="reads">128,000 reads</span></div></header>
+      <figure class="hero"><img src="assets/hero.png" alt="Weekly injector" /></figure>
       <h2>What is it?</h2>
-      <figure class="inline-img">
-        <img id="productImg" src="assets/tirz.png" alt="TIRZ premium vials" loading="lazy" decoding="async" />
-        <div class="coa-link"><a id="coaLink" href="#">Certificate of Analysis</a></div>
-      </figure>
-      <ul>
-        <li><strong>Each pack</strong> includes <strong>4 weekly servings</strong></li>
-        <li><strong>Active ingredients:</strong> <em>clinically studied wellness compounds</em></li>
-        <li>Formulated to support <strong>natural metabolism</strong> and <strong>balance</strong></li>
-      </ul>
-      <p class="note small"><em>*Inspired by modern GLP‑1/GIP research; for educational purposes only. Not a drug or prescription. Not intended to diagnose, treat, cure, or prevent any disease.</em></p>
+      <figure class="inline-img"><img src="assets/tirz.png" alt="TIRZ premium vials" /></figure>
     </article>
 
-    <!-- Reviews sidebar (sticky on desktop) -->
     <aside class="reviews-col" aria-label="Reviews">
       <h2>Real People. Real Stories.</h2>
-      <div class="review-card"><div class="review-hdr"><div class="rev-avatar">J</div><div class="rev-meta"><div class="rev-name">James S.</div><div class="rev-loc">Phoenix, AZ • <span class="stars">★★★★★</span></div></div></div><div class="badge">Verified Purchase</div><div class="rev-body">Cravings down, steady energy. Meaningful progress in 4 months; mild nausea week 1.</div><div class="rev-actions"><button>Helpful 42</button><button>Report</button></div></div>
-      <div class="review-card"><div class="review-hdr"><div class="rev-avatar">D</div><div class="rev-meta"><div class="rev-name">Deborah K.</div><div class="rev-loc">Tampa, FL • <span class="stars">★★★★★</span></div></div></div><div class="badge">Verified Purchase</div><div class="rev-body">Appetite finally quiet. With protein and walks, inches moved in the right direction.</div><div class="rev-actions"><button>Helpful 36</button><button>Report</button></div></div>
-      <div class="review-card"><div class="review-hdr"><div class="rev-avatar">S</div><div class="rev-meta"><div class="rev-name">Steven S.</div><div class="rev-loc">Boise, ID • <span class="stars">★★★★☆</span></div></div></div><div class="badge">Verified Purchase</div><div class="rev-body">Energy is up and trending is positive. Could be clearer instructions on titration.</div><div class="rev-actions"><button>Helpful 19</button><button>Report</button></div></div>
+      <div class="review-card"><div class="review-hdr"><div class="rev-avatar">J</div><div class="rev-meta"><div class="rev-name">James S.</div><div class="rev-loc">Phoenix, AZ • <span class="stars">★★★★★</span></div></div></div><div class="badge">Verified Purchase</div>
+      <div class="rev-body">Cravings down, steady energy. Meaningful progress in 4 months; mild nausea week 1.</div><img class="rev-img" src="assets/review1.jpg" alt="Customer image"><div class="rev-actions"><button>Helpful 42</button><button>Report</button></div></div>
+
+      <div class="review-card"><div class="review-hdr"><div class="rev-avatar">D</div><div class="rev-meta"><div class="rev-name">Deborah K.</div><div class="rev-loc">Tampa, FL • <span class="stars">★★★★★</span></div></div></div><div class="badge">Verified Purchase</div>
+      <div class="rev-body">Appetite finally quiet. With protein and walks, inches moved in the right direction.</div><img class="rev-img" src="assets/review2.jpg" alt="Customer image"><div class="rev-actions"><button>Helpful 36</button><button>Report</button></div></div>
+
+      <div class="review-card"><div class="review-hdr"><div class="rev-avatar">S</div><div class="rev-meta"><div class="rev-name">Steven S.</div><div class="rev-loc">Boise, ID • <span class="stars">★★★★☆</span></div></div></div><div class="badge">Verified Purchase</div>
+      <div class="rev-body">Energy is up and trending is positive. Could be clearer instructions on titration.</div><img class="rev-img" src="assets/review3.jpg" alt="Customer image"><div class="rev-actions"><button>Helpful 19</button><button>Report</button></div></div>
     </aside>
   </main>
 
-  <!-- ===== Checkout Modal ===== -->
-  <div id="checkoutModal" class="modal modal-checkout" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle" style="display:none;">
+  <div id="checkoutModal" class="modal modal-checkout" role="dialog" aria-modal="true" style="display:none;">
     <div class="modal-content checkout-card" id="checkoutCard">
       <button id="checkoutClose" class="close" aria-label="Close">×</button>
       <a id="coBackLink" class="co-back-link" href="#" onclick="checkoutBack(); return false;">Back</a>
 
-      <!-- Step 1: Shipping -->
       <form id="coStep1" class="co-pane" novalidate onsubmit="return false">
         <h3 class="co-h3" id="checkoutTitle">Where Should We Send Your Free Bottles?</h3>
         <div class="co-grid">
-          <label>Full Name
-            <input type="text" name="name" autocomplete="name" placeholder="Full Name" required />
-          </label>
-          <label>Email
-            <input type="email" name="email" autocomplete="email" placeholder="Email" required />
-          </label>
-          <label>Phone
-            <input type="tel" name="phone" inputmode="tel" autocomplete="tel" placeholder="Phone" required />
-          </label>
-          <label>Street Address
-            <input type="text" name="address" autocomplete="street-address" placeholder="Street Address" required />
-          </label>
+          <label>Full Name <input type="text" name="name" autocomplete="name" placeholder="Full Name" required /></label>
+          <label>Email <input type="email" name="email" autocomplete="email" placeholder="Email" required /></label>
+          <label>Phone <input type="tel" name="phone" inputmode="tel" autocomplete="tel" placeholder="Phone" required /></label>
+          <label>Street Address <input type="text" name="address" autocomplete="street-address" placeholder="Street Address" required /></label>
           <div class="co-row">
-            <label>City
-              <input type="text" name="city" autocomplete="address-level2" placeholder="City" required />
-            </label>
-            <label>State
-              <input type="text" name="state" maxlength="2" placeholder="CA" required />
-            </label>
-            <label>ZIP
-              <input type="text" name="zip" inputmode="numeric" placeholder="ZIP" required />
-            </label>
+            <label>City <input type="text" name="city" autocomplete="address-level2" placeholder="City" required /></label>
+            <label>State <input type="text" name="state" maxlength="2" placeholder="CA" required /></label>
+            <label>ZIP <input type="text" name="zip" inputmode="numeric" placeholder="ZIP" required /></label>
           </div>
         </div>
-        <div class="co-actions">
-          <a id="coToStep2" class="btn-main btn-lg" href="#" onclick="gotoStep2(); return false;">Continue</a>
-        </div>
-        <p class="tiny muted co-trust">🔒 Encrypted checkout • 🚚 Free shipping today • ↩️ 60‑Day Guarantee</p>
+        <div class="co-actions"><a id="coToStep2" class="btn-main btn-lg" href="#" onclick="gotoStep2(); return false;">Continue</a></div>
       </form>
 
-      <!-- Step 2: Offer -->
       <section id="coStep2" class="co-pane step2-pane" hidden aria-hidden="true">
         <h3 class="co-h3 center">How Many Bottles Do You Want?</h3>
         <div class="co-stockline center"><span class="qty" id="coStock">47</span> left in stock</div>
@@ -145,9 +77,7 @@
           <button class="qty-inc" type="button" aria-label="Increase">+</button>
         </div>
 
-        <div class="price-line center">
-          <s>$90</s> <strong id="pricePer">$45</strong> / bottle
-        </div>
+        <div class="price-line center"><s>$90</s> <strong id="pricePer">$45</strong> / bottle</div>
 
         <button type="button" class="pm-card is-selected" id="pmCard" aria-selected="true">
           <span class="pm-icon">💳</span> Credit / Debit Card
@@ -156,9 +86,9 @@
         <p class="co-savings-note">Save <strong>15%</strong> by using a different payment method</p>
 
         <div class="pm-alt">
-          <button type="button" class="pill" id="pmPayPal" aria-selected="false"><img src="assets/paypal.svg" alt="" aria-hidden="true"> PayPal</button>
-          <button type="button" class="pill" id="pmVenmo" aria-selected="false"><img src="assets/venmo.svg" alt="" aria-hidden="true"> Venmo</button>
-          <button type="button" class="pill" id="pmCashApp" aria-selected="false"><img src="assets/cashapp.svg" alt="" aria-hidden="true"> Cash App</button>
+          <button type="button" class="pill" id="pmPayPal" aria-selected="false">PayPal</button>
+          <button type="button" class="pill" id="pmVenmo" aria-selected="false">Venmo</button>
+          <button type="button" class="pill" id="pmCashApp" aria-selected="false">Cash App</button>
           <button type="button" class="pill" id="pmCrypto" aria-selected="false">₿ Crypto</button>
         </div>
 
@@ -171,18 +101,13 @@
           <div class="line total"><span>Total</span><strong id="coTotal">$90.00</strong></div>
         </div>
 
-        <div class="co-actions center">
-          <a id="coToStep3" class="btn-main btn-lg" href="#" onclick="gotoStep3(); return false;">Continue</a>
-        </div>
-        <p class="tiny muted center">🔒 100% encrypted checkout • 60‑Day Guarantee</p>
+        <div class="co-actions center"><a id="coToStep3" class="btn-main btn-lg" href="#" onclick="gotoStep3(); return false;">Continue</a></div>
       </section>
 
-      <!-- Step 3: Card / Alt panes -->
       <section id="coStep3" class="co-pane" hidden aria-hidden="true">
         <h3 class="co-h3">Complete Order</h3>
         <div class="co-stockline" id="coStockLine3"><span class="qty">47</span> left in stock</div>
 
-        <!-- Card pane -->
         <fieldset class="cardset" id="coCardPane">
           <legend>Card details</legend>
           <label>Card number <div id="re-number"></div></label>
@@ -191,20 +116,16 @@
             <label>Year   <div id="re-year"></div></label>
             <label>CVC    <div id="re-cvv"></div></label>
           </div>
-          <!-- ZIP removed by request -->
           <label id="zipRow" style="display:none">ZIP <div id="re-postal"></div></label>
         </fieldset>
 
-        <!-- Alt method pane -->
         <div id="coAltPane" class="alt-pane" hidden></div>
 
         <div class="co-actions" id="coSubmitWrap">
           <button class="btn-main btn-lg co-submit" id="coSubmit">Complete Order</button>
         </div>
-        <p class="tiny muted co-trust">🔒 256‑bit SSL • 🚚 Free shipping today • ↩️ 60‑Day Guarantee</p>
       </section>
 
-      <!-- Success -->
       <div id="checkoutSuccess" class="co-success" hidden>
         <h4>You're in. 🎉</h4>
         <p>We’ve reserved your free bottles. Look for a confirmation email shortly.</p>
@@ -213,7 +134,6 @@
     </div>
   </div>
 
-  <!-- Footer -->
   <footer class="footer">
     <div class="footer-inner">
       <h4>Stay in the loop</h4>
@@ -228,6 +148,6 @@
 
   <script defer src="/js/config.js?v=641"></script>
   <script defer src="/js/script.js?v=641"></script>
-  <script defer src="/js/checkout.js?v=9020"></script>
+  <script defer src="/js/checkout.js?v=9021"></script>
 </body>
 </html>
