@@ -365,3 +365,15 @@ function track(name, data){ try{
 document.getElementById('coToStep2')?.addEventListener('click', ()=>track('co_step2',{}));
 document.getElementById('coToStep3')?.addEventListener('click', ()=>track('co_step3',{ method: document.querySelector('[aria-selected="true"]')?.id||'card'}));
 document.getElementById('coSubmit')?.addEventListener('click', ()=>track('co_submit',{ method:'card' }));
+
+// /js/checkout.js
+function isDirtyStep1(){
+  const names=['name','email','phone','address','city','state','zip'];
+  return names.some(n => (step1?.querySelector(`[name="${n}"]`)?.value||'').trim().length>0);
+}
+const origClose = window.checkoutClose;
+window.checkoutClose = function(){
+  if (isDirtyStep1() && !confirm('Leave checkout? Your info will be saved.')) return;
+  origClose();
+};
+
