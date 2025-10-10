@@ -1,4 +1,4 @@
-// ===== checkout.js — v10.6 (step nav hardening, alt-method panes, back fix) =====
+// ===== checkout.js — v10.8 (crypto + strict parity with v10.6) =====
 (function(){
   const $  = (s, r=document) => r.querySelector(s);
   const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
@@ -26,25 +26,24 @@
   }, true);
 
   // === Close controls: button, ESC key, and click-outside ===
-if (close) {
-  close.addEventListener('click', (e) => {
-    e.preventDefault();
-    checkoutClose();
-  });
-}
-
-// Close on ESC (capture so it wins)
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && modal.classList.contains('show')) {
-    checkoutClose();
+  if (close) {
+    close.addEventListener('click', (e) => {
+      e.preventDefault();
+      checkoutClose();
+    });
   }
-}, true);
 
-// Optional: click outside the card closes
-modal.addEventListener('click', (e) => {
-  if (e.target === modal) checkoutClose();
-});
+  // Close on ESC (capture so it wins)
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('show')) {
+      checkoutClose();
+    }
+  }, true);
 
+  // Optional: click outside the card closes
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) checkoutClose();
+  });
 
   // DEFENSIVE: delegated step navigation (capture) so we never get stuck on step 1
   modal.addEventListener('click', function(e){
@@ -68,15 +67,20 @@ modal.addEventListener('click', (e) => {
   let qty = 1;
   let payMethod = 'card'; // card | paypal | venmo | cashapp | crypto
 
-  const fmt = n => '$' + n.toFixed(2);
+  const fmt = n => '$' + Number(n).toFixed(2);
   function setQty(n){ qty = Math.min(99, Math.max(1, n|0)); if(qtyInput) qtyInput.value = String(qty); updateTotals(); }
 
-  function updateTotals(){
+  function computeTotals(){
     const merch = qty * PRICE;
     const disc  = (payMethod === 'card') ? 0 : +(merch * ALT_DISC_RATE).toFixed(2);
     const taxable = Math.max(0, merch - disc);
     const tax   = +(taxable * TAX_RATE).toFixed(2);
-    const total = taxable + tax;
+    const total = +(taxable + tax).toFixed(2);
+    return { merch, disc, tax, total, taxable };
+  }
+
+  function updateTotals(){
+    const { merch, disc, tax, total } = computeTotals();
     elItems && (elItems.textContent = `${qty*2} bottles (${qty} paid + ${qty} free)`);
     elMerch && (elMerch.textContent = fmt(merch));
     elMethod && (elMethod.textContent = disc ? ('−' + fmt(disc)) : fmt(0));
@@ -89,7 +93,7 @@ modal.addEventListener('click', (e) => {
   $$('.qty-inc').forEach(b => b.addEventListener('click', ()=> setQty(qty+1)));
   $$('.qty-dec').forEach(b => b.addEventListener('click', ()=> setQty(qty-1)));
 
-  // Payment method selection (Step 2)
+  // Payment method selection (Step 2) — parity with v10.6
   const payButtons = {
     card:   $('#pmCard'),
     paypal: $('#pmPayPal'),
@@ -97,19 +101,23 @@ modal.addEventListener('click', (e) => {
     cashapp:$('#pmCashApp'),
     crypto: $('#pmCrypto')
   };
+
   function selectMethod(kind){
     payMethod = kind;
     Object.entries(payButtons).forEach(([k, el])=>{
       if (!el) return;
       if (k === 'card') {
+        // v10.6 behavior: .is-selected applied only to CARD
         el.classList.toggle('is-selected', kind === 'card');
         el.setAttribute('aria-selected', String(kind === 'card'));
       } else {
+        // aria-selected true for the selected alt button
         el.setAttribute('aria-selected', String(kind === k));
       }
     });
     updateTotals();
   }
+
   // Click + Double-click to jump to Step 3
   if (payButtons.card){ 
     payButtons.card.addEventListener('click', ()=> selectMethod('card'));
@@ -164,10 +172,32 @@ modal.addEventListener('click', (e) => {
   window.gotoStep2 = function(){ setStep(2); };
   window.gotoStep3 = function(){ setStep(3); };
 
+  function getStep1Val(n){
+    return step1?.querySelector(`[name="${n}"]`)?.value?.trim() || '';
+  }
+  function getCustomerMeta(){
+    const full = getStep1Val('name');
+    let first = full, last='';
+    if (full.includes(' ')){ const i=full.lastIndexOf(' '); first=full.slice(0,i); last=full.slice(i+1); }
+    return {
+      first_name: first || '',
+      last_name: last || '',
+      email: getStep1Val('email'),
+      phone: getStep1Val('phone'),
+      address: getStep1Val('address'),
+      city: getStep1Val('city'),
+      state: getStep1Val('state'),
+      zip: getStep1Val('zip'),
+      country: 'US'
+    };
+  }
+
   // Step 3 UI per method
   function renderStep3UI(){
     if (!step3) return;
-    const total = elTotal ? elTotal.textContent : '';
+    const totals = computeTotals();
+    const totalFormatted = fmt(totals.total);
+
     if (payMethod === 'card'){
       cardset && (cardset.hidden = false);
       altPane && (altPane.hidden = true, altPane.innerHTML = '');
@@ -196,15 +226,15 @@ modal.addEventListener('click', (e) => {
         help = 'If Cash App does not open, visit cash.app and search for our cashtag.'; break;
       case 'crypto':
         title = 'Pay with Crypto';
-        body  = 'Send the exact total to the address shown. Your order ships once the transaction confirms.';
-        primary = 'Copy Address'; url = '#';
-        help = 'Tip: Copy the address and send the exact amount from your wallet.'; break;
+        body  = 'You\'ll be redirected to Coinbase Commerce to pay with BTC, ETH, USDC, and more. Your total reflects a 15% method discount.';
+        primary = 'Continue to Coinbase'; url = '#';
+        help = 'After the network confirms, we\'ll email your receipt and ship your order.'; break;
     }
 
     const altHTML = `
       <div class="alt-pane">
         <h4>${title}</h4>
-        <div class="alt-row"><strong>Total:</strong> ${total}</div>
+        <div class="alt-row"><strong>Total:</strong> ${totalFormatted}</div>
         <div class="alt-row">${body}</div>
         <div class="alt-actions">
           <button type="button" class="alt-btn" id="altPrimary">${primary}</button>
@@ -218,14 +248,45 @@ modal.addEventListener('click', (e) => {
       altPane.hidden = false;
       const altPrimary = $('#altPrimary');
       const altBack = $('#altBack');
+
       if (altPrimary){
-        altPrimary.addEventListener('click', ()=>{
+        altPrimary.addEventListener('click', async ()=>{
           if (payMethod === 'crypto'){
-            const addr = 'bc1q-example-crypto-address-1234';
-            if (navigator.clipboard) navigator.clipboard.writeText(addr);
-            altPrimary.textContent = 'Address Copied';
-            setTimeout(()=> altPrimary.textContent = primary, 1600);
-          } else {
+            // === Coinbase Commerce charge creation + redirect ===
+            try {
+              altPrimary.disabled = true; altBack && (altBack.disabled = true);
+              const orig = altPrimary.textContent;
+              altPrimary.textContent = 'Creating charge…';
+
+              const customer = getCustomerMeta();
+              const body = {
+                qty,
+                email: customer.email || '',
+                total: computeTotals().total,
+                meta: { ...customer, sku: 'tirz-vial', free_qty: qty, paid_qty: qty }
+              };
+
+              const resp = await fetch('/api/payments/coinbase/create-charge', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+              });
+              const d = await resp.json().catch(()=>null);
+              if (!resp.ok || !d?.hosted_url) {
+                throw new Error(d?.error || `Charge creation failed (HTTP ${resp.status})`);
+              }
+              if (typeof track === 'function') track('co_submit',{ method:'crypto', qty, total: body.total });
+              window.location.href = d.hosted_url; // Redirect to Coinbase checkout
+            } catch (err) {
+              alert(err?.message || 'Crypto checkout failed');
+              altPrimary.disabled = false; altBack && (altBack.disabled = false);
+              altPrimary.textContent = 'Continue to Coinbase';
+            }
+            return;
+          }
+          // Fallback for other alt methods
+          if (url && url !== '#') {
+            if (typeof track === 'function') track('co_submit',{ method: payMethod, qty, total: computeTotals().total });
             window.location.href = url;
           }
         });
@@ -237,7 +298,7 @@ modal.addEventListener('click', (e) => {
   // Hosted-field clickability (defensive)
   function fixClickBlockers(){
     try {
-      const wrappers = step3.querySelectorAll('label, .row, .co-row, .co-field');
+      const wrappers = step3?.querySelectorAll('label, .row, .co-row, .co-field') || [];
       wrappers.forEach(el => { el.style.pointerEvents = 'none'; });
       ['re-number','re-month','re-year','re-cvv','re-postal'].forEach(id => {
         const el = document.getElementById(id);
@@ -257,26 +318,13 @@ modal.addEventListener('click', (e) => {
       const orig = submit.textContent;
       submit.textContent = 'Processing…';
 
-      const get = (n) => step1.querySelector(`[name="${n}"]`)?.value?.trim() || '';
-      const full = get('name') || '';
-      let first = full, last = '';
-      if (full.includes(' ')){ const i=full.lastIndexOf(' '); first=full.slice(0,i); last=full.slice(i+1); }
-
-      const meta = {
-        first_name: first, last_name: last,
-        email: get('email'), phone: get('phone'),
-        address: get('address'), city: get('city'),
-        state: get('state'), zip: get('zip'),
-        country: 'US',
-        items: [{ sku: 'tirz-vial', qty, price: PRICE }]
-      };
-
+      const customer = getCustomerMeta();
       const token = await window.RecurlyUI.tokenize({});
 
       const resp = await fetch('/api/payments/recurly/charge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: token.id || token, customer: meta })
+        body: JSON.stringify({ token: token.id || token, customer, items: [{ sku: 'tirz-vial', qty, price: PRICE }] })
       });
 
       let data=null; try{ data = await resp.json(); } catch(_){}
@@ -345,8 +393,9 @@ modal.addEventListener('click', (e) => {
   window._debugSetStep = setStep;
 })();
 
-// in checkout.js — save on change
+// ===== save-on-change (scoped step1 fix) =====
 (function(){
+  const step1 = document.getElementById('coStep1');
   const fields = ['name','email','phone','address','city','state','zip'];
   function save(){ if(!step1) return;
     const data={}; fields.forEach(n=> data[n] = step1.querySelector(`[name="${n}"]`)?.value?.trim()||'');
@@ -359,6 +408,7 @@ modal.addEventListener('click', (e) => {
   load(); step1?.addEventListener('input', save);
 })();
 
+// ===== lightweight tracking hooks (parity with v10.6) =====
 function track(name, data){ try{
   navigator.sendBeacon?.('/_track', new Blob([JSON.stringify({name, ts:Date.now(), ...data})], {type:'application/json'}));
 } catch{} }
@@ -366,14 +416,14 @@ document.getElementById('coToStep2')?.addEventListener('click', ()=>track('co_st
 document.getElementById('coToStep3')?.addEventListener('click', ()=>track('co_step3',{ method: document.querySelector('[aria-selected="true"]')?.id||'card'}));
 document.getElementById('coSubmit')?.addEventListener('click', ()=>track('co_submit',{ method:'card' }));
 
-// /js/checkout.js
+// ===== exit guard (scoped step1 fix) =====
 function isDirtyStep1(){
+  const scope = document.getElementById('coStep1');
   const names=['name','email','phone','address','city','state','zip'];
-  return names.some(n => (step1?.querySelector(`[name="${n}"]`)?.value||'').trim().length>0);
+  return names.some(n => (scope?.querySelector(`[name="${n}"]`)?.value||'').trim().length>0);
 }
 const origClose = window.checkoutClose;
 window.checkoutClose = function(){
   if (isDirtyStep1() && !confirm('Leave checkout? Your info will be saved.')) return;
   origClose();
 };
-
