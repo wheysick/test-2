@@ -56,31 +56,3 @@
     });
   }
 })();
-
-<script>
-(function(){
-  if (window.__READ_PROGRESS_INIT__) return;
-  window.__READ_PROGRESS_INIT__ = true;
-
-  var bar = document.getElementById('scrollProgress');
-  if (!bar){
-    bar = document.createElement('div');
-    bar.id = 'scrollProgress';
-    bar.setAttribute('aria-hidden', 'true');
-    document.body.prepend(bar);
-  }
-
-  function setProgress(){
-    var doc = document.documentElement;
-    var total = Math.max(1, doc.scrollHeight - doc.clientHeight);
-    var y = (window.scrollY || doc.scrollTop || 0);
-    var p = Math.min(1, Math.max(0, y / total));
-    bar.style.transform = 'scaleX(' + p + ')';
-  }
-
-  window.addEventListener('scroll', setProgress, { passive: true });
-  window.addEventListener('resize', setProgress);
-  document.addEventListener('readystatechange', setProgress);
-  setProgress();
-})();
-</script>
