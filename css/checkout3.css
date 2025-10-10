@@ -216,3 +216,29 @@ html[data-checkout-open="1"] body{
 
 /* If you added a fixed reading bar, make sure it doesn't force horizontal scroll */
 #scrollProgress{ left:0; right:0; width:auto; }  /* avoid 100vw */
+
+/* Center only the Crypto heading in Step 3 */
+#coAltPane .alt-pane.crypto h4{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  width:100%;
+  margin:0 auto;
+}
+
+/* When an alt method pane is visible, remove the outer card/container border */
+#checkoutModal[data-alt-mode="1"] #coCardPane,
+#checkoutModal[data-alt-mode="1"] .co-card,
+#checkoutModal[data-alt-mode="1"] .card {
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+/* Keep a single, clean border on the inner alt pane */
+#coAltPane .alt-pane{
+  border: 1.5px solid #243042;   /* or your brand stroke */
+  border-radius: 16px;
+}
