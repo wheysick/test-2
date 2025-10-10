@@ -25,6 +25,27 @@
     checkoutOpen();
   }, true);
 
+  // === Close controls: button, ESC key, and click-outside ===
+if (close) {
+  close.addEventListener('click', (e) => {
+    e.preventDefault();
+    checkoutClose();
+  });
+}
+
+// Close on ESC (capture so it wins)
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && modal.classList.contains('show')) {
+    checkoutClose();
+  }
+}, true);
+
+// Optional: click outside the card closes
+modal.addEventListener('click', (e) => {
+  if (e.target === modal) checkoutClose();
+});
+
+
   // DEFENSIVE: delegated step navigation (capture) so we never get stuck on step 1
   modal.addEventListener('click', function(e){
     const g2 = e.target.closest && e.target.closest('#coToStep2, [data-goto-step="2"]');
