@@ -94,3 +94,14 @@
   border:1.5px solid #243042;   /* adjust to your theme */
   border-radius:16px;
 }
+
+/* Step 3 — center only the Crypto heading */
+#coAltPane .alt-pane.crypto > h4,
+#coAltPane .alt-pane[data-method="crypto"] > h4 {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  text-align: center !important;
+  width: 100%;
+  margin: 0 auto !important;
+}
