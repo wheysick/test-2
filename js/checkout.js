@@ -246,15 +246,6 @@
     if (altPane){
       altPane.innerHTML = altHTML;
       altPane.hidden = false;
-      /* Step 3 — center only the Crypto heading */
-#coAltPane .alt-pane.crypto > h4,
-#coAltPane .alt-pane[data-method="crypto"] > h4 {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  text-align: center !important;
-  width: 100%;
-  margin: 0 auto !important;
       const altPrimary = $('#altPrimary');
       const altBack = $('#altBack');
 
