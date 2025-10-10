@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Thank you</title>
+  <style>
+    :root{
+      --bg:#0b0f14; --card:#121822; --text:#e8f0ff; --muted:#b7c7e6;
+      --accent:#1652F0; --ok:#16a34a; --warn:#f59e0b;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:radial-gradient(120% 140% at 0% 0%, rgba(22,82,240,.05), transparent), var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif;}
+    .wrap{max-width:880px;margin:40px auto;padding:24px;}
+    .card{background:var(--card);border:1px solid #243042;border-radius:16px;padding:22px 20px;box-shadow:0 10px 30px rgba(0,0,0,.25);}
+    h1{margin:0 0 6px;font-size:32px}
+    .sub{color:var(--muted);margin:4px 0 16px}
+    .grid{display:grid;grid-template-columns:1fr;gap:14px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
+    .pill{background:#0f1723;border:1px solid #263349;border-radius:999px;padding:8px 12px;font-weight:800;letter-spacing:.2px}
+    .btn{appearance:none;border:0;border-radius:12px;padding:12px 16px;font-weight:900;letter-spacing:.3px;cursor:pointer}
+    .btn.primary{background:var(--accent);color:white}
+    .btn.ghost{background:#0f1723;color:var(--text);border:1px solid #27334a}
+    small{color:var(--muted)}
+    .ok{color:var(--ok)} .warn{color:var(--warn)}
+    .center{text-align:center}
+    .copy{display:inline-flex;align-items:center;gap:8px;margin-left:8px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1 id="title">Thank you!</h1>
+      <p id="subtitle" class="sub">Your order is being prepared.</p>
+
+      <div class="grid">
+        <div class="row center">
+          <span class="pill">Order <strong id="orderId">T-XXXXXX</strong></span>
+          <button id="copyOrder" class="btn ghost copy">Copy Order #</button>
+        </div>
+
+        <div id="detail" class="row center"></div>
+
+        <div class="row center" style="margin-top:10px;">
+          <a href="/" class="btn ghost">Back to site</a>
+          <a id="supportLink" href="mailto:support@example.com" class="btn primary">Contact support</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const qs = new URLSearchParams(location.search);
+      const m = (qs.get('m') || '').toLowerCase(); // card | crypto | cashapp
+      const status = (qs.get('status') || '').toLowerCase();
+      const fromStorage = (()=>{ try{return JSON.parse(localStorage.getItem('coStep1')||'{}');}catch(_){return {}} })();
+      const name = fromStorage.name || '';
+      const order = qs.get('order') || sessionStorage.getItem('coOrderId') || '(pending)';
+      const orderEl = document.getElementById('orderId');
+      orderEl.textContent = order;
+
+      const $ = (id)=>document.getElementById(id);
+      const title = $('title');
+      const subtitle = $('subtitle');
+      const detail = $('detail');
+
+      if (name) title.textContent = `Thanks, ${name.split(' ')[0]}!`;
+
+      if (m === 'card'){
+        subtitle.innerHTML = 'Payment authorized — <span class="ok">we\'re packing your order</span>.';
+        detail.innerHTML = '<small>You\'ll receive a confirmation email shortly with tracking once it ships.</small>';
+      } else if (m === 'crypto'){
+        subtitle.innerHTML = 'Crypto payment detected — <span class="ok">awaiting network confirmations</span>.';
+        detail.innerHTML = '<small>We\'ll email you once the transaction confirms on-chain and your order is queued for shipping.</small>';
+      } else if (m === 'cashapp'){
+        if (status === 'pending'){
+          subtitle.innerHTML = 'Thanks! <span class="warn">Payment pending verification</span>.';
+          detail.innerHTML = '<small>We\'re matching your Cash App note with your order. If you used a different amount or forgot the note, reply to the receipt in your app or contact support.</small>';
+        } else {
+          subtitle.innerHTML = 'Cash App payment received — <span class="ok">we\'re packing your order</span>.';
+          detail.innerHTML = '<small>You\'ll receive a confirmation email shortly with tracking once it ships.</small>';
+        }
+      } else {
+        subtitle.textContent = 'Order received.';
+      }
+
+      $('copyOrder').addEventListener('click', async ()=>{
+        try{ await navigator.clipboard.writeText(order); $('copyOrder').textContent='✓ Copied'; setTimeout(()=>$('copyOrder').textContent='Copy Order #', 1200); }catch(_){
+          prompt('Copy this order number:', order);
+        }
+      });
+
+      const email = fromStorage.email || 'support@example.com';
+      $('supportLink').href = `mailto:${email}?subject=Order%20${encodeURIComponent(order)}`;
+    })();
+  </script>
+</body>
+</html>
