@@ -25,8 +25,8 @@
     const prev = ann.querySelector('.ann-prev');
     const next = ann.querySelector('.ann-next');
     const messages = [
-      `Free sample ends in <strong data-countdown>00:00:00</strong>`,
-      `Shipping cutoff: <strong>midnight</strong>`
+      `Free bottle offer ends in <strong data-countdown>00:00:00</strong>`,
+      `Complimentary shipping cutoff: <strong>Midnight</strong>`
     ];
     let idx = 0, timer;
     const render = () => { msgEl.innerHTML = messages[idx]; };
