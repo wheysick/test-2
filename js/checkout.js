@@ -1,4 +1,4 @@
-// ===== checkout.js — v10.10 (Cash App $selfhacking + amount prefill + mark-as-paid + desktop QR) =====
+// ===== checkout.js — v10.10.1 (Cash App UX polish: centered copy buttons + clear labels) =====
 (function(){
   const $  = (s, r=document) => r.querySelector(s);
   const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
@@ -25,25 +25,10 @@
     checkoutOpen();
   }, true);
 
-  // === Close controls: button, ESC key, and click-outside ===
-  if (close) {
-    close.addEventListener('click', (e) => {
-      e.preventDefault();
-      checkoutClose();
-    });
-  }
-
-  // Close on ESC (capture so it wins)
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modal.classList.contains('show')) {
-      checkoutClose();
-    }
-  }, true);
-
-  // Optional: click outside the card closes
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) checkoutClose();
-  });
+  // === Close controls ===
+  if (close) close.addEventListener('click', (e) => { e.preventDefault(); checkoutClose(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('show')) checkoutClose(); }, true);
+  modal.addEventListener('click', (e) => { if (e.target === modal) checkoutClose(); });
 
   // Delegated step navigation (capture)
   modal.addEventListener('click', function(e){
@@ -56,10 +41,10 @@
   // Prevent native submits (Enter) from navigating away
   modal.addEventListener('submit', (e)=>{ if (modal.contains(e.target)) e.preventDefault(); }, true);
 
-  // Pressing Enter on Step 1 should advance to Step 2
+  // Enter on Step 1 -> Step 2
   step1 && step1.addEventListener('submit', (e)=>{ e.preventDefault(); setStep(2); }, true);
 
-  // Step-2 pricing + totals
+  // ===== Pricing + totals =====
   const PRICE = 90.00, TAX_RATE = 0.0874, ALT_DISC_RATE = 0.15;
   const qtyInput = $('#coQty');
   const elItems = $('#coItems'), elMerch = $('#coMerch'), elMethod = $('#coMethod');
@@ -93,7 +78,7 @@
   $$('.qty-inc').forEach(b => b.addEventListener('click', ()=> setQty(qty+1)));
   $$('.qty-dec').forEach(b => b.addEventListener('click', ()=> setQty(qty-1)));
 
-  // Payment method selection (Step 2) — parity with v10.6
+  // ===== Payment method selection (parity with v10.6) =====
   const payButtons = {
     card:   $('#pmCard'),
     paypal: $('#pmPayPal'),
@@ -101,7 +86,6 @@
     cashapp:$('#pmCashApp'),
     crypto: $('#pmCrypto')
   };
-
   function selectMethod(kind){
     payMethod = kind;
     Object.entries(payButtons).forEach(([k, el])=>{
@@ -115,8 +99,6 @@
     });
     updateTotals();
   }
-
-  // Click + Double-click to jump to Step 3
   if (payButtons.card){ 
     payButtons.card.addEventListener('click', ()=> selectMethod('card'));
     payButtons.card.addEventListener('dblclick', ()=>{ selectMethod('card'); setStep(3); });
@@ -137,10 +119,9 @@
     payButtons.crypto.addEventListener('click', ()=> selectMethod('crypto'));
     payButtons.crypto.addEventListener('dblclick', ()=>{ selectMethod('crypto'); setStep(3); });
   }
-
   updateTotals();
 
-  // Step switching
+  // ===== Step switching =====
   function currentStep(){
     if (step3 && !step3.hidden) return 3;
     if (step2 && !step2.hidden) return 2;
@@ -165,8 +146,6 @@
       if (window.RecurlyUI) window.RecurlyUI.unmount();
     }
   }
-
-  // Keep the inline onclick working too
   window.gotoStep2 = function(){ setStep(2); };
   window.gotoStep3 = function(){ setStep(3); };
 
@@ -190,11 +169,10 @@
     };
   }
 
-  // ==== Utility: persistent order number + copy ====
+  // ==== Utilities: order id + clipboard ====
   function userKey(){
     const email = getStep1Val('email') || '';
-    let s = 0;
-    const src = email || (navigator.userAgent||'guest');
+    let s = 0; const src = email || (navigator.userAgent||'guest');
     for (let i=0;i<src.length;i++) s = (s*31 + src.charCodeAt(i)) >>> 0;
     return s.toString(36).toUpperCase();
   }
@@ -211,8 +189,14 @@
     try { await navigator.clipboard?.writeText(s); }
     catch(_) { window.prompt('Copy to clipboard:', s); }
   }
+  function flashCopied(btn, label='✓ Copied'){
+    const orig = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = label;
+    setTimeout(()=>{ btn.disabled=false; btn.textContent = orig; }, 1200);
+  }
 
-  // ==== Step 3 UI per method (Cash App + Crypto improvements) ====
+  // ===== Step 3 UI per method =====
   function renderStep3UI(){
     if (!step3) return;
     const totals = computeTotals();
@@ -260,18 +244,19 @@
         url = cashUrl;
         help = 'After you send the payment, tap “I Sent the Payment” so we can match it faster.';
 
-        const copyRow = `
-          <div class="alt-row" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-            <button type="button" class="alt-btn secondary" id="copyTag">$${cashtag}</button>
-            <button type="button" class="alt-btn secondary" id="copyAmt">${amount}</button>
-            <button type="button" class="alt-btn secondary" id="copyOrder">${orderId}</button>
-          </div>
-          <div class="alt-row" style="font-size:12px;opacity:.9;margin-top:4px;"><em>${noteLine}</em></div>`;
-
         const qrBlock = isDesktop ?
           `<div class="alt-row" style="display:flex;justify-content:center;margin:12px 0;">
              <img id="cashQr" src="${qrUrl}" width="240" height="240" alt="Cash App QR for $${cashtag}">
            </div>` : '';
+
+        // Centered, clearly labeled copy buttons
+        const copyRow = `
+          <div class="alt-row" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;justify-content:center;align-items:center;text-align:center;">
+            <button type="button" class="alt-btn secondary copy-btn" data-copy="$${cashtag}" aria-label="Copy cashtag">$ Copy Cashtag</button>
+            <button type="button" class="alt-btn secondary copy-btn" data-copy="${amount}" aria-label="Copy amount">📋 Copy Amount ${amount}</button>
+            <button type="button" class="alt-btn secondary copy-btn" data-copy="${orderId}" aria-label="Copy order number">🧾 Copy Order #</button>
+          </div>
+          <div class="alt-row" style="font-size:12px;opacity:.9;margin-top:4px;text-align:center;"><em>${noteLine}</em></div>`;
 
         extraHTML = qrBlock + copyRow + `
           <div class="alt-actions" style="margin-top:10px;gap:10px;display:flex;flex-wrap:wrap;justify-content:center;">
@@ -326,26 +311,17 @@
           if (payMethod === 'crypto'){
             try {
               altPrimary.disabled = true; altBack && (altBack.disabled = true);
-              const orig = altPrimary.textContent;
               altPrimary.textContent = 'Creating charge…';
 
               const customer = getCustomerMeta();
-              const body = {
-                qty,
-                email: customer.email || '',
-                total: computeTotals().total,
-                meta: { ...customer, sku: 'tirz-vial', free_qty: qty, paid_qty: qty }
-              };
+              const body = { qty, email: customer.email || '', total: computeTotals().total,
+                meta: { ...customer, sku: 'tirz-vial', free_qty: qty, paid_qty: qty } };
 
               const resp = await fetch('/api/payments/coinbase/create-charge', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
               });
               const d = await resp.json().catch(()=>null);
-              if (!resp.ok || !d?.hosted_url) {
-                throw new Error(d?.error || `Charge creation failed (HTTP ${resp.status})`);
-              }
+              if (!resp.ok || !d?.hosted_url) throw new Error(d?.error || `Charge creation failed (HTTP ${resp.status})`);
               if (typeof track === 'function') track('co_submit',{ method:'crypto', qty, total: body.total });
               window.location.href = d.hosted_url;
             } catch (err) {
@@ -355,7 +331,6 @@
             }
             return;
           }
-
           if (payMethod === 'cashapp'){
             if (typeof track === 'function') track('co_submit', { method:'cashapp', qty, total: computeTotals().total });
             const cashtag = 'selfhacking';
@@ -365,23 +340,23 @@
             window.open(cashUrl, '_blank', 'noopener');
             return;
           }
-
           if (url && url !== '#') {
             if (typeof track === 'function') track('co_submit',{ method: payMethod, qty, total: computeTotals().total });
             window.location.href = url;
           }
         });
       }
-
       if (altBack){ altBack.addEventListener('click', ()=>{ setStep(2); }); }
 
-      // Copy helpers for Cash App
+      // Copy helpers — centered row with clear labels
       if (payMethod === 'cashapp'){
-        const cashtag = 'selfhacking';
-        $('#copyTag')?.addEventListener('click', ()=> copyToClipboard('$' + cashtag));
-        $('#copyAmt')?.addEventListener('click', ()=> copyToClipboard(amount));
-        $('#copyOrder')?.addEventListener('click', ()=> copyToClipboard(getOrderId()));
-
+        $$('.copy-btn', altPane).forEach(btn => {
+          btn.addEventListener('click', async ()=>{
+            const val = btn.getAttribute('data-copy') || '';
+            await copyToClipboard(val);
+            flashCopied(btn);
+          });
+        });
         // Mark-as-paid handler
         const markBtn = $('#markPaidBtn');
         if (markBtn){
@@ -420,7 +395,7 @@
     }
   }
 
-  // Hosted-field clickability (defensive)
+  // ===== Hosted-field clickability (defensive) =====
   function fixClickBlockers(){
     try {
       const wrappers = step3?.querySelectorAll('label, .row, .co-row, .co-field') || [];
@@ -432,7 +407,7 @@
     } catch (e) {}
   }
 
-  // Submit (card only)
+  // ===== Submit (card only) =====
   submit && submit.addEventListener('click', async (e)=>{
     e.preventDefault();
     try {
@@ -440,7 +415,6 @@
       if (!window.RecurlyUI) throw new Error('Payment form not ready');
 
       submit.disabled = true;
-      const orig = submit.textContent;
       submit.textContent = 'Processing…';
 
       const customer = getCustomerMeta();
@@ -467,7 +441,7 @@
     }
   });
 
-  // Stock countdown: 47 -> 1 over 5 minutes, persists across re-open
+  // ===== Stock countdown =====
   const STOCK_START = 47, STOCK_END = 1, STOCK_MS = 5*60*1000;
   let stockTimer = null, stockT0 = null;
   const STOCK_KEY = 'coStockT0_v1';
@@ -477,7 +451,7 @@
     const now = Date.now();
     const t1 = stockT0 + STOCK_MS;
     const clamped = Math.max(0, Math.min(STOCK_MS, t1 - now));
-    const ratio = clamped / STOCK_MS; // 1 -> 0
+    const ratio = clamped / STOCK_MS;
     const span = STOCK_START - STOCK_END;
     const value = STOCK_END + Math.round(span * ratio);
     return Math.max(STOCK_END, Math.min(STOCK_START, value));
@@ -501,7 +475,7 @@
   }
   function stopStock(){ if (stockTimer){ clearInterval(stockTimer); stockTimer=null; } }
 
-  // Public helpers (also used by inline onclick)
+  // Public helpers
   window.checkoutOpen  = function(){
     modal.classList.add('show'); modal.style.display='grid';
     document.documentElement.setAttribute('data-checkout-open','1'); document.body.style.overflow='hidden';
@@ -514,7 +488,6 @@
   };
   window.checkoutBack  = function(){ const s=currentStep(); setStep(s===3?2:1); };
 
-  // For quick console checks if needed
   window._debugSetStep = setStep;
 })();
 
