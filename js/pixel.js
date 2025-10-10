@@ -1,7 +1,7 @@
 <script>
 /* ===== Meta Pixel base (edit PIXEL_ID) ===== */
 (function(){
-  var PIXEL_ID = 'YOUR_PIXEL_ID';  /* <-- REPLACE with your real Pixel ID */
+  var PIXEL_ID = '1051611783243364';  /* <-- REPLACE with your real Pixel ID */
   if (!PIXEL_ID) return;
 
   !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){
