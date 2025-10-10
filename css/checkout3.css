@@ -104,3 +104,20 @@
 .footer-inner{ padding-bottom:16px } .footer-form{ margin-bottom:12px } .footer-legal{ padding-top:14px }
 .review-card .rev-img{ width:100%; max-height:160px; object-fit:cover; border-radius:10px; display:block; margin:8px 0 6px }
 
+/* Alt-pay pane spacing polish */
+.alt-pane { padding: 16px 16px 18px; text-align: center; }
+.alt-pane h4 { margin: .2rem 0 .6rem; }
+.alt-pane .alt-row { margin: 8px 0; }
+.alt-pane .alt-actions { margin-top: 14px; gap: 10px; }
+
+/* Footer email input: fix oversize on mobile */
+@media (max-width: 600px) {
+  .footer .footer-form { flex-direction: column; }
+  .footer .footer-form input[type="email"]{
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    min-width: 0 !important;   /* cancel desktop min-width */
+    max-width: 100% !important;
+  }
+  .footer .footer-form button{ width:100% }
+}
