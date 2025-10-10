@@ -190,7 +190,3 @@
 }
 @keyframes shimmer{ to{ background-position:200% 0 } }
 
-/* /css/checkout3.css */
-.co-pane{ opacity:0; transform:translateY(6px); transition:opacity .18s, transform .18s }
-.co-pane[aria-hidden="false"]{ opacity:1; transform:none }
-
