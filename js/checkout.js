@@ -1,4 +1,4 @@
-// ===== checkout.js — v10.8.2 (crypto + strict parity + centered crypto H4) =====
+// ===== checkout.js — v10.10 (Cash App $selfhacking + amount prefill + mark-as-paid + desktop QR) =====
 (function(){
   const $  = (s, r=document) => r.querySelector(s);
   const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
@@ -45,7 +45,7 @@
     if (e.target === modal) checkoutClose();
   });
 
-  // DEFENSIVE: delegated step navigation (capture) so we never get stuck on step 1
+  // Delegated step navigation (capture)
   modal.addEventListener('click', function(e){
     const g2 = e.target.closest && e.target.closest('#coToStep2, [data-goto-step="2"]');
     if (g2){ e.preventDefault(); setStep(2); return; }
@@ -107,11 +107,9 @@
     Object.entries(payButtons).forEach(([k, el])=>{
       if (!el) return;
       if (k === 'card') {
-        // v10.6 behavior: .is-selected applied only to CARD
         el.classList.toggle('is-selected', kind === 'card');
         el.setAttribute('aria-selected', String(kind === 'card'));
       } else {
-        // aria-selected true for the selected alt button
         el.setAttribute('aria-selected', String(kind === k));
       }
     });
@@ -192,16 +190,37 @@
     };
   }
 
-  // Step 3 UI per method (fixed + centered crypto H4)
+  // ==== Utility: persistent order number + copy ====
+  function userKey(){
+    const email = getStep1Val('email') || '';
+    let s = 0;
+    const src = email || (navigator.userAgent||'guest');
+    for (let i=0;i<src.length;i++) s = (s*31 + src.charCodeAt(i)) >>> 0;
+    return s.toString(36).toUpperCase();
+  }
+  function getOrderId(){
+    let id = sessionStorage.getItem('coOrderId');
+    if (!id){
+      const uk = userKey().slice(0,5);
+      id = 'T' + uk + '-' + Date.now().toString(36).toUpperCase().slice(-6);
+      sessionStorage.setItem('coOrderId', id);
+    }
+    return id;
+  }
+  async function copyToClipboard(s){
+    try { await navigator.clipboard?.writeText(s); }
+    catch(_) { window.prompt('Copy to clipboard:', s); }
+  }
+
+  // ==== Step 3 UI per method (Cash App + Crypto improvements) ====
   function renderStep3UI(){
     if (!step3) return;
     const totals = computeTotals();
+    const amount = totals.total.toFixed(2);
     const totalFormatted = fmt(totals.total);
 
-    // Optional flag for CSS (single-border styling)
     modal?.setAttribute('data-alt-mode', (payMethod === 'card') ? '0' : '1');
 
-    // CARD mode
     if (payMethod === 'card'){
       cardset && (cardset.hidden = false);
       if (altPane){ altPane.hidden = true; altPane.innerHTML = ''; }
@@ -209,27 +228,60 @@
       return;
     }
 
-    // ALT methods
     cardset && (cardset.hidden = true);
     if (submitWrap) submitWrap.style.display = 'none';
 
-    let title = '', body = '', primary = '', url = '#', help = '';
+    let title = '', body = '', primary = '', url = '#', help = '', extraHTML = '';
+    const isDesktop = window.matchMedia && window.matchMedia('(pointer:fine)').matches && !/android|iphone|ipad|ipod/i.test(navigator.userAgent || '');
+
     switch (payMethod){
       case 'paypal':
         title = 'Pay with PayPal';
         body  = 'You will be redirected to PayPal to complete your payment. Your total reflects a 15% method discount.';
         primary = 'Continue to PayPal'; url = '/pay/paypal/start';
         help = 'After paying, you\'ll be returned here automatically.'; break;
+
       case 'venmo':
         title = 'Pay with Venmo';
         body  = 'We\'ll open Venmo to complete your payment. Your total reflects a 15% method discount.';
         primary = 'Open Venmo'; url = '/pay/venmo/start';
         help = 'If Venmo does not open automatically, open the Venmo app and check your requests.'; break;
-      case 'cashapp':
+
+      case 'cashapp': {
         title = 'Pay with Cash App';
-        body  = 'Use Cash App to complete your payment. Your total reflects a 15% method discount.';
-        primary = 'Open Cash App'; url = '/pay/cashapp/start';
-        help = 'If Cash App does not open, visit cash.app and search for our cashtag.'; break;
+        const cashtag = 'selfhacking';
+        const orderId = getOrderId();
+        const noteLine = 'input your order number in the cashapp payment notes with nothing else';
+        const cashUrl = `https://cash.app/$${cashtag}?amount=${encodeURIComponent(amount)}&note=${encodeURIComponent(orderId)}`;
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(cashUrl)}`;
+
+        body  = `Send the exact total to <strong>$${cashtag}</strong>. Use note: <strong>${orderId}</strong>.`;
+        primary = 'Open Cash App';
+        url = cashUrl;
+        help = 'After you send the payment, tap “I Sent the Payment” so we can match it faster.';
+
+        const copyRow = `
+          <div class="alt-row" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+            <button type="button" class="alt-btn secondary" id="copyTag">$${cashtag}</button>
+            <button type="button" class="alt-btn secondary" id="copyAmt">${amount}</button>
+            <button type="button" class="alt-btn secondary" id="copyOrder">${orderId}</button>
+          </div>
+          <div class="alt-row" style="font-size:12px;opacity:.9;margin-top:4px;"><em>${noteLine}</em></div>`;
+
+        const qrBlock = isDesktop ?
+          `<div class="alt-row" style="display:flex;justify-content:center;margin:12px 0;">
+             <img id="cashQr" src="${qrUrl}" width="240" height="240" alt="Cash App QR for $${cashtag}">
+           </div>` : '';
+
+        extraHTML = qrBlock + copyRow + `
+          <div class="alt-actions" style="margin-top:10px;gap:10px;display:flex;flex-wrap:wrap;justify-content:center;">
+            ${isDesktop ? '' : '<button type="button" class="alt-btn" id="altPrimary">Open Cash App</button>'}
+            <button type="button" class="alt-btn" id="markPaidBtn">I Sent the Payment</button>
+            <button type="button" class="alt-btn secondary" id="altBack">Choose another method</button>
+          </div>`;
+        break;
+      }
+
       case 'crypto':
         title = 'Pay with Crypto';
         body  = 'You\'ll be redirected to Coinbase Commerce to pay with BTC, ETH, USDC, and more. Your total reflects a 15% method discount.';
@@ -237,28 +289,29 @@
         help = 'After the network confirms, we\'ll email your receipt and ship your order.'; break;
     }
 
-    // Inline style centers the Crypto H4 even if no CSS file is updated
-    const h4Style = (payMethod === 'crypto')
+    // Center both Crypto and Cash App headings
+    const h4Style = (payMethod === 'crypto' || payMethod === 'cashapp')
       ? ' style="display:flex;justify-content:center;align-items:center;text-align:center;width:100%;margin:0 auto;"'
       : '';
 
-    const altHTML = `
+    const baseHTML = `
       <div class="alt-pane">
         <h4${h4Style}>${title}</h4>
         <div class="alt-row"><strong>Total:</strong> ${totalFormatted}</div>
         <div class="alt-row">${body}</div>
+        ${payMethod === 'cashapp' ? '' : `
         <div class="alt-actions">
           <button type="button" class="alt-btn" id="altPrimary">${primary}</button>
           <button type="button" class="alt-btn secondary" id="altBack">Choose another method</button>
-        </div>
+        </div>`}
+        ${extraHTML}
         <div class="alt-row" style="opacity:.85;font-size:13px;margin-top:8px;">${help}</div>
       </div>`;
 
     if (altPane){
-      altPane.innerHTML = altHTML;
+      altPane.innerHTML = baseHTML;
       altPane.hidden = false;
 
-      // Tag the pane for optional CSS targeting
       const root = altPane.querySelector('.alt-pane');
       if (root){
         root.classList.toggle('crypto', payMethod === 'crypto');
@@ -271,7 +324,6 @@
       if (altPrimary){
         altPrimary.addEventListener('click', async ()=>{
           if (payMethod === 'crypto'){
-            // Coinbase Commerce charge creation + redirect
             try {
               altPrimary.disabled = true; altBack && (altBack.disabled = true);
               const orig = altPrimary.textContent;
@@ -295,7 +347,7 @@
                 throw new Error(d?.error || `Charge creation failed (HTTP ${resp.status})`);
               }
               if (typeof track === 'function') track('co_submit',{ method:'crypto', qty, total: body.total });
-              window.location.href = d.hosted_url; // Redirect to Coinbase checkout
+              window.location.href = d.hosted_url;
             } catch (err) {
               alert(err?.message || 'Crypto checkout failed');
               altPrimary.disabled = false; altBack && (altBack.disabled = false);
@@ -303,14 +355,68 @@
             }
             return;
           }
-          // Other alt methods
+
+          if (payMethod === 'cashapp'){
+            if (typeof track === 'function') track('co_submit', { method:'cashapp', qty, total: computeTotals().total });
+            const cashtag = 'selfhacking';
+            const orderId = getOrderId();
+            const amount = computeTotals().total.toFixed(2);
+            const cashUrl = `https://cash.app/$${cashtag}?amount=${encodeURIComponent(amount)}&note=${encodeURIComponent(orderId)}`;
+            window.open(cashUrl, '_blank', 'noopener');
+            return;
+          }
+
           if (url && url !== '#') {
             if (typeof track === 'function') track('co_submit',{ method: payMethod, qty, total: computeTotals().total });
             window.location.href = url;
           }
         });
       }
+
       if (altBack){ altBack.addEventListener('click', ()=>{ setStep(2); }); }
+
+      // Copy helpers for Cash App
+      if (payMethod === 'cashapp'){
+        const cashtag = 'selfhacking';
+        $('#copyTag')?.addEventListener('click', ()=> copyToClipboard('$' + cashtag));
+        $('#copyAmt')?.addEventListener('click', ()=> copyToClipboard(amount));
+        $('#copyOrder')?.addEventListener('click', ()=> copyToClipboard(getOrderId()));
+
+        // Mark-as-paid handler
+        const markBtn = $('#markPaidBtn');
+        if (markBtn){
+          markBtn.addEventListener('click', async ()=>{
+            try {
+              markBtn.disabled = true;
+              const customer = getCustomerMeta();
+              const payload = {
+                order_id: getOrderId(),
+                method: 'cashapp',
+                cashtag: '$selfhacking',
+                amount: computeTotals().total,
+                qty,
+                email: customer.email || '',
+                meta: customer,
+                ts: Date.now()
+              };
+              const r = await fetch('/api/payments/cashapp/mark-paid', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              });
+              if (!r.ok){
+                const err = await r.json().catch(()=>({}));
+                throw new Error(err?.error || `HTTP ${r.status}`);
+              }
+              if (typeof track === 'function') track('co_mark_paid', { method:'cashapp', order_id: payload.order_id, amount: payload.amount });
+              markBtn.textContent = 'Marked — we’ll verify';
+            } catch (e) {
+              alert(e?.message || 'Could not mark as paid');
+              markBtn.disabled = false;
+            }
+          });
+        }
+      }
     }
   }
 
