@@ -119,3 +119,44 @@
 /* Step 3 headers tint (optional) */
 #coAltPane .alt-pane[data-method="cashapp"] h4 { color:#00C244; }
 #coAltPane .alt-pane[data-method="crypto"]  h4 { color:#F7931A; }
+
+/* ——— STEP 2 ONLY: colorful payment tiles ——— */
+#coStep2 #pmCashApp {
+  background: #00C244;        /* Cash App green */
+  color: #0b1b0f;             /* high contrast on green */
+  font-weight: 800;
+  border-radius: 14px;
+  padding: 12px 14px;
+  transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+}
+#coStep2 #pmCrypto {
+  background: #F7931A;        /* Bitcoin orange */
+  color: #111111;             /* high contrast on orange */
+  font-weight: 800;
+  border-radius: 14px;
+  padding: 12px 14px;
+  transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+}
+
+/* Tile hover/selected effects (nice pop without changing step 3) */
+#coStep2 #pmCashApp:hover,
+#coStep2 #pmCrypto:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0,0,0,.14); }
+#coStep2 #pmCashApp.is-selected,
+#coStep2 #pmCrypto.is-selected { outline: 2px solid rgba(255,255,255,.2); box-shadow: 0 8px 20px rgba(0,0,0,.25); }
+
+/* Keep other methods neutral if they’re still visible */
+#coStep2 #pmCard,
+#coStep2 #pmPayPal,
+#coStep2 #pmVenmo {
+  background: #11161d;
+  color: #e6eefc;
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+/* If you previously tinted Step 3 headers, neutralize them here */
+#coAltPane .alt-pane h4 { color: inherit !important; }
+
+/* (Optional) Hide PayPal/Venmo in Step 2 explicitly */
+#coStep2 #pmPayPal,
+#coStep2 #pmVenmo { display: none !important; }
