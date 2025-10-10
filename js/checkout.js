@@ -1,4 +1,4 @@
-// ===== checkout.js — v10.8 (crypto + strict parity with v10.6) =====
+// ===== checkout.js — v10.8.2 (crypto + strict parity + centered crypto H4) =====
 (function(){
   const $  = (s, r=document) => r.querySelector(s);
   const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
@@ -178,7 +178,7 @@
   function getCustomerMeta(){
     const full = getStep1Val('name');
     let first = full, last='';
-    if (full.includes(' ')){ const i=full.lastIndexOf(' '); first=full.slice(0,i); last=full.slice(i+1); }
+    if (full && full.includes(' ')){ const i=full.lastIndexOf(' '); first=full.slice(0,i); last=full.slice(i+1); }
     return {
       first_name: first || '',
       last_name: last || '',
@@ -192,23 +192,24 @@
     };
   }
 
-  // Step 3 UI per method
+  // Step 3 UI per method (fixed + centered crypto H4)
   function renderStep3UI(){
     if (!step3) return;
     const totals = computeTotals();
     const totalFormatted = fmt(totals.total);
 
+    // Optional flag for CSS (single-border styling)
+    modal?.setAttribute('data-alt-mode', (payMethod === 'card') ? '0' : '1');
+
+    // CARD mode
     if (payMethod === 'card'){
       cardset && (cardset.hidden = false);
-      altPane && (altPane.hidden = true, altPane.innerHTML = '');
-      // add method marker so CSS can target
-const root = altPane.querySelector('.alt-pane');
-if (root) {
-  root.classList.toggle('crypto', payMethod === 'crypto'); // <-- enables crypto-only CSS
-  root.setAttribute('data-method', payMethod);             // optional future targeting
+      if (altPane){ altPane.hidden = true; altPane.innerHTML = ''; }
       if (submitWrap) submitWrap.style.display = '';
       return;
     }
+
+    // ALT methods
     cardset && (cardset.hidden = true);
     if (submitWrap) submitWrap.style.display = 'none';
 
@@ -236,9 +237,14 @@ if (root) {
         help = 'After the network confirms, we\'ll email your receipt and ship your order.'; break;
     }
 
+    // Inline style centers the Crypto H4 even if no CSS file is updated
+    const h4Style = (payMethod === 'crypto')
+      ? ' style="display:flex;justify-content:center;align-items:center;text-align:center;width:100%;margin:0 auto;"'
+      : '';
+
     const altHTML = `
       <div class="alt-pane">
-        <h4>${title}</h4>
+        <h4${h4Style}>${title}</h4>
         <div class="alt-row"><strong>Total:</strong> ${totalFormatted}</div>
         <div class="alt-row">${body}</div>
         <div class="alt-actions">
@@ -251,13 +257,21 @@ if (root) {
     if (altPane){
       altPane.innerHTML = altHTML;
       altPane.hidden = false;
+
+      // Tag the pane for optional CSS targeting
+      const root = altPane.querySelector('.alt-pane');
+      if (root){
+        root.classList.toggle('crypto', payMethod === 'crypto');
+        root.setAttribute('data-method', payMethod);
+      }
+
       const altPrimary = $('#altPrimary');
       const altBack = $('#altBack');
 
       if (altPrimary){
         altPrimary.addEventListener('click', async ()=>{
           if (payMethod === 'crypto'){
-            // === Coinbase Commerce charge creation + redirect ===
+            // Coinbase Commerce charge creation + redirect
             try {
               altPrimary.disabled = true; altBack && (altBack.disabled = true);
               const orig = altPrimary.textContent;
@@ -289,7 +303,7 @@ if (root) {
             }
             return;
           }
-          // Fallback for other alt methods
+          // Other alt methods
           if (url && url !== '#') {
             if (typeof track === 'function') track('co_submit',{ method: payMethod, qty, total: computeTotals().total });
             window.location.href = url;
