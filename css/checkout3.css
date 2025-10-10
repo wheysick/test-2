@@ -190,3 +190,29 @@
 }
 @keyframes shimmer{ to{ background-position:200% 0 } }
 
+/* ===== Kill page scrollbars while checkout is open ===== */
+html[data-checkout-open="1"],
+html[data-checkout-open="1"] body{
+  overflow: hidden !important;   /* no page scrollbars */
+  width: 100%;
+  height: 100%;
+}
+
+/* Never create page scrollbars from the overlay itself */
+#checkoutModal{ overflow: hidden; }
+
+/* Internal scroll ONLY when content is taller than the viewport */
+.modal-content.checkout-card{
+  max-height: calc(100dvh - 4rem);
+  overflow-y: auto;
+  overflow-x: hidden;
+  contain: paint;                 /* isolates blur/auras so they can't bleed & cause scrollbars */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Optional: hide the internal scrollbar UI entirely (keeps scrolling) */
+.modal-content.checkout-card{ scrollbar-width: none; }
+.modal-content.checkout-card::-webkit-scrollbar{ width:0; height:0 }
+
+/* If you added a fixed reading bar, make sure it doesn't force horizontal scroll */
+#scrollProgress{ left:0; right:0; width:auto; }  /* avoid 100vw */
