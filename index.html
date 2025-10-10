@@ -12,31 +12,19 @@
   <script src="https://js.recurly.com/v4/recurly.js"></script>
 
   <!-- Your single-instance Elements helper (required) -->
-  <script src="/js/recurly-elements.js?v=3" defer></script>
+  <script src="/js/recurly-elements.js?v=5" defer></script>
 
-  <!-- Force-load correct assets; bump versions to bust cache -->
+  <!-- CSS -->
   <link rel="stylesheet" href="/css/style.css?v=640">
   <link rel="stylesheet" href="/css/checkout.css?v=9013">
-  <link rel="stylesheet" href="/css/checkout3.css?v=7016"><!-- added to load latest checkout styles -->
+  <link rel="stylesheet" href="/css/checkout3.css?v=7020">
 
-  <!-- Minimal fallback CSS (safe) -->
   <style>
-    /* Layout: article + sticky reviews (desktop) */
-    .layout{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(20px,3vw,32px)}
-    @media(min-width:1100px){.layout{grid-template-columns:minmax(0,1fr) 380px;align-items:start}.reviews-col{position:sticky;top:18px}}
     /* Footer subscribe centered */
-    .footer{margin-top:2.2rem;padding:1.4rem 0 2.8rem;background:#0e1014;border-top:1px solid #1d2028}
     .footer-inner{max-width:min(1000px,90vw);margin:0 auto;display:grid;gap:.8rem;text-align:center}
     .footer-form{display:flex;justify-content:center;gap:.6rem}
-    .footer-form input[type=email]{flex:1 1 640px;max-width:760px;min-width:240px;background:#101219;border:1px solid #242634;color:#e8eaf2;border-radius:12px;padding:.85rem 1rem}
-    .footer-form button{flex:0 0 auto;padding:.85rem 1.05rem;border-radius:12px;border:0;font-weight:900;background:linear-gradient(90deg,#C471F5,#FA71CD);color:#0f1116}
     @media(max-width:560px){.footer-form{flex-direction:column}.footer-form button{width:100%}}
-    /* Modal guaranteed on top; CTA hidden while open */
-    #checkoutModal.modal-checkout{z-index:2147483646}
-    #checkoutModal.show{display:grid!important}
-    html[data-checkout-open="1"] .floating-cta{display:none!important}
   </style>
-
 </head>
 
 <body>
@@ -95,72 +83,14 @@
         <li>Formulated to support <strong>natural metabolism</strong> and <strong>balance</strong></li>
       </ul>
       <p class="note small"><em>*Inspired by modern GLP‑1/GIP research; for educational purposes only. Not a drug or prescription. Not intended to diagnose, treat, cure, or prevent any disease.</em></p>
-
-      <!-- FAQ -->
-      <section class="faq reveal" id="faq">
-        <h2>Frequently Asked Questions</h2>
-
-        <details class="faq-item" open>
-          <summary><span class="faq-q">Is Tirzepatide legal?</span><span class="faq-arrow">›</span></summary>
-          <div class="faq-body">Tirzepatide is an FDA‑approved prescription medicine in the United States and is regulated. Our product is a non‑prescription wellness sample inspired by the science.</div>
-        </details>
-        <details class="faq-item">
-          <summary><span class="faq-q">Do I need a prescription?</span><span class="faq-arrow">›</span></summary>
-          <div class="faq-body">No doctor’s prescription is required to receive the free wellness sample.</div>
-        </details>
-        <details class="faq-item">
-          <summary><span class="faq-q">Any side effects or interactions?</span><span class="faq-arrow">›</span></summary>
-          <div class="faq-body">Mild, transient effects are possible (nausea in week 1 for some). Check interactions with your clinician.</div>
-        </details>
-        <details class="faq-item">
-          <summary><span class="faq-q">Who shouldn’t use this?</span><span class="faq-arrow">›</span></summary>
-          <div class="faq-body">Not for individuals who are pregnant, nursing, or with contraindicated conditions. Consult a clinician.</div>
-        </details>
-      </section>
     </article>
 
     <!-- Reviews sidebar (sticky on desktop) -->
     <aside class="reviews-col" aria-label="Reviews">
       <h2>Real People. Real Stories.</h2>
-
-      <div class="review-card">
-        <div class="review-hdr">
-          <div class="rev-avatar">J</div>
-          <div class="rev-meta">
-            <div class="rev-name">James S.</div>
-            <div class="rev-loc">Phoenix, AZ • <span class="stars">★★★★★</span></div>
-          </div>
-        </div>
-        <div class="badge">Verified Purchase</div>
-        <div class="rev-body">Cravings down, steady energy. Meaningful progress in 4 months; mild nausea week 1.</div>
-        <div class="rev-actions"><button>Helpful 42</button><button>Report</button></div>
-      </div>
-
-      <div class="review-card">
-        <div class="review-hdr">
-          <div class="rev-avatar">D</div>
-          <div class="rev-meta">
-            <div class="rev-name">Deborah K.</div>
-            <div class="rev-loc">Tampa, FL • <span class="stars">★★★★★</span></div>
-          </div>
-        </div>
-        <div class="badge">Verified Purchase</div>
-        <div class="rev-body">Appetite finally quiet. With protein and walks, inches moved in the right direction.</div>
-        <div class="rev-actions"><button>Helpful 36</button><button>Report</button></div>
-      </div>
-
-      <div class="review-card">
-        <div class="review-hdr">
-          <div class="rev-avatar">S</div>
-          <div class="rev-meta">
-            <div class="rev-name">Steven S.</div>
-            <div class="rev-loc">Boise, ID • <span class="stars">★★★★☆</span></div>
-          </div>
-        </div>
-        <div class="badge">Verified Purchase</div>
-        <div class="rev-body">Energy is up and trending is positive. Could be clearer instructions on titration.</div>
-        <div class="rev-actions"><button>Helpful 19</button><button>Report</button></div>
-      </div>
+      <div class="review-card"><div class="review-hdr"><div class="rev-avatar">J</div><div class="rev-meta"><div class="rev-name">James S.</div><div class="rev-loc">Phoenix, AZ • <span class="stars">★★★★★</span></div></div></div><div class="badge">Verified Purchase</div><div class="rev-body">Cravings down, steady energy. Meaningful progress in 4 months; mild nausea week 1.</div><div class="rev-actions"><button>Helpful 42</button><button>Report</button></div></div>
+      <div class="review-card"><div class="review-hdr"><div class="rev-avatar">D</div><div class="rev-meta"><div class="rev-name">Deborah K.</div><div class="rev-loc">Tampa, FL • <span class="stars">★★★★★</span></div></div></div><div class="badge">Verified Purchase</div><div class="rev-body">Appetite finally quiet. With protein and walks, inches moved in the right direction.</div><div class="rev-actions"><button>Helpful 36</button><button>Report</button></div></div>
+      <div class="review-card"><div class="review-hdr"><div class="rev-avatar">S</div><div class="rev-meta"><div class="rev-name">Steven S.</div><div class="rev-loc">Boise, ID • <span class="stars">★★★★☆</span></div></div></div><div class="badge">Verified Purchase</div><div class="rev-body">Energy is up and trending is positive. Could be clearer instructions on titration.</div><div class="rev-actions"><button>Helpful 19</button><button>Report</button></div></div>
     </aside>
   </main>
 
@@ -206,7 +136,7 @@
 
       <!-- Step 2: Offer -->
       <section id="coStep2" class="co-pane step2-pane" hidden aria-hidden="true">
-        <h3 class="co-h3 center">Buy 1 Get 1 Free</h3>
+        <h3 class="co-h3 center">How Many Bottles Do You Want?</h3>
         <div class="co-stockline center"><span class="qty" id="coStock">47</span> left in stock</div>
 
         <div class="qtybar">
@@ -247,12 +177,13 @@
         <p class="tiny muted center">🔒 100% encrypted checkout • 60‑Day Guarantee</p>
       </section>
 
-      <!-- Step 3: Card -->
+      <!-- Step 3: Card / Alt panes -->
       <section id="coStep3" class="co-pane" hidden aria-hidden="true">
         <h3 class="co-h3">Complete Order</h3>
         <div class="co-stockline" id="coStockLine3"><span class="qty">47</span> left in stock</div>
 
-        <fieldset class="cardset">
+        <!-- Card pane -->
+        <fieldset class="cardset" id="coCardPane">
           <legend>Card details</legend>
           <label>Card number <div id="re-number"></div></label>
           <div class="co-row">
@@ -260,12 +191,14 @@
             <label>Year   <div id="re-year"></div></label>
             <label>CVC    <div id="re-cvv"></div></label>
           </div>
-          <label>ZIP <div id="re-postal"></div></label>
+          <!-- ZIP removed by request -->
+          <label id="zipRow" style="display:none">ZIP <div id="re-postal"></div></label>
         </fieldset>
 
-        <div id="coPayWrap"></div>
+        <!-- Alt method pane -->
+        <div id="coAltPane" class="alt-pane" hidden></div>
 
-        <div class="co-actions">
+        <div class="co-actions" id="coSubmitWrap">
           <button class="btn-main btn-lg co-submit" id="coSubmit">Complete Order</button>
         </div>
         <p class="tiny muted co-trust">🔒 256‑bit SSL • 🚚 Free shipping today • ↩️ 60‑Day Guarantee</p>
@@ -295,23 +228,6 @@
 
   <script defer src="/js/config.js?v=641"></script>
   <script defer src="/js/script.js?v=641"></script>
-  <script defer src="/js/checkout.js?v=9011"></script>
-
-  <script>
-    // Belt & suspenders CTA opener (capture phase beats other listeners)
-    document.addEventListener('click', function(e){
-      const a = e.target.closest && e.target.closest('.open-checkout');
-      if (!a) return;
-      e.preventDefault();
-      if (window.checkoutOpen) window.checkoutOpen();
-      else {
-        const m=document.getElementById('checkoutModal');
-        if(m){ m.classList.add('show'); m.style.display='grid';
-          document.documentElement.setAttribute('data-checkout-open','1');
-          document.body.style.overflow='hidden';
-        }
-      }
-    }, true);
-  </script>
+  <script defer src="/js/checkout.js?v=9020"></script>
 </body>
 </html>
