@@ -201,6 +201,11 @@
     if (payMethod === 'card'){
       cardset && (cardset.hidden = false);
       altPane && (altPane.hidden = true, altPane.innerHTML = '');
+      // add method marker so CSS can target
+const root = altPane.querySelector('.alt-pane');
+if (root) {
+  root.classList.toggle('crypto', payMethod === 'crypto'); // <-- enables crypto-only CSS
+  root.setAttribute('data-method', payMethod);             // optional future targeting
       if (submitWrap) submitWrap.style.display = '';
       return;
     }
