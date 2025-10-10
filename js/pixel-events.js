@@ -1,26 +1,35 @@
-/* pixel-events.js — v1.2 (idempotent) */
+/* pixel-events.js — v1.4 (final) */
 (function(){
   if (window.__PIXEL_EVENTS_BOUND__) return;
   window.__PIXEL_EVENTS_BOUND__ = true;
 
   var $ = (s,r=document)=>r.querySelector(s);
-  var on = (el,ev,fn)=>{ if(el) el.addEventListener(ev,fn,{capture:true}); };
+  var on = (el,ev,fn,opt)=>{ if(el) el.addEventListener(ev,fn,opt||{capture:true}); };
+  var numFromText = (sel)=>{
+    var el=$(sel); if(!el) return undefined;
+    var t = (el.textContent||'').replace(/[^0-9.]/g,'');
+    var n = Number(t); return isFinite(n) ? n : undefined;
+  };
 
-  // Hero CTA -> AddToCart
+  // AddToCart — any UI that opens the checkout modal
   document.addEventListener('click', function(e){
-    var t = e.target && e.target.closest && e.target.closest('.open-checkout, [data-open-checkout], .masthead-cta, .floating-cta');
-    if (t && window.fbqSafe) fbqSafe('AddToCart', { value: 90 });
+    var hit = e.target && e.target.closest &&
+              e.target.closest('.open-checkout, [data-open-checkout], .masthead-cta, .floating-cta');
+    if (hit && typeof fbqSafe === 'function') {
+      fbqSafe('AddToCart', { value: 90, currency: 'USD', content_type: 'product' });
+    }
   }, true);
 
-  // Step 1 -> Step 2
-  on($('#coToStep2'), 'click', function(){ window.fbqSafe && fbqSafe('InitiateCheckout'); });
+  // InitiateCheckout — Step 2 (belt + suspenders: button click and form submit)
+  on($('#coToStep2'), 'click', function(){ if (typeof fbqSafe==='function') fbqSafe('InitiateCheckout'); });
+  on($('#coStep1'),  'submit', function(){ if (typeof fbqSafe==='function') fbqSafe('InitiateCheckout'); });
 
-  // Step 2 -> Step 3
+  // AddPaymentInfo — Step 3
   on($('#coToStep3'), 'click', function(){
-    var totalEl = document.getElementById('coTotal');
-    var total = totalEl ? Number((totalEl.textContent||'').replace(/[^0-9.]/g,'')) : undefined;
-    window.fbqSafe && fbqSafe('AddPaymentInfo', total ? { value: total } : {});
+    var total = numFromText('#coTotal');
+    if (typeof fbqSafe==='function') {
+      total != null ? fbqSafe('AddPaymentInfo', { value: total })
+                    : fbqSafe('AddPaymentInfo');
+    }
   });
-
-  // Purchase is fired on thank-you via window.firePurchase()
 })();
