@@ -242,3 +242,9 @@ html[data-checkout-open="1"] body{
   border: 1.5px solid #243042;   /* or your brand stroke */
   border-radius: 16px;
 }
+
+#checkoutModal[data-alt-mode="1"] #coAltPane{
+  border:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
