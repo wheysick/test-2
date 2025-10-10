@@ -180,6 +180,7 @@
   // Stock countdown: 47 -> 1 over 5 minutes, persists while modal open
   const STOCK_START = 47, STOCK_END = 1, STOCK_MS = 5*60*1000;
   let stockTimer = null, stockT0 = null;
+  const STOCK_KEY = 'coStockT0_v1';
 
   function stockNow(){
     if (!stockT0) return STOCK_START;
@@ -199,7 +200,9 @@
   }
   function startStock(){
     if (stockTimer) return;
-    stockT0 = Date.now();
+    const saved = parseInt(sessionStorage.getItem(STOCK_KEY)||'',10);
+    stockT0 = Number.isFinite(saved) ? saved : Date.now();
+    if (!Number.isFinite(saved)) sessionStorage.setItem(STOCK_KEY, String(stockT0));
     renderStock();
     stockTimer = setInterval(()=>{
       renderStock();
