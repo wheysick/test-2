@@ -122,20 +122,14 @@
   .footer .footer-form button{ width:100% }
 }
 
-/* ===== Sticky reviews sidebar (desktop) ===== */
-@media (min-width: 1100px) {
-  /* ensure 2-col layout + no vertical stretch */
-  .layout{
-    grid-template-columns: minmax(0,1fr) 380px;
-    align-items: start;
-  }
+/* Reviews sidebar: remove inner scrollbar, let page scroll it */
+@media (min-width:1100px){
   .reviews-col{
     position: sticky;
-    top: 86px;                 /* clears your sticky masthead */
-    align-self: start;
-    max-height: calc(100vh - 100px);
-    overflow: auto;
-    padding-bottom: 60px;      /* breathing room near footer */
-    -webkit-overflow-scrolling: touch;
+    top: 86px;
+    max-height: none !important;
+    overflow: visible !important;
+    padding-bottom: 0 !important;
   }
 }
+
