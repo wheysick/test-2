@@ -1,10 +1,4 @@
-/* ===== recurly-elements.js — v2.5 FINAL (styled + placeholders) =====
-   Requires in <head>:
-     <meta name="recurly-public-key" content="ewr1-AxqCz2aZ9UMj5oOBsENPG2">
-     <script src="https://js.recurly.com/v4/recurly.js"></script>
-   Step-3 containers required:
-     #re-number  #re-month  #re-year  #re-cvv  #re-postal
-*/
+/* ===== recurly-elements.js — v2.6 (styled + placeholders, ZIP removed) ===== */
 (function () {
   let elements = null;
   let fields = {};
@@ -26,7 +20,7 @@
     // Configure once
     try { window.recurly.configure(publicKey()); } catch (e) { try { window.recurly.configure({ publicKey: publicKey() }); } catch(_) {} }
 
-    // IMPORTANT: Recurly Elements style uses fontColor, not color
+    // Recurly Elements styling uses fontColor
     const baseStyle = {
       fontFamily: 'Inter, system-ui, -apple-system, Segoe UI, Arial, sans-serif',
       fontSize: '16px',
@@ -37,26 +31,22 @@
 
     elements = window.recurly.Elements({ style: baseStyle });
 
-    // Per-field placeholders
+    // Per-field placeholders (if supported by build)
     const sNumber = { ...baseStyle, placeholder: { color: 'rgba(255,255,255,.55)', content: 'Card number' } };
     const sMonth  = { ...baseStyle, placeholder: { color: 'rgba(255,255,255,.55)', content: 'MM' } };
     const sYear   = { ...baseStyle, placeholder: { color: 'rgba(255,255,255,.55)', content: 'YY' } };
     const sCvv    = { ...baseStyle, placeholder: { color: 'rgba(255,255,255,.55)', content: 'CVC' } };
-    const sZip    = { ...baseStyle, placeholder: { color: 'rgba(255,255,255,.55)', content: 'ZIP' } };
 
     fields.number = elements.CardNumberElement({ style: sNumber });
     fields.month  = elements.CardMonthElement({ style: sMonth });
     fields.year   = elements.CardYearElement({ style: sYear });
     fields.cvv    = elements.CardCvvElement({ style: sCvv });
 
-    const PostalCtor = elements.PostalCodeElement || elements.PostalElement;
-    if (typeof PostalCtor === 'function') fields.postal = PostalCtor({ style: sZip });
-
     fields.number.attach('#re-number');
     fields.month.attach('#re-month');
     fields.year.attach('#re-year');
     fields.cvv.attach('#re-cvv');
-    if (fields.postal && document.getElementById('re-postal')) fields.postal.attach('#re-postal');
+    // ZIP intentionally not mounted
 
     return elements;
   }
@@ -67,7 +57,6 @@
     try { fields.month  && fields.month.detach();  } catch {}
     try { fields.year   && fields.year.detach();   } catch {}
     try { fields.cvv    && fields.cvv.detach();    } catch {}
-    try { fields.postal && fields.postal.detach(); } catch {}
     fields = {};
     elements = null;
   }
