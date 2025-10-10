@@ -1,4 +1,4 @@
+// /api/track.js  (in your project root)
 export default async function handler(req, res) {
-  res.setHeader('Cache-Control', 'no-store');
-  return res.status(204).end();
+  res.status(204).end();
 }
