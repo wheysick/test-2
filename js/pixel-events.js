@@ -59,7 +59,24 @@
     const priceEach = 45;
     const valueForCart = () => getQty() * priceEach;
 
-    function track(name, params){
+    
+    function uuidv4(){return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c=='x'?r:(r&0x3|0x8);return v.toString(16);});}
+    async function capiSend(name, params, eventID){
+      try{
+        const email = document.querySelector('#coEmail, [name="email"]')?.value?.trim() || '';
+        const payload = {
+          event_name: name,
+          event_id: eventID,
+          event_time: Math.floor(Date.now()/1000),
+          event_source_url: location.href,
+          action_source: 'website',
+          user_data: { email, client_user_agent: navigator.userAgent },
+          custom_data: Object.assign({ currency:'USD', value: Number(params?.value||0) }, params||{})
+        };
+        await fetch('/api/meta/capi', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+      } catch(_){}
+    }
+function track(name, params){
       try {
         fbq('trackSingle', window.__FB_PIXEL_ID__, name, Object.assign({ currency:'USD', content_type:'product' }, params||{}));
       } catch(_) {}
