@@ -18,7 +18,20 @@ if (!modal) {
   const toStep3 = document.getElementById('coToStep3');
   const payWrap = document.getElementById('coPayWrap');
   const submit  = document.getElementById('coSubmit');
-  const submitBtn = submit; // prevents "submitBtn is not defined" errors in your console
+  const submitBtn = submit; // prevents console errors
+
+  // --- Ensure only one set of Recurly targets exists (duplicate-guard) ---
+  function purgeRecurlyDom() {
+    const ids = ['recurlyForm','recurly-number','recurly-month','recurly-year','recurly-cvv'];
+    ids.forEach(id => {
+      const nodes = Array.from(document.querySelectorAll('#' + id));
+      if (nodes.length > 1) {
+        // keep the last one (most recent render), remove the rest
+        nodes.slice(0, -1).forEach(n => n.remove());
+      }
+    });
+  }
+ // prevents "submitBtn is not defined" errors in your console
 
   // Back link pinned top-left
   let backLink = document.getElementById('coBackLink');
@@ -197,9 +210,9 @@ if (!modal) {
         </fieldset>
       </form>`;
 
+    purgeRecurlyDom();
     while (payWrap.firstChild) payWrap.removeChild(payWrap.firstChild);
-
-    if (m==='card'){ payWrap.insertAdjacentHTML('beforeend', recurlyCard + wallets); whenRecurlyReady(initRecurlyElements); }
+if (m==='card'){ payWrap.insertAdjacentHTML('beforeend', recurlyCard + wallets); whenRecurlyReady(initRecurlyElements); setTimeout(mountRecurlyIfNeeded, 60); }
     else if (m==='venmo'){ payWrap.insertAdjacentHTML('beforeend', `<div class="altpay" style="text-align:center"><h4>Venmo</h4><p>Send to @YourHandle — 15% off applied</p></div>`); }
     else if (m==='cashapp'){ payWrap.insertAdjacentHTML('beforeend', `<div class="altpay" style="text-align:center"><h4>Cash App</h4><p>Send to $selfhacking — 15% off applied</p></div>`); }
     else if (m==='paypal'){ payWrap.insertAdjacentHTML('beforeend', `<div class="altpay" style="text-align:center"><h4>PayPal</h4><p>Redirect to PayPal — 15% off applied</p></div>`); }
@@ -215,7 +228,41 @@ if (!modal) {
     },250);
   }
 
-  function initRecurlyElements(){
+  
+  async function mountRecurlyIfNeeded(){
+    try{
+      // If already mounted (iframes), skip
+      const ifr = payWrap.querySelectorAll('.recurly-hosted-field iframe').length;
+      if (ifr >= 3) return;
+
+      const num = document.getElementById('recurly-number');
+      const mon = document.getElementById('recurly-month');
+      const yer = document.getElementById('recurly-year');
+      const cvv = document.getElementById('recurly-cvv');
+      if (!num || !mon || !yer || !cvv) return;
+
+      if (!window.recurly || typeof window.recurly.configure !== 'function') return;
+      if (!elements) initRecurlyElements();
+
+      // Wait a tick for Elements init & visibility
+      await new Promise(r => setTimeout(r, 50));
+
+      // Recurly will throw if parents are null/hidden; guard visibility
+      const wrap = document.getElementById('coPayWrap');
+      if (wrap && getComputedStyle(wrap).display === 'none') return;
+
+      // Attach using real elements (not selectors)
+      const pk = document.querySelector('meta[name="recurly-public-key"]')?.content || window.RECURLY_PUBLIC_KEY;
+      if (!pk) return;
+      window.recurly.configure({ publicKey: pk });
+      elements = elements || window.recurly.Elements();
+      elements.CardNumberElement().attach(num);
+      elements.CardMonthElement().attach(mon);
+      elements.CardYearElement().attach(yer);
+      elements.CardCvvElement().attach(cvv);
+    }catch(e){ console.warn('[Recurly mount]', e?.message||e); }
+  }
+function initRecurlyElements(){
     if (!window.recurly) return;
     try{
       if (!recurlyConfigured){
