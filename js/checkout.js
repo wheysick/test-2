@@ -226,13 +226,20 @@
       return;
     }
 
-    // CARD → Recurly Elements (prefer) or Bridge
-    const tokenizer = (window.RecurlyUI && typeof window.RecurlyUI.tokenize === 'function') ? window.RecurlyUI.tokenize : null;
-    if (!tokenizer){ alert('Payment form not ready'); return; }
+    // CARD → Recurly Elements only (bridge removed)
+    const tokenizer = (window.RecurlyUI && typeof window.RecurlyUI.tokenize === 'function')
+      ? window.RecurlyUI.tokenize : null;
 
-    if (!tokenizer){ alert('Payment form not ready.'); return; }
+    if (!tokenizer){
+      console.error('[checkout] RecurlyUI.tokenize not available. Ensure js/recurly-wire.js is loaded BEFORE this file.');
+      alert('Payment form is loading… please try again in a second.');
+      try { window.RecurlyUI && window.RecurlyUI.mount && window.RecurlyUI.mount(); } catch(_) {}
+      return;
+    }
 
-    /// Build full billing meta (nested for Recurly Elements)
+    /}
+
+    // Build full billing meta from Step 1 (addresses fix)
     const meta = (function(){
       const get = n => (step1.querySelector(`[name='${n}']`)?.value || '').trim();
       const full = get('name'); const ix = full.lastIndexOf(' ');
@@ -240,23 +247,17 @@
       const city  = get('city');
       const state = get('state') || get('region');
       const zip   = get('zip') || get('postal') || get('postal_code');
-      const country = (get('country') || 'US').toUpperCase();
+      const country = get('country') || 'US';
       return {
-        billing_info: {
-          first_name: ix>0 ? full.slice(0,ix) : full,
-          last_name:  ix>0 ? full.slice(ix+1) : '',
-          email: get('email'),
-          phone: get('phone'),
-          address: {
-            line1: addr1,
-            city: city,
-            region: state ? state.toUpperCase() : '',
-            state: state ? state.toUpperCase() : '',
-            postal_code: zip,
-            zip: zip,
-            country: country
-          }
-        }
+        first_name: ix>0 ? full.slice(0,ix) : full,
+        last_name:  ix>0 ? full.slice(ix+1) : '',
+        email: get('email'),
+        phone: get('phone'),
+        address1: addr1,
+        city: city,
+        region: state,
+        postal_code: zip,
+        country: country
       };
     })();
 
