@@ -212,3 +212,33 @@ html[data-checkout-open="1"] .floating-cta{display:none!important}
   .pm-alt, #altPayRow, #coStep2 .pm-alt, #coStep2 #altPayRow { flex-wrap:nowrap !important; }
   .pm-alt .pill, #altPayRow .alt-pay, #pmCashApp, #pmCrypto { flex:0 0 280px !important; }
 }
+
+/* Ensure only the active step shows (JS also controls display) */
+#coStep1, #coStep2, #coStep3 { display: none; }
+[data-step="1"], [data-step="2"], [data-step="3"] { display: none; }
+#coStep1, #coStep2, #coStep3 { display: none; }
+#checkoutModal[data-step="1"] #coStep1,
+#checkoutModal[data-step="2"] #coStep2,
+#checkoutModal[data-step="3"] #coStep3 { display: block; }
+
+/* Kill common “guards” that block clicks inside Step 2 (non-destructive) */
+#checkoutModal #coStep2 .overlay,
+#checkoutModal #coStep2 .backdrop,
+#checkoutModal #coStep2 .guard,
+#checkoutModal #coStep2 .mask,
+#checkoutModal #coStep2 .scrim,
+#checkoutModal #coStep2 .shield,
+#checkoutModal #coStep2 .veil,
+#checkoutModal #coStep2 .cover {
+  pointer-events: none !important;
+}
+
+/* Make sure form controls & iframes accept clicks */
+#checkoutModal #coStep2 iframe,
+#checkoutModal #coStep2 input,
+#checkoutModal #coStep2 select,
+#checkoutModal #coStep2 textarea,
+#checkoutModal #coStep2 button,
+#checkoutModal #coStep2 label {
+  pointer-events: auto !important;
+}
