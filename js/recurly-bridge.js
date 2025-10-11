@@ -45,10 +45,10 @@
   }
 
   // Tokenize card-only (no name, no postal)
-  function tokenize(){
+  function tokenize(meta) {
     return new Promise((resolve, reject)=>{
       if (!elements) return reject(new Error('Payment form not ready'));
-      window.recurly.token(elements, {}, (err, token)=>{
+      window.recurly.token(elements, (meta || {}), (err, token)=>{
         if (err){
           const details = err.fields ? Object.entries(err.fields)
             .map(([k,v]) => `${k}: ${Array.isArray(v)?v.join(', '):v}`)
