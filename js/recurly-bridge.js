@@ -1,3 +1,15 @@
+function __normalizeBillingMeta(meta){
+  var o = meta || {};
+  var bi = (o && o.billing_info) ? o.billing_info : null;
+  if (!bi){ bi = {}; ['first_name','last_name','address','address1','address2','city','region','state','postal_code','zip','country','phone','email']
+    .forEach(function(k){ if (o[k] != null && o[k] !== '') bi[k] = o[k]; }); }
+  if (!bi.region && bi.state) bi.region = bi.state;
+  if (!bi.state && bi.region) bi.state = bi.region;
+  if (!bi.postal_code && bi.zip) bi.postal_code = bi.zip;
+  if (!bi.zip && bi.postal_code) bi.zip = bi.postal_code;
+  bi.country = (bi.country ? String(bi.country).toUpperCase() : 'US');
+  return { billing_info: bi };
+}
 
 /* --- Recurly meta normalization helper --- */
 function __recurlyTokenWithMeta(elements, meta, cb){
