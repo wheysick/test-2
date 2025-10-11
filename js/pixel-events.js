@@ -3,6 +3,7 @@
   // -------- Singleton guard (prevents double-includes) --------
   if (window.__PX_EVENTS_BOUND__) return;
   window.__PX_EVENTS_BOUND__ = true;
+  if (window.__PX_SUPPRESS_AUTO) { return; }
 
   // -------- Small utils --------
   function ready(fn){
