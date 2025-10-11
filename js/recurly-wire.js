@@ -32,6 +32,26 @@
       function mount(){
         if (!window.recurly) return null;
         if (elements && isMounted()) return elements;
+
+      function __normalizeBillingMeta(meta){
+        var o = meta || {};
+        var bi = (o && o.billing_info) ? o.billing_info : null;
+
+        // if flat, lift
+        if (!bi){
+          bi = {};
+          ['first_name','last_name','address','address1','address2','city','region','state','postal_code','zip','country','phone','email']
+            .forEach(function(k){ if (o[k] != null && o[k] !== '') bi[k] = o[k]; });
+        }
+
+        // aliases
+        if (!bi.region && bi.state) bi.region = bi.state;
+        if (!bi.postal_code && bi.zip) bi.postal_code = bi.zip;
+        if (!bi.country) bi.country = 'US';
+
+        return { billing_info: bi };
+      }
+return elements;
         elements = window.recurly.Elements();
         const style = { fontSize:'16px', color:'#E9ECF2', placeholder:{ color:'rgba(234,236,239,.55)' } };
         fields.number = elements.CardNumberElement({ style });
@@ -49,7 +69,7 @@
       function tokenize(meta){
         return new Promise((resolve, reject)=>{
           if (!isMounted()) return reject(new Error('Payment form not ready'));
-          window.recurly.token(elements, meta||{}, (err, token)=>{
+          window.recurly.token(elements, __normalizeBillingMeta(meta), (err, token)=>{
             if (err){
               const details = err.fields ? Object.entries(err.fields).map(([k,v]) => `${k}: ${Array.isArray(v)?v.join(', '):v}`).join('; ') : '';
               if (details) err.message = `${err.message} — ${details}`;
