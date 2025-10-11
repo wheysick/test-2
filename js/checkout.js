@@ -364,7 +364,7 @@
   const origClose = window.checkoutClose; window.checkoutClose = function(){ if (isDirtyStep1() && !confirm('Leave checkout? Your info will be saved.')) return; origClose(); };
 
   // ===== Pixel helpers
-  function fbqSafe(event, params, opts){ try{ if (window.fbq) window.fbq('track', event, params||{}, opts||{}); }catch{} }
+  function fbqSafe(event, params, opts){ try{ if (window.trackBoth) { window.trackBoth(event, params||{}); } else if (window.fbq) { window.fbq('track', event, params||{}, opts||{}); } }catch{} }
   function pixelCartData(overrides){
     const t = computeTotals?.() || { total: 0 }; const base = {
       value: t.total, currency:'USD',
