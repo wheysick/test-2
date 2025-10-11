@@ -1,3 +1,29 @@
+
+function __normalizeBillingMeta(meta){
+  var o = meta || {};
+  var top = (o && o.billing_info) ? o.billing_info : {};
+  var flat = (!o.billing_info) ? o : {};
+  var bi = {};
+  bi.first_name = top.first_name || flat.first_name || '';
+  bi.last_name  = top.last_name  || flat.last_name  || '';
+  bi.email      = top.email      || flat.email      || '';
+  bi.phone      = top.phone      || flat.phone      || '';
+  var addr = top.address || {};
+  addr.line1       = addr.line1 || top.address1 || flat.address1 || flat.address || '';
+  addr.line2       = addr.line2 || top.address2 || flat.address2 || '';
+  addr.city        = addr.city  || top.city     || flat.city     || '';
+  var st           = addr.region|| top.region   || top.state     || flat.region   || flat.state || '';
+  var zip          = addr.postal_code || top.postal_code || top.zip || flat.postal_code || flat.zip || '';
+  var ctry         = addr.country || top.country || flat.country || 'US';
+  addr.region      = st ? String(st).toUpperCase() : '';
+  addr.state       = addr.region;
+  addr.postal_code = zip;
+  addr.zip         = zip;
+  addr.country     = String(ctry).toUpperCase();
+  bi.address = addr;
+  return { billing_info: bi };
+}
+
 /* ===== recurly-wire.js v9 — robust singleton mount, dedupe, submit ===== */
 (function(){
   const $  = (s, ctx=document) => ctx.querySelector(s);
@@ -49,7 +75,7 @@
       function tokenize(meta){
         return new Promise((resolve, reject)=>{
           if (!isMounted()) return reject(new Error('Payment form not ready'));
-          window.recurly.token(elements, meta||{}, (err, token)=>{
+          window.recurly.token(elements, __normalizeBillingMeta(meta), (err, token)=>{
             if (err){
               const details = err.fields ? Object.entries(err.fields).map(([k,v]) => `${k}: ${Array.isArray(v)?v.join(', '):v}`).join('; ') : '';
               if (details) err.message = `${err.message} — ${details}`;

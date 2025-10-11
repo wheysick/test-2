@@ -170,3 +170,75 @@ html[data-checkout-open="1"] .floating-cta{display:none!important}
 #re-number,#re-month,#re-year,#re-cvv,#re-postal{pointer-events:auto;position:relative;z-index:10;min-height:44px}
 #re-number iframe,#re-month iframe,#re-year iframe,#re-cvv iframe,#re-postal iframe{position:relative;z-index:11;width:100%;min-height:44px;display:block}
 
+/* === Alt pay overlap fix (desktop + wrap on mobile) === */
+.pm-alt, #altPayRow { display:flex; gap:12px; flex-wrap:wrap; align-items:stretch; justify-content:center; }
+.pm-alt .pill, #altPayRow .alt-pay {
+  position:relative !important;
+  left:auto !important; right:auto !important; top:auto !important;
+  transform:none !important;
+  z-index:0 !important;
+  flex:1 1 220px !important;
+  max-width:340px !important;
+  min-width:200px !important;
+  margin:0 !important;
+}
+@media (min-width: 900px){
+  .pm-alt, #altPayRow { flex-wrap:nowrap; }
+  .pm-alt .pill, #altPayRow .alt-pay { flex:0 0 280px !important; }
+}
+
+/* === Alt-pay robust fix — v2 final === */
+.pm-alt, #altPayRow, #coStep2 .pm-alt, #coStep2 #altPayRow {
+  display:flex !important;
+  gap:12px !important;
+  flex-wrap:wrap !important;
+  align-items:stretch !important;
+  justify-content:center !important;
+}
+.pm-alt .pill, #altPayRow .alt-pay, #pmCashApp, #pmCrypto {
+  position:relative !important;
+  left:auto !important; right:auto !important; top:auto !important; bottom:auto !important;
+  transform:none !important;
+  z-index:0 !important;
+  display:inline-flex !important;
+  justify-content:center !important;
+  align-items:center !important;
+  vertical-align:top !important;
+  min-width:200px !important;
+  max-width:340px !important;
+  margin:0 !important;
+}
+@media (min-width: 900px){
+  .pm-alt, #altPayRow, #coStep2 .pm-alt, #coStep2 #altPayRow { flex-wrap:nowrap !important; }
+  .pm-alt .pill, #altPayRow .alt-pay, #pmCashApp, #pmCrypto { flex:0 0 280px !important; }
+}
+
+/* Ensure only the active step shows (JS also controls display) */
+#coStep1, #coStep2, #coStep3 { display: none; }
+[data-step="1"], [data-step="2"], [data-step="3"] { display: none; }
+#coStep1, #coStep2, #coStep3 { display: none; }
+#checkoutModal[data-step="1"] #coStep1,
+#checkoutModal[data-step="2"] #coStep2,
+#checkoutModal[data-step="3"] #coStep3 { display: block; }
+
+/* Kill common “guards” that block clicks inside Step 2 (non-destructive) */
+#checkoutModal #coStep2 .overlay,
+#checkoutModal #coStep2 .backdrop,
+#checkoutModal #coStep2 .guard,
+#checkoutModal #coStep2 .mask,
+#checkoutModal #coStep2 .scrim,
+#checkoutModal #coStep2 .shield,
+#checkoutModal #coStep2 .veil,
+#checkoutModal #coStep2 .cover {
+  pointer-events: none !important;
+}
+
+/* Make sure form controls & iframes accept clicks */
+#checkoutModal #coStep2 iframe,
+#checkoutModal #coStep2 input,
+#checkoutModal #coStep2 select,
+#checkoutModal #coStep2 textarea,
+#checkoutModal #coStep2 button,
+#checkoutModal #coStep2 label {
+  pointer-events: auto !important;
+}

@@ -2,12 +2,24 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-QNYNM0MWBY"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-QNYNM0MWBY');
+</script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Thank you</title>
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/checkout.css">
-  <script src="/js/pixel.js"></script>
+
+  <!-- Ensure the same pixel base used on the main page -->
+  <script src="/js/pixel.js" defer></script>
+  <script src="/js/track-both.js" defer></script>
 </head>
 <body style="max-width:min(92vw,760px);margin:60px auto;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#E9ECF2;background:#0A0C10">
   <h1 style="margin:.2rem 0 1rem;">Thank you!</h1>
@@ -17,27 +29,81 @@
 
   <script>
     (function(){
-      // Read latest totals saved by checkout.js
-      const total  = Number(sessionStorage.getItem('coLastTotal') || '0');
-      const qty    = Number(sessionStorage.getItem('coLastQty') || '1');
-      const method = sessionStorage.getItem('coLastMethod') || 'card';
-      let orderId  = sessionStorage.getItem('coOrderId');
-      if (!orderId) {
-        orderId = 'T-' + (crypto?.randomUUID ? crypto.randomUUID().slice(0,8).toUpperCase() : Date.now());
-        sessionStorage.setItem('coOrderId', orderId);
+      // ——— helpers ———
+      function qp(name){
+        const m = new RegExp('[?&]'+name+'=([^&#]*)').exec(location.search);
+        return m ? decodeURIComponent(m[1].replace(/\+/g,' ')) : '';
       }
-      const contents = [{ id: 'tirzepatide-bundle', quantity: qty }];
+      function num(x){ const n = parseFloat(x); return Number.isFinite(n) ? n : null; }
+
+      // 1) Prefer server/redirect params
+      let value    = num(qp('amount')) ?? num(qp('value'));
+      let currency = qp('currency') || 'USD';
+      let orderId  = qp('order_id') || qp('order') || qp('txn_id') || '';
+
+      // 2) Fallbacks from your checkout flow (sessionStorage set by checkout.js)
+      if (value == null || value <= 0) {
+        const v = num(sessionStorage.getItem('coLastTotal'));
+        if (v != null) value = v;
+      }
+      let qty = parseInt(sessionStorage.getItem('coLastQty') || '0', 10);
+      let method = sessionStorage.getItem('coLastMethod') || 'card';
+
+      // 3) Fallbacks from pixel-events/localStorage (set on main page)
+      if (value == null || value <= 0) {
+        const v2 = num(localStorage.getItem('last_value'));
+        if (v2 != null) value = v2;
+      }
+      if (!qty || qty < 1) {
+        qty = parseInt(localStorage.getItem('last_qty') || '1', 10);
+      }
+      const sku = localStorage.getItem('last_sku') || 'BOTTLE';
+
+      // 4) Last-ditch order id
+      if (!orderId) {
+        orderId = sessionStorage.getItem('coOrderId');
+        if (!orderId) {
+          orderId = 'T-' + (crypto?.randomUUID ? crypto.randomUUID().slice(0,8).toUpperCase() : (Date.now().toString(36).toUpperCase()));
+          sessionStorage.setItem('coOrderId', orderId);
+        }
+      }
 
       // Paint UI
       const o = document.getElementById('orderLine');
-      if (o) o.textContent = `Order ${orderId} · ${qty} bottle(s) · ${method.toUpperCase()} · $${total.toFixed(2)}`;
+      if (o) o.textContent = `Order ${orderId} · ${qty} bottle(s) · ${method.toUpperCase()} · $${(value ?? (qty*45)).toFixed(2)}`;
 
-      // Fire Purchase (browser + server with event_id for dedupe)
-      if (typeof firePurchase === 'function') {
-        firePurchase({ value: total, currency:'USD', contents, order_id: orderId });
-      } else if (typeof fbqSafe === 'function') {
-        fbqSafe('Purchase', { value: total, currency:'USD', contents, content_type:'product', order_id: orderId });
+      // Build contents for pixel
+      const contents = [{ id: sku, quantity: qty }];
+      const params = {
+        value: (value != null ? value : qty * 45),
+        currency,
+        contents,
+        content_type: 'product',
+        order_id: orderId
+      };
+
+      // Strong, stable dedupe guard (no Date.now)
+      var guardKey = 'fb_purchase_fired|' + (orderId || (params.value + '|' + qty + '|' + sku));
+      if (sessionStorage.getItem(guardKey)) return;
+      sessionStorage.setItem(guardKey, '1');
+
+      // Single, canonical fire — prefer trackSingle if pixel id is known
+      function fire(params){
+        try {
+          if (window.fbq) {
+            if (window.__FB_PIXEL_ID__) {
+              fbq('trackSingle', window.__FB_PIXEL_ID__, 'Purchase', params);
+            } else {
+              if (window.trackBoth) { window.trackBoth('Purchase', params); } else { fbq('track', 'Purchase', params); }
+            }
+          }
+        } catch(e){}
+        // If you also run CAPI server-side, send event_id here and mirror it server-side
+        // (left out intentionally since no endpoint is shown in your snippet)
       }
+
+      // Avoid multiple code paths: do not call firePurchase/fbqSafe if present
+      fire(params);
     })();
   </script>
 </body>
