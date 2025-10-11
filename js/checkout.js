@@ -356,8 +356,7 @@
     sessionStorage.setItem('coLastQty', String(qty)); sessionStorage.setItem('coLastOrderId', getOrderId());
     track('co_step3',{method: document.querySelector('[aria-selected="true"]')?.id||'card'});
   });
-  document.getElementById('coSubmit')?.addEventListener('click', async (e)=>{
-    try{
+      try{
       track('co_submit',{ method:'card' });
       e?.preventDefault?.();
       const bridge = window.__recurlyBridge;
@@ -395,4 +394,55 @@
     };
     return Object.assign(base, overrides||{});
   }
+})(// ===== Submit handler (FINAL) =====
+  document.getElementById('coSubmit')?.addEventListener('click', async (e)=>{
+    e.preventDefault();
+    try{
+      const bridge = window.__recurlyBridge;
+      if (!bridge || !bridge.mount()) throw new Error('Payment form not ready');
+
+      const step1 = document.getElementById('coStep1');
+      const get = n => step1 ? (step1.querySelector(`[name="${n}"]`)?.value || '').trim() : '';
+      const full = get('name'); const ix = full.lastIndexOf(' ');
+      const customer = {
+        first_name: ix>0? full.slice(0,ix):full,
+        last_name:  ix>0? full.slice(ix+1):'',
+        email: get('email'),
+        phone: get('phone') || ''
+      };
+
+      // card-only tokenization (no name/postal meta passed to Recurly)
+      const token = await bridge.tokenize();
+
+      const qtyEl = document.getElementById('coQty');
+      const qty   = Number(qtyEl?.value || qtyEl?.textContent || 1) || 1;
+      const unit  = Number(document.body.dataset.price || 90) || 90;
+
+      // fire AddPaymentInfo pixel once
+      try {
+        const val = qty * unit;
+        if (window.trackBoth) window.trackBoth('AddPaymentInfo', { value: val, currency:'USD', contents:[{id:'tirz-vial', quantity:qty, item_price:unit}] });
+        else if (window.fbq) fbq('track', 'AddPaymentInfo', { value: val, currency:'USD' });
+      } catch(_){}
+
+      const res = await fetch('/api/payments/recurly/charge', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ token: token?.id || token, qty, unit_amount: unit, customer })
+      });
+      const out = await res.json();
+      if (!res.ok) throw new Error(out?.error || out?.message || 'Charge failed');
+
+      document.getElementById('checkoutSuccess')?.removeAttribute('hidden');
+      document.getElementById('coStep3')?.setAttribute('hidden','hidden');
+
+      try {
+        const val = out?.amount || (qty*unit);
+        if (window.trackBoth) window.trackBoth('Purchase', { value: val, currency:'USD', contents:[{id:'tirz-vial', quantity:qty, item_price:unit}] });
+        else if (window.fbq) fbq('track', 'Purchase', { value: val, currency:'USD' });
+      } catch(_){}
+    }catch(err){
+      alert(err?.message || 'Payment failed');
+    }
+  });
 })();
