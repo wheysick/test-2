@@ -348,7 +348,10 @@
   function track(name, data){ try{
     navigator.sendBeacon?.('/_track', new Blob([JSON.stringify({name, ts:Date.now(), ...data})], {type:'application/json'}));
   } catch{} }
-  document.getElementById('coToStep2')?.addEventListener('click', ()=>track('co_step2',{}));
+  document.getElementById('coToStep2')?.addEventListener('click', ()=>{
+    try { fbqSafe('InitiateCheckout', pixelCartData({})); } catch(_){}
+    track('co_step2',{});
+  });
   document.getElementById('coToStep3')?.addEventListener('click', ()=>{
     // Pixel: AddPaymentInfo at step-2 continue (we also do it in crypto/cashapp handlers)
     fbqSafe('AddPaymentInfo', pixelCartData({ payment_method: payMethod }));
@@ -357,6 +360,14 @@
     track('co_step3',{method: document.querySelector('[aria-selected="true"]')?.id||'card'});
   });
   document.getElementById('coSubmit')?.addEventListener('click', ()=>track('co_submit',{ method:'card' }));
+  // Pixel: InitiateCheckout on Step 1 submit as a safety
+  try {
+    const __f = document.querySelector('#coStep1 form') || document.querySelector('#coStep1');
+    if (__f) {
+      __f.addEventListener('submit', function(){ try { fbqSafe('InitiateCheckout', pixelCartData({})); } catch(_){}} , true);
+    }
+  } catch(_){}
+
 
   // ===== exit guard
   function isDirtyStep1(){ const names=['name','email','phone','address','city','state','zip'];
