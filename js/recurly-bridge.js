@@ -1,15 +1,29 @@
+
 function __normalizeBillingMeta(meta){
   var o = meta || {};
-  var bi = (o && o.billing_info) ? o.billing_info : null;
-  if (!bi){ bi = {}; ['first_name','last_name','address','address1','address2','city','region','state','postal_code','zip','country','phone','email']
-    .forEach(function(k){ if (o[k] != null && o[k] !== '') bi[k] = o[k]; }); }
-  if (!bi.region && bi.state) bi.region = bi.state;
-  if (!bi.state && bi.region) bi.state = bi.region;
-  if (!bi.postal_code && bi.zip) bi.postal_code = bi.zip;
-  if (!bi.zip && bi.postal_code) bi.zip = bi.postal_code;
-  bi.country = (bi.country ? String(bi.country).toUpperCase() : 'US');
+  var top = (o && o.billing_info) ? o.billing_info : {};
+  var flat = (!o.billing_info) ? o : {};
+  var bi = {};
+  bi.first_name = top.first_name || flat.first_name || '';
+  bi.last_name  = top.last_name  || flat.last_name  || '';
+  bi.email      = top.email      || flat.email      || '';
+  bi.phone      = top.phone      || flat.phone      || '';
+  var addr = top.address || {};
+  addr.line1       = addr.line1 || top.address1 || flat.address1 || flat.address || '';
+  addr.line2       = addr.line2 || top.address2 || flat.address2 || '';
+  addr.city        = addr.city  || top.city     || flat.city     || '';
+  var st           = addr.region|| top.region   || top.state     || flat.region   || flat.state || '';
+  var zip          = addr.postal_code || top.postal_code || top.zip || flat.postal_code || flat.zip || '';
+  var ctry         = addr.country || top.country || flat.country || 'US';
+  addr.region      = st ? String(st).toUpperCase() : '';
+  addr.state       = addr.region;
+  addr.postal_code = zip;
+  addr.zip         = zip;
+  addr.country     = String(ctry).toUpperCase();
+  bi.address = addr;
   return { billing_info: bi };
 }
+
 
 /* --- Recurly meta normalization helper --- */
 function __recurlyTokenWithMeta(elements, meta, cb){
