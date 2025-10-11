@@ -1,7 +1,6 @@
-// /api/meta/capi.js
-// ===== Conversions API — v1.0 (browser+server dedupe) =====
-export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).end();
+// Conversions API relay — robust v2 (Node 18 on Vercel)
+module.exports = async (req, res) => {
+  if (req.method !== 'POST') { res.status(405).end(); return; }
   try {
     const body = await readJson(req);
     const {
@@ -10,31 +9,36 @@ export default async function handler(req, res) {
       value = 0,
       currency = 'USD',
       contents = [],
-      order_id = null
+      order_id = null,
+      event_source_url,
+      fbp,
+      fbc,
+      test_event_code  // optional
     } = body || {};
 
-    const PIXEL_ID = process.env.META_PIXEL_ID || '1051611783243364';
-    const ACCESS_TOKEN = process.env.META_CAPI_TOKEN;
-    const TEST_CODE = process.env.META_TEST_CODE || null;
+    const PIXEL_ID     = process.env.META_PIXEL_ID || '1051611783243364';
+    const ACCESS_TOKEN = process.env.META_CAPI_TOKEN; // REQUIRED
+    const TEST_CODE    = test_event_code || process.env.META_TEST_CODE || null;
 
-    if (!ACCESS_TOKEN) return res.status(500).json({ error: 'Missing META_CAPI_TOKEN' });
+    if (!ACCESS_TOKEN) { res.status(500).json({ error:'Missing META_CAPI_TOKEN' }); return; }
 
     const endpoint = `https://graph.facebook.com/v20.0/${PIXEL_ID}/events?access_token=${ACCESS_TOKEN}`;
-
     const ip  = (req.headers['x-forwarded-for'] || '').split(',')[0] || req.socket?.remoteAddress || '';
     const ua  = req.headers['user-agent'] || '';
-    const url = (req.headers['referer'] || req.headers['origin'] || '') || '';
+    const ref = event_source_url || req.headers['referer'] || req.headers['origin'] || '';
 
     const payload = {
       data: [{
         event_name: event,
         event_time: Math.floor(Date.now()/1000),
-        event_source_url: url,
+        event_source_url: ref,
         action_source: 'website',
         event_id,
         user_data: {
           client_ip_address: ip,
-          client_user_agent: ua
+          client_user_agent: ua,
+          ...(fbp ? { fbp } : {}),
+          ...(fbc ? { fbc } : {})
         },
         custom_data: {
           value: Number(value || 0),
@@ -44,24 +48,22 @@ export default async function handler(req, res) {
           content_type: 'product'
         }
       }],
-      // Include test_event_code only in Test Events mode
       ...(TEST_CODE ? { test_event_code: TEST_CODE } : {})
     };
 
     const fb = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json' },
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
       body: JSON.stringify(payload)
     });
 
     const resp = await fb.json().catch(()=>null);
-    if (!fb.ok) return res.status(fb.status).json(resp || { error: 'CAPI error' });
-
+    if (!fb.ok) { res.status(fb.status).json(resp || { error: 'CAPI error' }); return; }
     res.status(200).json({ ok:true, event_id, fb: resp });
   } catch (e) {
     res.status(500).json({ error: e.message || 'Server error' });
   }
-}
+};
 
 async function readJson(req){
   if (req.body && typeof req.body === 'object') return req.body;

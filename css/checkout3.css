@@ -258,3 +258,30 @@ html[data-checkout-open="1"] body{
   background:transparent !important;
   padding:0 !important;
 }
+
+/* Alt-pay row */
+#altPayRow{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;              /* wraps on narrow screens */
+  align-items:stretch;
+  justify-content:center;
+}
+
+/* Generic button */
+.alt-pay{
+  flex:1 1 220px;              /* grow/shrink with a sensible min */
+  max-width:320px;
+  padding:14px 18px;
+  border-radius:12px;
+  text-align:center;
+  position:relative;
+  z-index:0;                   /* prevents weird overlap shadows */
+  border:0;
+}
+
+/* Desktop: keep them in one row with fixed widths */
+@media (min-width: 900px){
+  #altPayRow{ flex-wrap:nowrap; }
+  .alt-pay{ flex:0 0 280px; }
+}
