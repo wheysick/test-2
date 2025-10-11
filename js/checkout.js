@@ -149,10 +149,10 @@
       show(cardPane); hide(altPane);
       // Mount Recurly Elements if available
       try {
-        if (window.__recurlyBridge && typeof window.__recurlyBridge.mount === 'function') {
-          window.__recurlyBridge.mount();
-        } else if (window.RecurlyUI && typeof window.RecurlyUI.mount === 'function'){
+        if (window.RecurlyUI && typeof window.RecurlyUI.mount === 'function'){
           window.RecurlyUI.mount();
+        } else if (window.__recurlyBridge && typeof window.__recurlyBridge.mount === 'function') {
+          window.__recurlyBridge.mount();
         }
       } catch(e){ console.warn('[Recurly] mount error', e); }
     } else {
@@ -224,8 +224,29 @@
   // Submit purchase (card method via Recurly)
   async function submitPurchase(e){
     e.preventDefault();
+    if (method === 'crypto'){ 
+      try {
+        submitBtn.disabled = true;
+        const order = { qty, unit_amount: SALE, total: qty * SALE };
+        const res = await fetch('/api/payments/coinbase/create-charge', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ order })
+        });
+        const data = await res.json().catch(()=>({}));
+        if (!res.ok) throw new Error(data?.error || 'Crypto init failed');
+        if (data && (data.hosted_url || data.url)) {
+          window.location.href = data.hosted_url || data.url; 
+          return;
+        }
+        throw new Error('Coinbase charge not created');
+      } catch(err){ 
+        console.error(err); 
+        alert(err?.message || 'Crypto payment failed'); 
+        return; 
+      } finally { submitBtn.disabled = false; } 
+    }
     if (method !== 'card'){
-      alert('For this demo build, only Card checkout is enabled here. Choose Card to complete with Recurly.');
+      alert('Alternate methods (PayPal/Venmo/Cash App) show instructions only here. Choose Card or Crypto.'); 
       return;
     }
     if (!window.__recurlyBridge || typeof window.__recurlyBridge.tokenize !== 'function'){
