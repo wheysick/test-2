@@ -28,7 +28,7 @@ function __recurlyTokenWithMeta(elements, meta, cb){
     return recurly.token(elements, opts, cb);
   } catch(e){
     console.error('[Recurly Bridge] meta normalize failed', e);
-    return recurly.token(elements, (meta || {}), cb);
+    return __recurlyTokenWithMeta(elements, meta, cb);
   }
 }
 
