@@ -36,7 +36,7 @@ if (!modal) {
   const hide = (el)=>{ if(el){ el.hidden=true;  el.setAttribute('aria-hidden','true'); } };
 
   // Pricing
-  const MSRP=90, SALE=90, TAX=0.0875, SHIPPING=0;
+  const MSRP=90, SALE=45, TAX=0.0875, SHIPPING=0;
   let qty=1, method=null, discount=0;
 
   // Persist step1 values for server purchase
@@ -201,7 +201,7 @@ if (!modal) {
 
     if (m==='card'){ payWrap.insertAdjacentHTML('beforeend', recurlyCard + wallets); whenRecurlyReady(initRecurlyElements); }
     else if (m==='venmo'){ payWrap.insertAdjacentHTML('beforeend', `<div class="altpay" style="text-align:center"><h4>Venmo</h4><p>Send to @YourHandle — 15% off applied</p></div>`); }
-    else if (m==='cashapp'){ payWrap.insertAdjacentHTML('beforeend', `<div class="altpay" style="text-align:center"><h4>Cash App</h4><p>Send to $YourCashtag — 15% off applied</p></div>`); }
+    else if (m==='cashapp'){ payWrap.insertAdjacentHTML('beforeend', `<div class="altpay" style="text-align:center"><h4>Cash App</h4><p>Send to $selfhacking — 15% off applied</p></div>`); }
     else if (m==='paypal'){ payWrap.insertAdjacentHTML('beforeend', `<div class="altpay" style="text-align:center"><h4>PayPal</h4><p>Redirect to PayPal — 15% off applied</p></div>`); }
     else if (m==='crypto'){ payWrap.insertAdjacentHTML('beforeend', `<div class="altpay" style="text-align:center"><h4>Crypto</h4><p>BTC/ETH/USDC — 15% off applied; address next</p></div>`); }
     else { payWrap.insertAdjacentHTML('beforeend', recurlyCard + wallets); whenRecurlyReady(initRecurlyElements); }
@@ -258,7 +258,7 @@ if (!modal) {
       try{
         if (!elements) return reject(new Error('Payment form not ready'));
         const postal = document.getElementById('coPostal')?.value || '';
-        window.recurly.token(elements, { billing_info: { postal_code: postal }}, (err, token)=>{
+        window.recurly.token(elements, { billing_info: { postal_code: postal, first_name: (customer?.first_name||''), last_name:(customer?.last_name||''), address1:(customer?.address||''), city:(customer?.city||''), region:(customer?.state||''), country: 'US' }}, (err, token)=>{
           if (err){
             const msg = err?.message || 'Card info invalid';
             return reject(new Error(msg));
@@ -290,10 +290,7 @@ if (!modal) {
         return;
       }
       if (method === 'crypto'){
-        const res = await fetch('/api/payments/coinbase/create-charge', {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ order })
-        });
+        const res = await fetch('/api/payments/coinbase/create-charge', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ qty, email: (customer?.email||'') }) });
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error || 'Crypto init failed');
         if (data?.hosted_url) { window.location.href = data.hosted_url; return; }
