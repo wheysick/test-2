@@ -348,10 +348,7 @@
   function track(name, data){ try{
     navigator.sendBeacon?.('/_track', new Blob([JSON.stringify({name, ts:Date.now(), ...data})], {type:'application/json'}));
   } catch{} }
-  document.getElementById('coToStep2')?.addEventListener('click', ()=>{
-    try { fbqSafe('InitiateCheckout', pixelCartData({})); } catch(_){}
-    track('co_step2',{});
-  });
+  document.getElementById('coToStep2')?.addEventListener('click', ()=>track('co_step2',{}));
   document.getElementById('coToStep3')?.addEventListener('click', ()=>{
     // Pixel: AddPaymentInfo at step-2 continue (we also do it in crypto/cashapp handlers)
     fbqSafe('AddPaymentInfo', pixelCartData({ payment_method: payMethod }));
@@ -359,15 +356,29 @@
     sessionStorage.setItem('coLastQty', String(qty)); sessionStorage.setItem('coLastOrderId', getOrderId());
     track('co_step3',{method: document.querySelector('[aria-selected="true"]')?.id||'card'});
   });
-  document.getElementById('coSubmit')?.addEventListener('click', ()=>track('co_submit',{ method:'card' }));
-  // Pixel: InitiateCheckout on Step 1 submit as a safety
-  try {
-    const __f = document.querySelector('#coStep1 form') || document.querySelector('#coStep1');
-    if (__f) {
-      __f.addEventListener('submit', function(){ try { fbqSafe('InitiateCheckout', pixelCartData({})); } catch(_){}} , true);
-    }
-  } catch(_){}
-
+  document.getElementById('coSubmit')?.addEventListener('click', async (e)=>{
+    try{
+      track('co_submit',{ method:'card' });
+      e?.preventDefault?.();
+      const bridge = window.__recurlyBridge;
+      if (!bridge || !bridge.mount()) throw new Error('Payment form not ready');
+      const step1 = document.getElementById('coStep1');
+      const get = n => step1 ? (step1.querySelector(`[name="${n}"]`)?.value || '').trim() : '';
+      const full = get('name'); const ix = full.lastIndexOf(' ');
+      const meta = { first_name: ix>0? full.slice(0,ix):full, last_name: ix>0? full.slice(ix+1):'', email:get('email') };
+      const token = await bridge.tokenize(meta);
+      const qty  = Number(document.getElementById('coQty')?.value || 1) || 1;
+      const unit = Number(document.body.dataset.price || 90) || 90;
+      const res = await fetch('/api/payments/recurly/charge', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ token: token?.id || token, qty, unit_amount: unit, customer: { email: meta.email, first_name: meta.first_name, last_name: meta.last_name } })
+      });
+      const out = await res.json();
+      if (!res.ok) throw new Error(out?.error || out?.message || 'Charge failed');
+      document.getElementById('checkoutSuccess')?.removeAttribute('hidden');
+      document.getElementById('coStep3')?.setAttribute('hidden','hidden');
+    } catch(err){ alert(err?.message || 'Payment failed'); }
+  });
 
   // ===== exit guard
   function isDirtyStep1(){ const names=['name','email','phone','address','city','state','zip'];
@@ -375,7 +386,7 @@
   const origClose = window.checkoutClose; window.checkoutClose = function(){ if (isDirtyStep1() && !confirm('Leave checkout? Your info will be saved.')) return; origClose(); };
 
   // ===== Pixel helpers
-  function fbqSafe(event, params, opts){ try{ if (window.trackBoth) { window.trackBoth(event, params||{}); } else if (window.fbq) { window.fbq('track', event, params||{}, opts||{}); } }catch{} }
+  function fbqSafe(event, params, opts){ try{ if (window.fbq) window.fbq('track', event, params||{}, opts||{}); }catch{} }
   function pixelCartData(overrides){
     const t = computeTotals?.() || { total: 0 }; const base = {
       value: t.total, currency:'USD',
