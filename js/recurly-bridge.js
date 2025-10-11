@@ -1,3 +1,37 @@
+
+/* --- Recurly meta normalization helper --- */
+function __recurlyTokenWithMeta(elements, meta, cb){
+  try {
+    var opts = meta || {};
+    var bi = (opts && opts.billing_info) ? opts.billing_info : {};
+
+    // If flat, lift into billing_info
+    if (!opts.billing_info) {
+      var flatKeys = ['first_name','last_name','address','address1','address2','city','region','state','postal_code','zip','country','phone','email'];
+      var hasFlat = flatKeys.some(function(k){ return !!opts[k]; });
+      if (hasFlat) {
+        bi = {};
+        flatKeys.forEach(function(k){ if (opts[k] != null && opts[k] !== '') bi[k] = opts[k]; });
+        opts = { billing_info: bi };
+      }
+    } else {
+      opts = { billing_info: bi };
+    }
+
+    // Aliases
+    if (!bi.region && bi.state) bi.region = bi.state;
+    if (!bi.postal_code && bi.zip) bi.postal_code = bi.zip;
+
+    // Default country
+    if (!bi.country) bi.country = 'US';
+
+    return recurly.token(elements, opts, cb);
+  } catch(e){
+    console.error('[Recurly Bridge] meta normalize failed', e);
+    return recurly.token(elements, (meta || {}), cb);
+  }
+}
+
 /* ===== recurly-bridge.js — FINAL SINGLE SOURCE (no postal, card-only tokenization) ===== */
 (function(){
   const $ = (s, r=document)=>r.querySelector(s);
@@ -48,7 +82,7 @@
   function tokenize(meta) {
     return new Promise((resolve, reject)=>{
       if (!elements) return reject(new Error('Payment form not ready'));
-      window.recurly.token(elements, (meta || {}), (err, token)=>{
+      window.recurly.token(elements, {}, (err, token)=>{
         if (err){
           const details = err.fields ? Object.entries(err.fields)
             .map(([k,v]) => `${k}: ${Array.isArray(v)?v.join(', '):v}`)
