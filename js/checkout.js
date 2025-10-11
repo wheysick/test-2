@@ -1,262 +1,279 @@
-/* ============================================================================
-  checkout.js — v6.3 FINAL (single-file with built-in compat)
-  Fixes you asked for:
-    • Step 2 shows full content (beats display:none !important)
-    • Payment tiles select on single OR double-click (idempotent; no toggle-off)
-    • Credit-card fields/iframes are clickable (kills step-2 overlays)
-    • Back buttons always work (no accidental form submits)
-    • No auto-advance; only explicit buttons move steps
-    • FB Pixel (browser) de-duped (needs ONE fbq init in <head>)
 
-  Works with ANY of these selectors (ids OR data-attrs OR common fallbacks):
-    Steps:     #coStep1|2|3   OR [data-step="1|2|3"]    OR .co-step.step-1|2|3
-    Buttons:   #coToStep2/3, #coBackTo1/2, #checkoutClose
-               OR [data-co="to-2|to-3|back-1|back-2|close"]
-               OR .to-step-2|3, .back-to-1|2, .co-close
-    Payment:   #coPayWrap OR [data-co="pay-wrap"] OR .co-pay
-               Tiles must have [data-pay="card|cashapp|crypto|paypal|venmo"] on the CLICKABLE wrapper
-    Openers:   .open-checkout
-    Totals:    #qtyMinus #qtyPlus #qtyOut #msrpOut #saleOut #freeOut #subtotalOut #taxOut #shipOut #totalOut
+/* ============================================================================
+   checkout.js — FINAL (site-specific, Recurly-enabled)
+   - Works with existing inline handlers: gotoStep2(), gotoStep3(), checkoutBack(), checkoutClose(), checkoutOpen()
+   - Uses your actual markup (#coStep1, #coStep2, #coStep3; qty .qty-dec/.qty-inc and #coQty; pm buttons with #pmCard/#pmPayPal/#pmVenmo/#pmCashApp/#pmCrypto)
+   - Integrates with /js/recurly-bridge.js to tokenize and POST to /api/payments/recurly/charge
+   - Updates order summary (#coItems, #coMerch, #coMethod, #coTax, #coShip, #coTotal) with method-based discount
+   - Leaves FB pixel files in charge of tracking (pixel.js + pixel-events.js)
 ============================================================================ */
 (function(){
-  if (window.__CO_V63__) return; window.__CO_V63__ = true;
+  'use strict';
+  if (window.__CHECKOUT_FINAL__) return; window.__CHECKOUT_FINAL__ = true;
 
-  // ---- tiny DOM helpers
-  const $  = (s, r=document) => r.querySelector(s);
+  // ---------- DOM helpers
+  const $ = (s, r=document) => r.querySelector(s);
   const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
-  const on = (el, ev, fn, opt) => el && el.addEventListener(ev, fn, opt||false);
-  const show = el => { if (el) el.style.display = ''; };
-  const hide = el => { if (el) el.style.display = 'none'; };
-  const fmt  = n  => '$' + n.toFixed(2);
 
-  // ---- root & steps (support multiple selector styles)
-  const modal = $('#checkoutModal') || $('[data-co="modal"]') || $('.checkout-modal');
-  if (!modal) return;
+  // ---------- Elements
+  const modal = $('#checkoutModal');
+  const step1 = $('#coStep1');
+  const step2 = $('#coStep2');
+  const step3 = $('#coStep3');
+  const backLink = $('#coBackLink');
+  const closeX = $('#checkoutClose');
 
-  const step1 = $('#coStep1') || $('[data-step="1"]') || $('.co-step.step-1');
-  const step2 = $('#coStep2') || $('[data-step="2"]') || $('.co-step.step-2');
-  const step3 = $('#coStep3') || $('[data-step="3"]') || $('.co-step.step-3');
-  if (!step1 || !step2 || !step3) return;
-
-  // ---- nav buttons (ids, data-attrs, or class fallbacks)
-  const to2   = $('#coToStep2')  || $('[data-co="to-2"]')  || $('.to-step-2');
-  const to3   = $('#coToStep3')  || $('[data-co="to-3"]')  || $('.to-step-3');
-  const back1 = $('#coBackTo1')  || $('[data-co="back-1"]')|| $('.back-to-1');
-  const back2 = $('#coBackTo2')  || $('[data-co="back-2"]')|| $('.back-to-2');
-  const closeX= $('#checkoutClose') || $('[data-co="close"]') || $('.co-close');
-
-  // ---- payment area
-  const payWrap = $('#coPayWrap') || $('[data-co="pay-wrap"]') || $('.co-pay');
-
-  // ---- totals
-  const qtyMinus = $('#qtyMinus'), qtyPlus = $('#qtyPlus'), qtyOut = $('#qtyOut');
-  const msrpOut = $('#msrpOut'), saleOut = $('#saleOut'), freeOut = $('#freeOut');
-  const subOut  = $('#subtotalOut'), taxOut = $('#taxOut'), shipOut = $('#shipOut'), totalOut = $('#totalOut');
-
-  // ---- optional page CTAs to hide (don’t touch pointer-events)
-  const pageCTAs = $$('.cta-primary, .claim-cta, .hero-cta, .claim-free-bottles');
-
-  // ---- config
-  const CFG = {
-    MSRP: 90, SALE: 45, TAX: 0.00, SHIP: 0.00,
-    DISCOUNTS: { cashapp:0.10, crypto:0.15, card:0, paypal:0, venmo:0 },
-    AUTO_DISCOUNT: true
-  };
-
-  // ---- state
-  let qty = Math.max(1, parseInt(qtyOut?.textContent || '1', 10) || 1);
-  let discount = 0;
-  let chosenPay = null;
-
-  // ---- inject minimal CSS guard so steps render even if theme hides them
-  (function injectGuardCSS(){
-    const css = `
-      #checkoutModal [data-step], .co-step { display:none; }
-      #checkoutModal .co-force { display:block !important; visibility:visible !important; opacity:1 !important; }
-      #checkoutModal .co-overlay-kill { pointer-events:none !important; }
-      #checkoutModal[data-step="1"] #coStep1,
-      #checkoutModal[data-step="2"] #coStep2,
-      #checkoutModal[data-step="3"] #coStep3 { display:block; }
-    `;
-    const tag = document.createElement('style'); tag.textContent = css; document.head.appendChild(tag);
-  })();
-
-  // ---- FB Pixel (browser) de-duped (optional)
-  const FB = (function(){
-    const fired = new Map(), COOL=2000;
-    function k(n,d){ try{return n+':'+JSON.stringify(d||{})}catch(e){return n} }
-    function t(n,d){ try{ if(window.fbq) window.fbq('track',n,d||{});}catch(e){} }
-    function once(n,d){ const key=k(n,d), now=Date.now(), prev=fired.get(key)||0; if(now-prev<COOL) return; fired.set(key,now); t(n,d); }
-    on(document,'DOMContentLoaded', ()=>{
-      if (!/thank/i.test(location.pathname||'')) return;
-      const total=parseFloat(localStorage.getItem('co_total')||'0')||0;
-      const q = parseInt(localStorage.getItem('co_qty')||'1',10)||1;
-      once('Purchase',{value:total,currency:'USD',contents:[{id:'bottle',quantity:q}],num_items:q});
-    }, {once:true});
-    return { once };
-  })();
-
-  // ---- show/hide steps (explicit only) + force visible class
-  function showStepEl(el){
-    if (!el) return;
-    el.classList.add('co-force');     // beats display:none !important
-    el.style.display = 'block';
-    el.style.visibility = 'visible';
-    el.style.opacity = '1';
-  }
-  function hideStepEl(el){
-    if (!el) return;
-    el.classList.remove('co-force');
-    el.style.display = 'none';
+  if (!modal || !step1 || !step2 || !step3) {
+    console.warn('[checkout] Required nodes missing'); return;
   }
 
-  function step(n){
-    const arr = [step1, step2, step3];
-    arr.forEach((s,i)=> i===n ? showStepEl(s) : hideStepEl(s));
-    modal.dataset.step = String(n+1);
-    if (n === 1) unblockStep2(); // ensure CC iframes clickable when entering step 2
-  }
+  // Step 2 UI
+  const qtyInput = $('#coQty');
+  const qtyDec = step2.querySelector('.qty-dec');
+  const qtyInc = step2.querySelector('.qty-inc');
+  const pricePerEl = $('#pricePer');
+  const itemsEl = $('#coItems');
+  const merchEl = $('#coMerch');
+  const methodEl = $('#coMethod');
+  const taxEl = $('#coTax');
+  const shipEl = $('#coShip');
+  const totalEl = $('#coTotal');
 
-  function open(){
-    show(modal);
-    pageCTAs.forEach(el => el && (el.style.visibility='hidden'));
-    step(0);
-  }
-  function close(){
-    hide(modal);
-    pageCTAs.forEach(el => el && (el.style.visibility=''));
-  }
+  // Step 2 methods
+  const btnCard   = $('#pmCard');
+  const btnPayPal = $('#pmPayPal');
+  const btnVenmo  = $('#pmVenmo');
+  const btnCashApp= $('#pmCashApp');
+  const btnCrypto = $('#pmCrypto');
 
-  // ---- validation (minimal; won’t block you)
-  const validEmail = v => /\S+@\S+\.\S+/.test(v||'');
-  function ok1(){
-    const name  = step1.querySelector('[name="full_name"],[name="name"],input[autocomplete="name"]');
-    const email = step1.querySelector('[name="email"]');
-    return (!name || !!name.value.trim()) && (!email || validEmail(email.value));
-  }
-  function ok2(){
-    if (!payWrap) return true;
-    const chosen = payWrap.querySelector('input[name="payMethod"]:checked') ||
-                   payWrap.querySelector('[data-pay-selected="true"]');
-    return !!chosen || !payWrap.querySelector('input[name="payMethod"],[data-pay]');
-  }
+  // Step 3 panes
+  const cardPane  = $('#coCardPane');
+  const altPane   = $('#coAltPane');
+  const submitBtn = $('#coSubmit');
 
-  // ---- totals
-  function renderTotals(){
-    const paid = qty;
-    const msrp = CFG.MSRP * paid;
-    const base = CFG.SALE * paid;
-    const after = base * (1 - discount);
-    const tax = after * CFG.TAX;
-    const total = after + tax + CFG.SHIP;
+  // ---------- Pricing config
+  const MSRP = 90;          // crossed-out per bottle
+  const SALE = 45;          // sale per paid bottle
+  const TAX  = 0.00;        // tax rate (0.085 = 8.5%)
+  const SHIP = 0.00;        // shipping cost
+  const ALT_DISCOUNT = 0.15;// 15% off for alt methods (PayPal/Venmo/Cash App/Crypto)
 
-    if (qtyOut)   qtyOut.textContent   = String(qty);
-    if (freeOut)  freeOut.textContent  = String(paid);
-    if (msrpOut)  msrpOut.textContent  = fmt(msrp);
-    if (saleOut)  saleOut.textContent  = fmt(CFG.SALE) + '/bottle';
-    if (subOut)   subOut.textContent   = fmt(after);
-    if (taxOut)   taxOut.textContent   = fmt(tax);
-    if (shipOut)  shipOut.textContent  = fmt(CFG.SHIP);
-    if (totalOut) totalOut.textContent = fmt(total);
+  // ---------- State
+  let qty = clampInt((qtyInput && Number(qtyInput.value)) || 1, 1, 99);
+  let method = 'card'; // 'card' | 'paypal' | 'venmo' | 'cashapp' | 'crypto'
 
-    try{
-      localStorage.setItem('co_total', String(total.toFixed(2)));
-      localStorage.setItem('co_qty', String(qty));
-      localStorage.setItem('co_discount', String(discount));
-      localStorage.setItem('co_pay', chosenPay || '');
-    }catch(e){}
-  }
-  function setQty(n){
-    const next = Math.max(1, n|0);
-    if (next !== qty){ qty = next; renderTotals(); }
-  }
-  if (qtyMinus) on(qtyMinus, 'click', e=>{ e.preventDefault(); setQty(qty-1); });
-  if (qtyPlus)  on(qtyPlus,  'click', e=>{ e.preventDefault(); setQty(qty+1); });
+  // ---------- Utils
+  function clampInt(n, min, max){ n = Math.floor(Number(n)||0); if (n<min) n=min; if (n>max) n=max; return n; }
+  function money(n){ return '$' + (Number(n)||0).toFixed(2); }
+  function show(el){ if (el) { el.hidden = false; el.removeAttribute('aria-hidden'); el.style.display = ''; } }
+  function hide(el){ if (el) { el.hidden = true; el.setAttribute('aria-hidden','true'); el.style.display = 'none'; } }
 
-  // ---- payment selection (single + double-click; never toggles off)
-  function selectCard(card){
-    if (!card || !card.hasAttribute('data-pay')) return;
-    (payWrap?.querySelectorAll?.('[data-pay]')||[]).forEach(el=>el.removeAttribute('data-pay-selected'));
-    card.setAttribute('data-pay-selected','true');
-
-    chosenPay = card.getAttribute('data-pay') || null;
-
-    const r = card.querySelector('input[type="radio"][name="payMethod"]');
-    if (r && !r.checked){ r.checked = true; r.dispatchEvent(new Event('change', { bubbles:true })); }
-
-    if (CFG.AUTO_DISCOUNT){
-      const d = CFG.DISCOUNTS[chosenPay] || 0;
-      if (d !== discount){ discount = d; renderTotals(); }
+  function setModalOpen(open){
+    if (open){
+      modal.classList.add('show');
+      modal.style.display = 'grid';
+      document.documentElement.setAttribute('data-checkout-open','1');
+      document.body.style.overflow='hidden';
+    } else {
+      modal.classList.remove('show');
+      modal.style.display = 'none';
+      document.documentElement.removeAttribute('data-checkout-open');
+      document.body.style.overflow='';
     }
   }
-  function bindPayment(){
-    if (!payWrap) return;
-    const handler = e => {
-      const card = e.target.closest?.('[data-pay]');
-      if (card && payWrap.contains(card)) selectCard(card);
-    };
-    on(payWrap, 'click', handler);
-    on(payWrap, 'dblclick', handler);
 
-    payWrap.querySelectorAll('input[type="radio"][name="payMethod"]').forEach(r=>{
-      if (r.__coBound) return; r.__coBound = true;
-      r.addEventListener('change', ()=>{ const card=r.closest('[data-pay]'); if(card) selectCard(card); });
-    });
-
-    // Re-bind radios if DOM inside payWrap changes (themes sometimes redraw)
-    const mo = new MutationObserver(()=>{
-      payWrap.querySelectorAll('input[type="radio"][name="payMethod"]').forEach(r=>{
-        if (r.__coBound) return; r.__coBound = true;
-        r.addEventListener('change', ()=>{ const card=r.closest('[data-pay]'); if(card) selectCard(card); });
-      });
-    });
-    mo.observe(payWrap, { childList:true, subtree:true });
+  function setStep(n){
+    if (n === 1){ show(step1); hide(step2); hide(step3); }
+    else if (n === 2){ hide(step1); show(step2); hide(step3); }
+    else if (n === 3){ hide(step1); hide(step2); show(step3); }
+    modal.setAttribute('data-step', String(n));
+    // When entering Step 2 or back to it, make sure overlays don't block clicks
+    if (n === 2) unblockStep2();
+    // When entering Step 3 and using card, ensure Recurly mounts
+    if (n === 3) prepareStep3();
   }
 
-  // ---- kill overlays/guards INSIDE step 2 that block clicks (iframes/inputs)
   function unblockStep2(){
+    // Neutralize any overlay-like nodes that could block clicks
     const bad = /overlay|backdrop|guard|mask|scrim|shield|veil|cover|blocker|glass/i;
-    step2.querySelectorAll('*').forEach(el=>{
+    step2.querySelectorAll('*').forEach(el => {
       const cls = el.className ? String(el.className) : '';
       if (!bad.test(cls)) return;
       const cs = getComputedStyle(el);
       if ((cs.position === 'absolute' || cs.position === 'fixed') && cs.pointerEvents !== 'none') {
-        el.classList.add('co-overlay-kill');
         el.style.pointerEvents = 'none';
       }
     });
   }
 
-  // ---- openers (delegated; bubble phase; won’t block inputs)
-  document.addEventListener('click', (e)=>{
-    const opener = e.target.closest?.('.open-checkout');
-    if (!opener) return;
+  function setMethod(m){
+    method = m;
+    // Toggle selection styles
+    [btnCard, btnPayPal, btnVenmo, btnCashApp, btnCrypto].forEach(b=> b && b.classList.remove('is-selected'));
+    if (m === 'card') btnCard?.classList.add('is-selected');
+    else if (m === 'paypal') btnPayPal?.classList.add('is-selected');
+    else if (m === 'venmo') btnVenmo?.classList.add('is-selected');
+    else if (m === 'cashapp') btnCashApp?.classList.add('is-selected');
+    else if (m === 'crypto') btnCrypto?.classList.add('is-selected');
+    totals();
+  }
+
+  function totals(){
+    qty = clampInt(qtyInput ? qtyInput.value : qty, 1, 99);
+    const free = qty; // Buy X, Get X Free
+    const merch = SALE * qty;
+    const disc = (method === 'card') ? 0 : merch * ALT_DISCOUNT;
+    const taxable = Math.max(0, merch - disc);
+    const tax = taxable * TAX;
+    const total = taxable + tax + SHIP;
+
+    // Update UI
+    if (pricePerEl) pricePerEl.textContent = money(SALE);
+    if (itemsEl) itemsEl.textContent = `${qty + free} bottles (${qty} paid + ${free} free)`;
+    if (merchEl) merchEl.textContent = money(merch);
+    if (methodEl) methodEl.textContent = disc ? ('–' + money(disc)) : '$0.00';
+    if (taxEl) taxEl.textContent = money(tax);
+    if (shipEl) shipEl.textContent = SHIP ? money(SHIP) : 'FREE';
+    if (totalEl) totalEl.textContent = money(total);
+
+    try {
+      localStorage.setItem('co_total', String(total.toFixed(2)));
+      localStorage.setItem('co_qty', String(qty));
+      localStorage.setItem('co_method', method);
+    } catch(_) {}
+  }
+
+  function prepareStep3(){
+    // Choose pane
+    if (method === 'card'){
+      show(cardPane); hide(altPane);
+      // Mount Recurly Elements if available
+      try {
+        if (window.__recurlyBridge && typeof window.__recurlyBridge.mount === 'function') {
+          window.__recurlyBridge.mount();
+        } else if (window.RecurlyUI && typeof window.RecurlyUI.mount === 'function'){
+          window.RecurlyUI.mount();
+        }
+      } catch(e){ console.warn('[Recurly] mount error', e); }
+    } else {
+      hide(cardPane); show(altPane);
+      // Render method-specific instructions
+      if (altPane){
+        const map = {
+          paypal:  `<div class="alt-box"><h4>PayPal</h4><p>You’ll be redirected to PayPal to complete the purchase with a 15% discount applied.</p></div>`,
+          venmo:   `<div class="alt-box"><h4>Venmo</h4><p>Send payment to <strong>@YourHandle</strong> with your email in the note. 15% discount applies.</p></div>`,
+          cashapp: `<div class="alt-box"><h4>Cash App</h4><p>Send to <strong>$YourCashtag</strong>. Include your email in the note. 15% discount applies.</p></div>`,
+          crypto:  `<div class="alt-box"><h4>Crypto</h4><p>We accept BTC/ETH/USDC. You’ll receive a payment address after confirming your order. 15% discount applies.</p></div>`
+        };
+        altPane.innerHTML = map[method] || `<div class="alt-box"><p>Alternate payment selected.</p></div>`;
+      }
+    }
+  }
+
+  // ---------- Global functions (used by inline onclick in HTML)
+  window.checkoutOpen = function(){ setModalOpen(true); setStep(1); };
+  window.checkoutClose = function(){ setModalOpen(false); };
+  window.checkoutBack = function(){
+    if (!step2.hidden && step3.hidden) { setStep(1); return; }
+    if (!step3.hidden) { setStep(2); return; }
+    // else no-op
+  };
+  window.gotoStep2 = function(){
+    // Minimal validation
+    const get = n => (step1.querySelector(`[name='${n}']`)?.value || '').trim();
+    const required = ['name','email','phone','address','city','state','zip'];
+    let ok = true;
+    required.forEach(n => {
+      const input = step1.querySelector(`[name='${n}']`);
+      if (input && !input.value.trim()) { ok = false; input.style.borderColor = '#ff5a6e'; }
+      else if (input) input.style.borderColor = '';
+    });
+    if (!ok) { alert('Please fill in your contact & shipping details.'); return; }
+
+    setStep(2);
+    totals();
+  };
+  window.gotoStep3 = function(){
+    if (!method) method = 'card';
+    setStep(3);
+    prepareStep3();
+  };
+
+  // ---------- Bindings
+
+  // Payment selection (single AND double click, idempotent)
+  function bindPayment(){
+    const map = [
+      [btnCard, 'card'], [btnPayPal, 'paypal'], [btnVenmo, 'venmo'], [btnCashApp, 'cashapp'], [btnCrypto, 'crypto']
+    ];
+    const handler = (m) => (e)=>{ e.preventDefault(); setMethod(m); };
+    map.forEach(([btn,m])=>{
+      if (!btn) return;
+      btn.addEventListener('click', handler(m));
+      btn.addEventListener('dblclick', handler(m));
+    });
+  }
+
+  // Qty buttons
+  function bindQty(){
+    if (qtyDec) qtyDec.addEventListener('click', (e)=>{ e.preventDefault(); qty = clampInt(qty-1,1,99); if (qtyInput) qtyInput.value = qty; totals(); });
+    if (qtyInc) qtyInc.addEventListener('click', (e)=>{ e.preventDefault(); qty = clampInt(qty+1,1,99); if (qtyInput) qtyInput.value = qty; totals(); });
+    if (qtyInput) qtyInput.addEventListener('input', ()=>{ qty = clampInt(qtyInput.value,1,99); qtyInput.value = qty; totals(); });
+  }
+
+  // Submit purchase (card method via Recurly)
+  async function submitPurchase(e){
     e.preventDefault();
-    open();
-    FB.once('AddToCart', { content_name:'Claim Free Bottles CTA' });
-  });
+    if (method !== 'card'){
+      alert('For this demo build, only Card checkout is enabled here. Choose Card to complete with Recurly.');
+      return;
+    }
+    if (!window.__recurlyBridge || typeof window.__recurlyBridge.tokenize !== 'function'){
+      alert('Payment form not ready.'); return;
+    }
+    const getS1 = n => (step1.querySelector(`[name='${n}']`)?.value || '').trim();
+    const full = getS1('name'); const ix = full.lastIndexOf(' ');
+    const meta = {
+      first_name: ix>0 ? full.slice(0,ix) : full,
+      last_name:  ix>0 ? full.slice(ix+1) : '',
+      email: getS1('email'),
+      phone: getS1('phone')
+    };
+    try {
+      submitBtn.disabled = true;
+      const token = await window.__recurlyBridge.tokenize(meta);
+      const unit_amount = SALE; // per paid bottle
+      const body = JSON.stringify({ token: token?.id, qty, unit_amount });
+      const res  = await fetch('/api/payments/recurly/charge', {
+        method:'POST', headers:{'Content-Type':'application/json'}, body
+      });
+      const out = await res.json().catch(()=>({}));
+      if (!res.ok){ throw new Error(out?.error || out?.message || 'Charge failed'); }
 
-  // ---- nav (explicit; prevent accidental form submit)
-  if (to2)   on(to2,   'click', e=>{ e.preventDefault(); if (!ok1()) return alert('Enter a valid name + email.'); step(1); });
-  if (to3)   on(to3,   'click', e=>{ e.preventDefault(); if (!ok2()) return alert('Select a payment method.'); step(2); FB.once('AddPaymentInfo'); });
-  if (back1) on(back1, 'click', e=>{ e.preventDefault(); step(0); });
-  if (back2) on(back2, 'click', e=>{ e.preventDefault(); step(1); });
+      // Success → redirect
+      try {
+        localStorage.setItem('co_purchase', JSON.stringify({ qty, unit_amount, total: qty*unit_amount }));
+      } catch(_) {}
+      window.location.href = '/thank-you.html';
+    } catch(err){
+      console.error('[Checkout error]', err);
+      alert(err?.message || 'Payment failed');
+    } finally {
+      submitBtn.disabled = false;
+    }
+  }
 
-  if (closeX) on(closeX, 'click', e=>{ e.preventDefault(); close(); });
-
-  // ---- init
-  hide(modal);        // modal closed by default
-  step(0);            // internal state = step 1
-  renderTotals();
+  // Bindings
   bindPayment();
+  bindQty();
+  submitBtn && submitBtn.addEventListener('click', submitPurchase);
 
-  // Keep unblocking when step changes
-  const stepMo = new MutationObserver(()=>{ if (modal.dataset.step === '2') unblockStep2(); });
-  stepMo.observe(modal, { attributes:true, attributeFilter:['data-step'] });
+  // Initial paint
+  totals();
 
-  // Debug surface
-  window.CO = { open, close, step, setQty, setPay: s => {
-    const c = payWrap?.querySelector?.(`[data-pay="${s}"]`);
-    if (c) selectCard(c);
-  }};
+  // If some other script already opened the modal (data-checkout-open=1), honor it
+  if (document.documentElement.getAttribute('data-checkout-open') === '1'){
+    setModalOpen(true);
+    setStep(1);
+  }
 })();
