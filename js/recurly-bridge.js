@@ -18,6 +18,13 @@
 
   // Mount card fields
   function mount(){
+    try{
+      if (window.recurly && typeof window.recurly.configure==='function'){
+        var pk = (document.querySelector('meta[name="recurly-public-key"]')||{}).content;
+        if (pk) { try { window.recurly.configure(pk); } catch(e){ try{ window.recurly.configure({ publicKey: pk }); }catch(_){} } }
+      }
+    }catch(_){ }
+
     const c = findContainers();
     if (!c) return false;
     if (!window.recurly || !window.recurly.Elements) return false;
