@@ -249,9 +249,8 @@
       alert('Alternate methods (PayPal/Venmo/Cash App) show instructions only here. Choose Card or Crypto.'); 
       return;
     }
-    if (!window.__recurlyBridge || typeof window.__recurlyBridge.tokenize !== 'function'){
-      alert('Payment form not ready.'); return;
-    }
+    const tokenizer = (window.RecurlyUI && typeof window.RecurlyUI.tokenize==='function') ? window.RecurlyUI.tokenize : (window.__recurlyBridge && typeof window.__recurlyBridge.tokenize==='function' ? window.__recurlyBridge.tokenize : null);
+    if (!tokenizer){ alert('Payment form not ready.'); return; }
     const getS1 = n => (step1.querySelector(`[name='${n}']`)?.value || '').trim();
     const full = getS1('name'); const ix = full.lastIndexOf(' ');
     const meta = {
@@ -262,7 +261,7 @@
     };
     try {
       submitBtn.disabled = true;
-      const token = await window.__recurlyBridge.tokenize(meta);
+      const token = await tokenizer(meta);
       const unit_amount = SALE; // per paid bottle
       const body = JSON.stringify({ token: token?.id, qty, unit_amount });
       const res  = await fetch('/api/payments/recurly/charge', {
